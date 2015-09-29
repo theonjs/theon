@@ -1,0 +1,31 @@
+{
+  "name": "theon",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": "h2non/theon",
+  "author": "Tomas Aparicio",
+  "main": "./theon.js",
+  "keywords": [
+    "http",
+    "client"
+  ],
+  "ignore": [
+    "**/.*",
+    ".*",
+    "*.md",
+    "*.sh",
+    "bin",
+    "test",
+    "lib",
+    "examples",
+    "Makefile",
+    ".editorconfig",
+    ".gitignore",
+    ".travis.yml",
+    ".npmignore",
+    "package.json"
+  ],
+  "devDependencies": {
+    "zepto": "~1.1.6"
+  }
+}

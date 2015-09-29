@@ -1,0 +1,26 @@
+{
+  "name": "theon",
+  "version": "0.1.0",
+  "description": "Convenient HTTP API builder for this JavaScript",
+  "repository": "h2non/theon",
+  "author": "Tomas Aparicio",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 0.12"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --timeout 10000 --reporter spec --ui tdd test/*.js test/*/*.js test/*/*/*.js"
+  },
+  "keywords": [
+    "http",
+    "websocket",
+    "proxy"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "^3.0.0",
+    "fw": "^0.1.2",
+    "mocha": "^2.2.5",
+    "supertest": "^1.0.1"
+  }
+}
