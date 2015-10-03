@@ -1,26 +1,45 @@
 {
   "name": "theon",
   "version": "0.1.0",
-  "description": "Convenient HTTP API builder for this JavaScript",
+  "description": "Build powerful HTTP API clients in JavaScript",
   "repository": "h2non/theon",
   "author": "Tomas Aparicio",
   "license": "MIT",
+  "main": "./lib/theon",
   "engines": {
-    "node": ">= 0.12"
-  },
-  "scripts": {
-    "test": "./node_modules/.bin/mocha --timeout 10000 --reporter spec --ui tdd test/*.js test/*/*.js test/*/*/*.js"
+    "node": ">= 0.10"
   },
   "keywords": [
     "http",
-    "websocket",
-    "proxy"
+    "client",
+    "rest",
+    "restful",
+    "api",
+    "builder",
+    "composer",
+    "factory",
+    "dls",
+    "domain",
+    "specific"
   ],
-  "dependencies": {},
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --timeout 3000 --reporter spec --ui tdd test/*.js",
+    "browserify": "./node_modules/.bin/browserify --exports require --standalone theon --ignore request --entry ./lib/theon.js > ./theon.js",
+    "uglify": "./node_modules/.bin/uglifyjs theon.js --mangle --preamble \"/*! theon v${VERSION} - MIT license - https://github.com/h2non/theon */\" --source-map theon.min.js.map --source-map-url http://cdn.rawgit.com/h2non/theon.js/${VERSION}/theon.min.js.map > theon.min.js",
+    "browser": "npm run browserify && npm run uglify"
+  },
+  "dependencies": {
+    "lil-http": "^0.1.16",
+    "midware": "^0.1.6",
+    "request": "^2.64.0"
+  },
   "devDependencies": {
+    "browserify": "^11.2.0",
     "chai": "^3.0.0",
-    "fw": "^0.1.2",
     "mocha": "^2.2.5",
-    "supertest": "^1.0.1"
+    "nock": "^2.13.0",
+    "sinon": "^1.17.1",
+    "supertest": "^1.0.1",
+    "uglify-js": "^2.4.24"
   }
 }
