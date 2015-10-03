@@ -31,14 +31,14 @@ suite('theon', function () {
     collection
       .resource('get')
       .alias('find')
-      .verb('GET')
+      .method('GET')
       .use(function (req, ctx, next) {
         spy(req)
         next()
       })
 
     nock('http://localhost')
-      .get('/api/users')
+      .get('/api/users/123')
       .reply(200, [{
         id: '123',
         username: 'foo'
@@ -50,6 +50,7 @@ suite('theon', function () {
       .path('/123')
       .param('id', 123)
       .end(function (err, res) {
+        expect(err).to.be.empty
         expect(spy.calledThrice).to.be.true
         expect(res.statusCode).to.be.equal(200)
         expect(res.body[0].id).to.be.equal('123')

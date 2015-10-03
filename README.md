@@ -2,6 +2,8 @@
 
 Build powerful HTTP API clients in JavaScript.
 
+**This is much a work in progress**
+
 ## Features
 
 - Modular pluggable design
