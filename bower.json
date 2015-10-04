@@ -1,7 +1,7 @@
 {
   "name": "theon",
-  "version": "0.1.0",
-  "description": "Build powerful HTTP API clients in JavaScript",
+  "version": "0.1.0-beta.0",
+  "description": "Build domain-specific, powerful and expressive HTTP API clients in JavaScript",
   "license": "MIT",
   "repository": "h2non/theon",
   "author": "Tomas Aparicio",
@@ -17,7 +17,8 @@
     "factory",
     "dls",
     "domain",
-    "specific"
+    "specific",
+    "language"
   ],
   "ignore": [
     "**/.*",

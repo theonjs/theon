@@ -4,9 +4,9 @@
 [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 -->
 
-A powerful way to build domain-specific, extensible, fluent and expressive HTTP API clients in JavaScript.
+A powerful way to build domain-specific, extensible, powerful and expressive HTTP API clients in JavaScript.
 
-**This is much a work in progress: do not use it**.
+**This is much a work in progress**.
 
 ## Features
 

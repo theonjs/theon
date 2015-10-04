@@ -1,7 +1,7 @@
 {
   "name": "theon",
-  "version": "0.1.0",
-  "description": "Build powerful HTTP API clients in JavaScript",
+  "version": "0.1.0-beta.0",
+  "description": "Build domain-specific, powerful and expressive HTTP API clients in JavaScript",
   "repository": "h2non/theon",
   "author": "Tomas Aparicio",
   "license": "MIT",
@@ -20,7 +20,8 @@
     "factory",
     "dls",
     "domain",
-    "specific"
+    "specific",
+    "language"
   ],
   "scripts": {
     "test": "./node_modules/.bin/mocha --timeout 3000 --reporter spec --ui tdd test/*.js",
