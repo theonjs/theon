@@ -26,7 +26,10 @@
     "test": "./node_modules/.bin/mocha --timeout 3000 --reporter spec --ui tdd test/*.js",
     "browserify": "./node_modules/.bin/browserify --exports require --standalone theon --ignore request --entry ./lib/theon.js > ./theon.js",
     "uglify": "./node_modules/.bin/uglifyjs theon.js --mangle --preamble \"/*! theon v${VERSION} - MIT license - https://github.com/h2non/theon */\" --source-map theon.min.js.map --source-map-url http://cdn.rawgit.com/h2non/theon.js/${VERSION}/theon.min.js.map > theon.min.js",
-    "browser": "npm run browserify && npm run uglify"
+    "browser": "npm run browserify && npm run uglify",
+    "gzip": "gzip -c theon.min.js | wc -c",
+    "loc": "wc -l theon.js",
+    "stats": "npm run loc && npm run gzip"
   },
   "dependencies": {
     "lil-http": "^0.1.16",

@@ -1,101 +1,105 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.theon = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var mw = require('midware')
-var utils = require('./utils')
+module.exports = function (req, res, done) {
+  var client = require('lil-http')
+  return client(req, function (err, _res) {
+    done(err, responseAdapter(res, _res))
+  })
+}
+
+function responseAdapter(res, _res) {
+  // Expose the agent-specific response
+  res.setOriginalResponse(_res)
+
+  // Define recurrent HTTP fields
+  res.setStatus(_res.status)
+  res.setStatusText(_res.statusText)
+  res.setHeaders(_res.headers)
+
+  // Define body, if present
+  if (_res.data) res.setBody(_res.data)
+
+  return res
+}
+
+},{"lil-http":18}],2:[function(require,module,exports){
+var isBrowser = typeof window !== 'undefined'
+
+exports.browser = {
+  embed: require('./browser/lil')
+}
+
+exports.node = {
+  embed: require('./node/request')
+}
+
+var agents = isBrowser
+  ? exports.browser
+  : exports.node
+
+exports.get = function (name) {
+  return name
+    ? agents[name]
+    : agents.embed
+}
+
+exports.defaults = function () {
+  return exports.get()
+}
+
+exports.add = function (name, agent) {
+  agents[name] = agent
+}
+
+},{"./browser/lil":1,"./node/request":3}],3:[function(require,module,exports){
+module.exports = function (req, res, cb) {
+  var request = require('request')
+  req.json = true
+
+  return request(req, function (err, res, body) {
+    if (err) return cb(err, res)
+    if (body) res.body = body
+    cb(err, res)
+  })
+}
+
+},{"request":17}],4:[function(require,module,exports){
+var Request = require('./request')
 var Builder = require('./builder')
+var Context = require('./context')
 
 module.exports = Base
 
-function Base(ctx) {
-  this.ctx = ctx
-  this.httpAgent = null
-  this.httpAgentOpts = null
-
+function Base() {
   this.name = null
+  this.parent = null
+
+  this.aliases = []
   this.methods = []
   this.resources = []
   this.collections = []
 
-  this.opts = {}
-  this.params = {}
-  this.query = {}
-  this.headers = {}
-  this.cookies = {}
-
-  this.httpVerb = 'GET'
-  this.aliases = []
-
-  this.validators = {
-    request: mw(this),
-    response: mw(this)
-  }
-
-  this.mw = {
-    request: mw(this),
-    response: mw(this)
-  }
+  this.ctx = new Context
 }
+
+Base.prototype = Object.create(Request.prototype)
+
+/**
+ * Attach entities
+ */
 
 Base.prototype.alias = function (name) {
   this.aliases.push(name)
   return this
 }
 
-Base.prototype.basePath = function (path) {
-  this.opts.basePath = path
-  return this
-}
-
-Base.prototype.path = function (path) {
-  this.opts.path = path
-  return this
-}
-
-Base.prototype.options = function (opts) {
-  utils.merge(this.opts, opts)
-  return this
-}
-
-Base.prototype.param = function (name, value) {
-  this.params[name] = value
-  return this
-}
-
-Base.prototype.queryParam = function (name, value) {
-  this.query[name] = value
-  return this
-}
-
-Base.prototype.type = function (name) {
-  this.headers['content-type'] = name
-  return this
-}
-
-Base.prototype.header = function (name, value) {
-  this.headers[name] = value
-  return this
-}
-
-Base.prototype.setHeaders = function (headers) {
-  this.headers = headers
-  return this
-}
-
-Base.prototype.removeHeader = function (name) {
-  delete this.headers[name]
-  return this
-}
-
-/**
- * Attach entities
- */
-
 Base.prototype.collection = function (collection) {
   if (!(collection instanceof Base.Collection)) {
     collection = new Base.Collection(collection)
   }
 
-  collection.ctx = this
+  collection.useParent(this)
   this.collections.push(collection)
+
   return collection
 }
 
@@ -104,18 +108,415 @@ Base.prototype.resource = function (resource) {
     resource = new Base.Resource(resource)
   }
 
+  resource.useParent(this)
   this.resources.push(resource)
+
   return resource
 }
 
-Base.prototype.method = function (name, path) {
-  if (typeof name !== 'string')
-    throw new TypeError('method argument must be a string')
+Base.prototype.resource = function (resource) {
+  if (!(resource instanceof Base.Resource)) {
+    resource = new Base.Resource(resource)
+  }
 
-  var method = new Base.Method(name, path)
-  this.methods.push(method)
+  resource.useParent(this)
+  this.resources.push(resource)
 
-  return method
+  return resource
+}
+
+Base.prototype.render = function (client) {
+  return new Builder(client || this).render()
+}
+
+},{"./builder":5,"./context":6,"./request":12}],5:[function(require,module,exports){
+module.exports = Builder
+
+function Builder(client) {
+  this.parent = client
+  this.client = new Client(client)
+}
+
+Builder.prototype.render = function () {
+  var parent = this.parent
+
+  ;['collections', 'resources', 'methods'].forEach(function (kind) {
+    parent[kind].forEach(this.renderMembers, this)
+  }, this)
+
+  return this.client
+}
+
+Builder.prototype.renderMembers = function (entity) {
+  var client = this.client
+  var name = entity.name
+
+  if (!name)
+    throw new TypeError('Render error: missing entity name')
+
+  var names = [ name ].concat(entity.aliases)
+
+  names.forEach(function (name) {
+    if (client.hasOwnProperty(name))
+      throw new Error('Name conflict: "' + name + '" is already defined')
+
+    Object.defineProperty(client, name, {
+      enumerable: true,
+      configurable: false,
+      get: function () {
+        return entity.render()
+      },
+      set: function () {
+        throw new Error('Cannot override the property')
+      }
+    })
+  })
+}
+
+// to do: isolate
+function Client(client) {
+  this._client = client
+}
+
+Client.prototype._doRequest = function (method, args) {
+  // to do
+}
+
+;['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'TRACE', 'OPTIONS'].forEach(function (method) {
+  Client.prototype[method] = function () {
+    return this._doRequest(method, arguments)
+  }
+})
+
+},{}],6:[function(require,module,exports){
+var mw = require('midware')
+var utils = require('./utils')
+var agents = require('./agents')
+
+module.exports = Context
+
+function Context(ctx) {
+  this.body = null
+  this.parent = null
+
+  this.body = null
+  this.opts = {}
+  this.query = {}
+  this.params = {}
+  this.headers = {}
+  this.cookies = {}
+
+  this.agentOpts = null
+  this.agent = agents.defaults()
+
+  this.mw = {
+    request: mw(this),
+    response: mw(this)
+  }
+
+  this.validators = {
+    request: mw(this),
+    response: mw(this)
+  }
+
+  if (ctx) this.useParent(ctx)
+}
+
+Context.prototype.useParent = function (ctx) {
+  this.parent = ctx
+  this.setupMiddleware(ctx)
+}
+
+Context.prototype.setupMiddleware = function (parent) {
+  var self = this
+  ;['mw', 'validators'].forEach(function (key) {
+    ['request', 'response'].forEach(function (phase) {
+      self[key][phase](function () {
+        parent[key][phase].run.apply(self, arguments)
+      })
+    })
+  })
+}
+
+Context.prototype.get = function () {
+  var parent = {}
+  var opts = this.opts
+
+  if (this.parent) parent = this.parent.get()
+
+  var basePath = parent.basePath || ''
+  var data = utils.merge(parent, opts)
+  data.basePath = basePath + (opts.basePath || '')
+
+  data.headers = utils.merge(parent.headers, this.headers)
+  data.query = utils.merge(parent.query, this.query)
+  data.params = utils.merge(parent.params, this.params)
+  data.cookies = utils.merge(parent.cookies, this.cookies)
+  data.agentOpts = utils.merge(parent.httpAgentOpts, this.httpAgentOpts)
+
+  data.ctx = this
+
+  return data
+}
+
+},{"./agents":2,"./utils":16,"midware":19}],7:[function(require,module,exports){
+var Response = require('./response')
+var series = require('./utils').series
+
+module.exports = Dispatcher
+
+function Dispatcher(ctx) {
+  this.ctx = ctx
+}
+
+Dispatcher.prototype.run = function (cb) {
+  cb = cb || noop
+
+  var req = this.ctx.get()
+  var res = new Response(req)
+  req.url = buildUrl(req)
+
+  var phases = [
+    function before(next) {
+      this.before(req, res, next)
+    },
+    function dial(req, res, next) {
+      this.dial(req, res, next)
+    },
+    function after(req, res, next) {
+      this.after(req, res, next)
+    }
+  ]
+
+  function done(err, req, res) {
+    if (err === 'intercept') err = null
+    cb(err, res)
+  }
+
+  series(phases, done, this)
+}
+
+Dispatcher.prototype.runPhase = function (phase, req, res, next) {
+  var ctx = req.ctx
+
+  ctx.mw[phase].run(req, res, function (err, _res) {
+    if (err) return next(err, req, _res || res)
+
+    ctx.validators[phase].run(req, res, function (err, _res) {
+      next(err, req, _res || res)
+    })
+  })
+}
+
+Dispatcher.prototype.before = function (req, res, next) {
+  this.runPhase('request', req, res, next)
+}
+
+Dispatcher.prototype.after = function (req, res, next) {
+  this.runPhase('response', req, res, next)
+}
+
+Dispatcher.prototype.dial = function (req, res, next) {
+  req.ctx.agent(req, res, function (err, res) {
+    next(err, req, res)
+  })
+}
+
+// to do: isolate
+
+var PATH_REGEXP = new RegExp([
+  // Match escaped characters that would otherwise appear in future matches.
+  // This allows the user to escape special characters that won't transform.
+  '(\\\\.)',
+  // Match Express-style parameters and un-named parameters with a prefix
+  // and optional suffixes. Matches appear as:
+  //
+  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?", undefined]
+  // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined, undefined]
+  // "/*"            => ["/", undefined, undefined, undefined, undefined, "*"]
+  '([\\/.])?(?:(?:\\:(\\w+)(?:\\(((?:\\\\.|[^()])+)\\))?|\\(((?:\\\\.|[^()])+)\\))([+*?])?|(\\*))'
+].join('|'), 'g')
+
+function buildUrl(req) {
+  var path = (req.basePath || '') + (req.path || '')
+
+  while ((res = PATH_REGEXP.exec(path)) != null) {
+    var param = res[3]
+    if (param && !req.params[param]) {
+      throw new Error('Missing required path param: ' + param)
+    }
+    path = path.replace(':' + param, req.params[param])
+  }
+
+  return req.rootUrl + path
+}
+
+function noop() {}
+
+},{"./response":13,"./utils":16}],8:[function(require,module,exports){
+var Base = require('../base')
+
+module.exports = Client
+
+function Client(url) {
+  Base.call(this)
+  if (url) this.url(url)
+}
+
+Client.prototype = Object.create(Base.prototype)
+
+Client.prototype.entity = 'client'
+
+},{"../base":4}],9:[function(require,module,exports){
+var Base = require('../base')
+
+module.exports = Base.Collection = Collection
+
+function Collection(name) {
+  Base.call(this)
+  this.name = name
+}
+
+Collection.prototype = Object.create(Base.prototype)
+
+Collection.prototype.entity = 'collection'
+
+},{"../base":4}],10:[function(require,module,exports){
+module.exports = {
+  Client: require('./client'),
+  Resource: require('./resource'),
+  Collection: require('./collection')
+}
+
+},{"./client":8,"./collection":9,"./resource":11}],11:[function(require,module,exports){
+var Base = require('../base')
+var Request = require('../request')
+
+module.exports = Base.Resource = Resource
+
+function Resource(name) {
+  Base.call(this)
+  this.name = name
+}
+
+Resource.prototype = Object.create(Base.prototype)
+
+Resource.prototype.entity = 'resource'
+
+Resource.prototype.render = function () {
+  var ctx = this.ctx
+  var req = new Request(ctx)
+
+  return function (opts, cb) {
+    if (typeof opts === 'object')
+      req.options(opts)
+
+    if (typeof opts === 'function')
+      cb = opts
+
+    if (typeof cb === 'function')
+      return req.end(cb)
+
+    return req
+  }
+}
+
+},{"../base":4,"../request":12}],12:[function(require,module,exports){
+var types = require('./types')
+var Context = require('./context')
+var Dispatcher = require('./dispatcher')
+var merge = require('./utils').merge
+
+module.exports = Request
+
+function Request(ctx) {
+  this.parent = null
+  this.ctx = new Context(ctx)
+}
+
+Request.prototype.url = function (url) {
+  this.ctx.opts.rootUrl = url
+  return this
+}
+
+Request.prototype.basePath = function (path) {
+  this.ctx.opts.basePath = path
+  return this
+}
+
+Request.prototype.path = function (path) {
+  this.ctx.opts.path = path
+  return this
+}
+
+Request.prototype.method = function (name) {
+  this.ctx.opts.method = name
+  return this
+}
+
+Request.prototype.param = function (name, value) {
+  this.ctx.params[name] = value
+  return this
+}
+
+Request.prototype.params = function (params) {
+  merge(this.ctx.params, params)
+  return this
+}
+
+Request.prototype.unsetParam = function (name) {
+  delete this.ctx.params[name]
+  return this
+}
+
+Request.prototype.query = function (query) {
+  merge(this.ctx.query, query)
+  return this
+}
+
+Request.prototype.queryParam = function (name, value) {
+  this.ctx.query[name] = value
+  return this
+}
+
+Request.prototype.unsetQuery = function (name) {
+  delete this.ctx.query[name]
+  return this
+}
+
+Request.prototype.set = function (name, value) {
+  this.ctx.headers[name] = value
+  return this
+}
+
+Request.prototype.unset = function (name) {
+  delete this.ctx.headers[name]
+  return this
+}
+
+Request.prototype.headers = function (headers) {
+  merge(this.ctx.headers, headers)
+}
+
+Request.prototype.type = function (value) {
+  this.ctx.headers['content-type'] = types[value] || value
+  return this
+}
+
+Request.prototype.send =
+Request.prototype.body = function (body) {
+  this.ctx.body = body
+  return this
+}
+
+Request.prototype.cookie = function (name, value) {
+  this.ctx.cookies[name] = value
+  return this
+}
+
+Request.prototype.unsetCookie = function (name) {
+  delete this.ctx.cookies[name]
+  return this
 }
 
 /**
@@ -124,184 +525,195 @@ Base.prototype.method = function (name, path) {
  * @return {this}
  */
 
-Base.prototype.use =
-Base.prototype.useRequest = function (middleware) {
-  this.mw.request.push(middleware)
-}
-
-Base.prototype.useResponse = function (middleware) {
-  this.mw.response.push(middleware)
-}
-
-Base.prototype.validator =
-Base.prototype.requestValidator = function (validator) {
-  this.validators.request.push(validator)
+Request.prototype.use = function (middleware) {
+  this.ctx.mw.request(middleware)
   return this
 }
 
-Base.prototype.responseValidator = function (validator) {
-  this.validators.response.push(validator)
+Request.prototype.useResponse = function (middleware) {
+  this.ctx.mw.response(middleware)
   return this
 }
 
-Base.prototype.render = function () {
-  return new Builder(this).render()
+Request.prototype.validate =
+Request.prototype.validateRequest = function (middleware) {
+  this.ctx.validators.request(middleware)
+  return this
 }
 
-Base.prototype.agent = function (agent, opts) {
+Request.prototype.validateResponse = function (middleware) {
+  this.ctx.validators.response(middleware)
+  return this
+}
+
+Request.prototype.end = function (cb) {
+  return new Dispatcher(this.ctx).run(cb)
+}
+
+Request.prototype.agent = function (agent, opts) {
   if (typeof agent !== 'function')
     throw new TypeError('agent argument must be a function')
 
-  this.httpAgent = agent
-  if (opts) this.httpAgentOpts = opts
+  this.ctx.agent = agent
+  if (opts) this.ctx.agentOpts = opts
+
   return this
 }
 
-Base.prototype.agentOpts = function (opts) {
-  this.httpAgentOpts = opts
+Request.prototype.agentOpts = function (opts) {
+  this.ctx.agentOpts = opts
   return this
 }
 
-},{"./builder":2,"./utils":7,"midware":8}],2:[function(require,module,exports){
-module.exports = Builder
-
-function Builder(ctx) {
-  this.ctx = ctx
-  this.client = null
-}
-
-Builder.prototype.render = function () {
-  var ctx = this.ctx
-
-  function BaseClient(ctx) {
-    this.ctx = ctx
-  }
-
-  var proto = BaseClient.prototype
-
-  proto.doRequest = function (method, cb) {
-    var req = {
-      method: method,
-      headers: this.ctx.headers,
-      cookies: this.ctx.cookies,
-      query: this.ctx.query,
-      params: thix.ctx.params,
-      body: this.ctx.body
-    }
-
-    var ctx = this.ctx
-
-    ctx.validators.request.run(req, this.ctx, function (err) {
-      if (err) return cb(err)
-      runMiddleware(req, ctx)
-    })
-
-    function runMiddleware(ctx, req) {
-      ctx.mw.request
-    }
-  }
-
-  ;['get', 'post', 'put', 'patch', 'delete', 'head', 'options'].forEach(function (method) {
-    proto[method] = function () {
-      return this.doRequest(method)
-    }
-  })
-
-  ctx.collections.forEach(renderMembers)
-  ctx.resources.forEach(renderMembers)
-  ctx.methods.forEach(renderMembers)
-
-  function renderMembers(node) {
-    var name = node.name
-
-    if (!name)
-      throw new TypeError('Cannot render, missing name')
-    if (proto[name])
-      throw new Error('Name conflict: "' + name + '" is already in use')
-
-    Object.defineProperty(proto, name, {
-      get: function () {
-        return node.render()
-      },
-      enumerable: true,
-      configurable: true
-    })
-  }
-
-  return new BaseClient(ctx)
-}
-
-},{}],3:[function(require,module,exports){
-var mw = require('midware')
-var Base = require('./base')
-var Collection = require('./collection')
-
-module.exports = Client
-
-function Client(opts) {
-  Base.call(this, opts)
-}
-
-Client.prototype = Object.create(Base.prototype)
-
-},{"./base":1,"./collection":4,"midware":8}],4:[function(require,module,exports){
-var Base = require('./base')
-
-module.exports = Base.Collection = Collection
-
-function Collection(name) {
-  if (typeof name !== 'string')
-    throw new TypeError('collection name must be a string')
-
-  Base.call(this)
-  this.name = name
-}
-
-Collection.prototype = Object.create(Base.prototype)
-
-},{"./base":1}],5:[function(require,module,exports){
-var Base = require('./base')
-
-module.exports = Base.Resource = Resource
-
-function Resource(name) {
-  if (typeof name !== 'string')
-    throw new TypeError('resource name must be a string')
-
-  Base.call(this)
-  this.ctx = null
-  this.name = name
-  this.httpVerb = 'GET'
-}
-
-Resource.prototype = Object.create(Base.prototype)
-
-Resource.prototype.verb = function (name) {
-  this.httpVerb = name
+Request.prototype.options = function (opts) {
+  merge(this.ctx.opts, opts)
   return this
 }
 
-},{"./base":1}],6:[function(require,module,exports){
-var Client = require('./client')
+Request.prototype.useParent = function (parent) {
+  if (!(parent instanceof Request))
+    throw new TypeError('Parent context is not a valid argument')
 
+  this.parent = parent
+  this.ctx.useParent(parent.ctx)
+
+  return this
+}
+
+},{"./context":6,"./dispatcher":7,"./types":15,"./utils":16}],13:[function(require,module,exports){
+module.exports = Response
+
+function Response(req) {
+  this.req = req
+
+  this.orig =
+  this.body =
+  this.json =
+  this.type = null
+  this.headers = {}
+  this.typeParams = {}
+
+  this.status =
+  this.statusType =
+  this.statusCode = 0
+  this.statusText = ''
+}
+
+Response.prototype.setOriginalResponse = function (orig) {
+  this.orig = orig
+}
+
+Response.prototype.setBody = function (body) {
+  this.body = body
+  if (this.type === 'json') this.json = body
+}
+
+Response.prototype.get = function (name) {
+  return this.headers[name.toLowerCase()]
+}
+
+Response.prototype.setHeaders = function (headers) {
+  for (var key in headers) {
+    this.headers[key.toLowerCase()] = headers[key]
+  }
+
+  var ct = this.headers['content-type']
+  if (ct) this.setType(ct)
+}
+
+Response.prototype.setType = function (contentType) {
+  // content-type
+  var ct = contentType || ''
+  this.type = type(ct)
+
+  // params
+  var obj = params(ct)
+  for (var key in obj) this.typeParams[key] = obj[key]
+}
+
+Response.prototype.setStatus = function (status) {
+  if (status === 1223) status = 204
+
+  var type = status / 100 | 0
+
+  // status / class
+  this.statusType = type
+  this.status = this.statusCode = status
+
+  // basics
+  this.info = 1 == type
+  this.ok = 2 == type
+  this.clientError = 4 == type
+  this.serverError = 5 == type
+
+  this.error = (4 == type || 5 == type)
+    ? this.toError()
+    : false
+
+  // sugar
+  this.accepted = 202 == status
+  this.noContent = 204 == status
+  this.badRequest = 400 == status
+  this.unauthorized = 401 == status
+  this.notAcceptable = 406 == status
+  this.notFound = 404 == status
+  this.forbidden = 403 == status
+}
+
+Response.prototype.setStatusText = function (text) {
+  this.statusText = text
+}
+
+Response.prototype.toError = function () {
+  var req = this.req
+  var method = req.method
+  var url = req.url
+
+  var msg = 'cannot ' + method + ' ' + url + ' (' + this.status + ')'
+  var err = new Error(msg)
+  err.status = this.status
+  err.method = method
+  err.url = url
+
+  return err
+}
+
+function params(str) {
+  return str.split(/ *; */).reduce(function (obj, str) {
+    var parts = str.split(/ *= */)
+      , key = parts.shift()
+      , val = parts.shift()
+
+    if (key && val) obj[key] = val
+    return obj
+  }, {})
+}
+
+function type(str) {
+  return str.split(/ *; */).shift()
+}
+
+},{}],14:[function(require,module,exports){
 module.exports = theon
 
 /**
  * API factory
  */
 
-function theon(opts) {
-  return new Client(opts)
+function theon(url) {
+  return new theon.entities.Client(url)
 }
 
 /**
  * Export modules
  */
 
-theon.Base     = require('./base')
-theon.Client   = require('./client')
-theon.Client   = require('./client')
-theon.Resource = require('./resource')
+theon.Base       = require('./base')
+theon.Request    = require('./request')
+theon.Context    = require('./context')
+theon.Builder    = require('./builder')
+theon.entities   = require('./entities')
+theon.Dispatcher = require('./dispatcher')
 
 /**
  * Current version
@@ -309,33 +721,352 @@ theon.Resource = require('./resource')
 
 theon.VERSION = '0.1.0'
 
-},{"./base":1,"./client":3,"./resource":5}],7:[function(require,module,exports){
+},{"./base":4,"./builder":5,"./context":6,"./dispatcher":7,"./entities":10,"./request":12}],15:[function(require,module,exports){
+module.exports = {
+  html: 'text/html',
+  json: 'application/json',
+  xml: 'application/xml',
+  urlencoded: 'application/x-www-form-urlencoded',
+  'form': 'application/x-www-form-urlencoded',
+  'form-data': 'application/x-www-form-urlencoded'
+}
+
+},{}],16:[function(require,module,exports){
+var slicer = Array.prototype.slice
+
 exports.merge = function (x, y) {
+  x = x || {}
   for (var k in y) {
     x[k] = y[k]
   }
   return x
 }
 
-exports.eachSeries = function (arr, iterator, cb) {
+exports.series = function (arr, cb, ctx) {
   var stack = arr.slice()
-  var length = iterator.length
   cb = cb || function () {}
 
   function next(err) {
-    if (err) return cb(err)
+    if (err) return cb.apply(ctx, arguments)
 
-    var job = stack.shift()
-    if (!job) return cb()
+    var fn = stack.shift()
+    if (!fn) return cb.apply(ctx, arguments)
 
-    if (length > 1) iterator(job, next)
-    else next(iterator(job))
+    var args = slicer.call(arguments, 1)
+    fn.apply(ctx, args.concat(next))
   }
 
   next()
 }
 
-},{}],8:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
+
+},{}],18:[function(require,module,exports){
+/*! lil-http - v0.1.16 - MIT License - https://github.com/lil-js/http */
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define(['exports'], factory)
+  } else if (typeof exports === 'object') {
+    factory(exports)
+    if (typeof module === 'object' && module !== null) {
+      module.exports = exports = exports.http
+    }
+  } else {
+    factory((root.lil = root.lil || {}))
+  }
+}(this, function (exports) {
+  'use strict'
+
+  var VERSION = '0.1.16'
+  var toStr = Object.prototype.toString
+  var slicer = Array.prototype.slice
+  var hasOwn = Object.prototype.hasOwnProperty
+  var hasBind = typeof Function.prototype.bind === 'function'
+  var origin = location.origin
+  var originRegex = /^(http[s]?:\/\/[a-z0-9\-\.\:]+)[\/]?/i
+  var jsonMimeRegex = /application\/json/
+  var hasDomainRequest = typeof XDomainRequest !== 'undefined'
+  var noop = function () {}
+
+  var defaults = {
+    method: 'GET',
+    timeout: 30 * 1000,
+    auth: null,
+    data: null,
+    headers: null,
+    withCredentials: false,
+    responseType: 'text'
+  }
+
+  function isObj(o) {
+    return o && toStr.call(o) === '[object Object]' || false
+  }
+
+  function assign(target) {
+    var i, l, x, cur, args = slicer.call(arguments).slice(1)
+    for (i = 0, l = args.length; i < l; i += 1) {
+      cur = args[i]
+      for (x in cur) if (hasOwn.call(cur, x)) target[x] = cur[x]
+    }
+    return target
+  }
+
+  function once(fn) {
+    var called = false
+    return function () {
+      if (called === false) {
+        called = true
+        fn.apply(null, arguments)
+      }
+    }
+  }
+
+  function setHeaders(xhr, headers) {
+    if (isObj(headers)) {
+      headers['Content-Type'] = headers['Content-Type'] || http.defaultContent
+      for (var field in headers) if (hasOwn.call(headers, field)) {
+        xhr.setRequestHeader(field, headers[field])
+      }
+    }
+  }
+
+  function getHeaders(xhr) {
+    var headers = {}, rawHeaders = xhr.getAllResponseHeaders().trim().split('\n')
+    rawHeaders.forEach(function (header) {
+      var split = header.trim().split(':')
+      var key = split.shift().trim()
+      var value = split.join(':').trim()
+      headers[key] = value
+    })
+    return headers
+  }
+
+  function isJSONResponse(xhr) {
+    return jsonMimeRegex.test(xhr.getResponseHeader('Content-Type'))
+  }
+
+  function encodeParams(params) {
+    return Object.getOwnPropertyNames(params).filter(function (name) {
+      return params[name] !== undefined
+    }).map(function (name) {
+      var value = (params[name] === null) ? '' : params[name]
+      return encodeURIComponent(name) + (value ? '=' + encodeURIComponent(value) : '')
+    }).join('&').replace(/%20/g, '+')
+  }
+
+  function parseData(xhr) {
+    var data = null
+    if (xhr.responseType === 'text') {
+      data = xhr.responseText
+      if (isJSONResponse(xhr) && data) data = JSON.parse(data)
+    } else {
+      data = xhr.response
+    }
+    return data
+  }
+
+  function getStatus(status) {
+    return status === 1223 ? 204 : status // IE9 fix
+  }
+
+  function buildResponse(xhr) {
+    var response = {
+      xhr: xhr,
+      status: getStatus(xhr.status),
+      statusText: xhr.statusText,
+      data: null,
+      headers: {}
+    }
+    if (xhr.readyState === 4) {
+      response.data = parseData(xhr)
+      response.headers = getHeaders(xhr)
+    }
+    return response
+  }
+
+  function buildErrorResponse(xhr, error) {
+    var response = buildResponse(xhr)
+    response.error = error
+    if (error.stack) response.stack = error.stack
+    return response
+  }
+
+  function cleanReferences(xhr) {
+    xhr.onreadystatechange = xhr.onerror = xhr.ontimeout = null
+  }
+
+  function isValidResponseStatus(xhr) {
+    var status = getStatus(xhr.status)
+    return status >= 200 && status < 300 || status === 304
+  }
+
+  function onError(xhr, cb) {
+    return once(function (err) {
+      cb(buildErrorResponse(xhr, err), null)
+    })
+  }
+
+  function onLoad(config, xhr, cb) {
+    return function (ev) {
+      if (xhr.readyState === 4) {
+        cleanReferences(xhr)
+        if (isValidResponseStatus(xhr)) {
+          cb(null, buildResponse(xhr))
+        } else {
+          onError(xhr, cb)(ev)
+        }
+      }
+    }
+  }
+
+  function isCrossOrigin(url) {
+    var match = url.match(originRegex)
+    return match && match[1] === origin
+  }
+
+  function getURL(config) {
+    var url = config.url
+    if (isObj(config.params)) {
+      url += (url.indexOf('?') === -1 ? '?' : '&') + encodeParams(config.params)
+    }
+    return url
+  }
+
+  function XHRFactory(url) {
+    if (hasDomainRequest && isCrossOrigin(url)) {
+      return new XDomainRequest()
+    } else {
+      return new XMLHttpRequest()
+    }
+  }
+
+  function createClient(config) {
+    var method = (config.method || 'GET').toUpperCase()
+    var auth = config.auth
+    var url = getURL(config)
+
+    var xhr = XHRFactory(url)
+    if (auth) {
+      xhr.open(method, url, true, auth.user, auth.password)
+    } else {
+      xhr.open(method, url)
+    }
+    xhr.withCredentials = config.withCredentials
+    xhr.responseType = config.responseType
+    xhr.timeout = config.timeout
+    setHeaders(xhr, config.headers)
+    return xhr
+  }
+
+  function updateProgress(xhr, cb) {
+    return function (ev) {
+      if (ev.lengthComputable) {
+        cb(ev, ev.loaded / ev.total)
+      } else {
+        cb(ev)
+      }
+    }
+  }
+
+  function hasContentTypeHeader(config) {
+    return config && isObj(config.headers)
+      && (config.headers['content-type'] || config.headers['Content-Type'])
+      || false
+  }
+
+  function buildPayload(xhr, config) {
+    var data = config.data
+    if (isObj(config.data) || Array.isArray(config.data)) {
+      if (hasContentTypeHeader(config) === false) {
+        xhr.setRequestHeader('Content-Type', 'application/json')
+      }
+      data = JSON.stringify(config.data)
+    }
+    return data
+  }
+
+  function timeoutResolver(cb, timeoutId) {
+    return function () {
+      clearTimeout(timeoutId)
+      cb.apply(null, arguments)
+    }
+  }
+
+  function request(config, cb, progress) {
+    var xhr = createClient(config)
+    var data = buildPayload(xhr, config)
+    var errorHandler = onError(xhr, cb)
+
+    if (hasBind) {
+      xhr.ontimeout = errorHandler
+    } else {
+      var timeoutId = setTimeout(function abort() {
+        if (xhr.readyState !== 4) {
+          xhr.abort()
+        }
+      }, config.timeout)
+      cb = timeoutResolver(cb, timeoutId)
+      errorHandler = onError(xhr, cb)
+    }
+
+    xhr.onreadystatechange = onLoad(config, xhr, cb)
+    xhr.onerror = errorHandler
+    if (typeof progress === 'function') {
+      xhr.onprogress = updateProgress(xhr, progress)
+    }
+
+    try {
+      xhr.send(data || null)
+    } catch (e) {
+      errorHandler(e)
+    }
+
+    return { xhr: xhr, config: config }
+  }
+
+  function requestFactory(method) {
+    return function (url, options, cb, progress) {
+      var i, l, cur = null
+      var config = assign({}, defaults, { method: method })
+      var args = slicer.call(arguments)
+
+      for (i = 0, l = args.length; i < l; i += 1) {
+        cur = args[i]
+        if (typeof cur === 'function') {
+          if (args.length === (i + 1) && typeof args[i - 1] === 'function') {
+            progress = cur
+          } else {
+            cb = cur
+          }
+        } else if (isObj(cur)) {
+          assign(config, cur)
+        } else if (typeof cur === 'string' && !config.url) {
+          config.url = cur
+        }
+      }
+
+      return request(config, cb || noop, progress)
+    }
+  }
+
+  function http(config, data, cb, progress) {
+    return requestFactory('GET').apply(null, arguments)
+  }
+
+  http.VERSION = VERSION
+  http.defaults = defaults
+  http.defaultContent = 'text/plain'
+  http.get = requestFactory('GET')
+  http.post = requestFactory('POST')
+  http.put = requestFactory('PUT')
+  http.patch = requestFactory('PATCH')
+  http.head = requestFactory('HEAD')
+  http.delete = http.del = requestFactory('DELETE')
+
+  return exports.http = http
+}))
+
+},{}],19:[function(require,module,exports){
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define(['exports'], factory)
@@ -350,22 +1081,18 @@ exports.eachSeries = function (arr, iterator, cb) {
 }(this, function (exports) {
   'use strict'
 
-  var slice = Array.prototype.slice
-  midware.VERSION = '0.1.6'
-
   function midware(ctx) {
     var calls = use.stack = []
     ctx = ctx || null
        
     function use() {
-      var args = toArray(arguments)
-
-      args.forEach(function (fn) {
-        if (typeof fn === 'function') {
-          calls.push(fn)
-        }
+      toArray(arguments)
+      .filter(function (fn) {
+        return typeof fn === 'function'
       })
-
+      .forEach(function (fn) {
+        calls.push(fn)
+      })
       return ctx
     }
 
@@ -384,25 +1111,21 @@ exports.eachSeries = function (arr, iterator, cb) {
       var stack = calls.slice()
       args.push(next)
       
-      function exec() {
+      function runNext() {
         var fn = stack.shift()
-        try {
-          fn.apply(ctx, args)
-        } catch (e) {
-          next(e)
-        }
+        fn.apply(ctx, args)
       }
 
       function next(err, end) {
         if (err || end || !stack.length) {
           stack = null
-          if (done) { done.call(ctx, err, end) }
-          return
+          if (done) done.call(ctx, err, end)
+        } else {
+          runNext()
         }
-        exec()
       }
 
-      exec()
+      runNext()
     }
 
     use.remove = function (name) {
@@ -415,7 +1138,6 @@ exports.eachSeries = function (arr, iterator, cb) {
       }
     }
 
-        
     use.flush = function () {
       calls.splice(0)
     }
@@ -430,9 +1152,10 @@ exports.eachSeries = function (arr, iterator, cb) {
     }
     return args
   }
-
+  
+  midware.VERSION = '0.1.7'
   exports.midware = midware
 }))
 
-},{}]},{},[6])(6)
+},{}]},{},[14])(14)
 });

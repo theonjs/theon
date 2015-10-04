@@ -1,0 +1,54 @@
+<html>
+<head>
+  <script src="../theon.js"></script>
+  <script>
+    var client = theon('http://httpbin.org')
+      .basePath('/')
+      .set('Version', '1.0')
+      .use(function (req, res, next) {
+        // Global HTTP middleware
+        next()
+      })
+
+    // Attach a new collection
+    var collection = client
+      .collection('ip')
+      .basePath('/ip')
+      .use(function (req, res, next) {
+        // Collection specific HTTP middleware
+        next()
+      })
+
+    // Attach a new resource to that collection
+    collection
+      .resource('get')
+      .alias('resolve')
+      .method('GET')
+      .use(function (req, res, next) {
+        // Resource specific middleware
+        next()
+      })
+
+    // Render the API client:
+    // the public interface you must expose for your API consumers
+    var myclient = client.render()
+
+    // And use it
+    myclient
+      .ip
+      .get()
+      .param('id', 123)
+      .type('json')
+      .use(function (req, res, next) {
+        // Request phase specific middleware
+        next()
+      })
+      .param('id', 123)
+      .end(function (err, res) {
+        console.log('Response:', res.statusCode)
+        console.log('Headers:', res.headers)
+        console.log('Body:', res.body)
+      })
+  </script>
+</head>
+</html>

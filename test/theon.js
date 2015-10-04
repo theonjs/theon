@@ -7,14 +7,29 @@ suite('theon', function () {
   test('api', function () {
     expect(theon).to.be.a('function')
     expect(theon.Base).to.be.a('function')
+    expect(theon.Builder).to.be.a('function')
+    expect(theon.Context).to.be.a('function')
+    expect(theon.Dispatcher).to.be.a('function')
+    expect(theon.entities.Client).to.be.a('function')
+    expect(theon.entities.Resource).to.be.a('function')
+    expect(theon.entities.Collection).to.be.a('function')
     expect(theon.VERSION).to.be.a('string')
   })
 
   test('client', function (done) {
     var spy = sinon.spy()
 
+    nock('http://localhost')
+      .get('/api/users/123')
+      .matchHeader('Version', '1.0')
+      .reply(200, [{
+        id: '123',
+        username: 'foo'
+      }])
+
     var client = theon('http://localhost')
       .basePath('/api')
+      .set('Version', '1.0')
       .use(function (req, ctx, next) {
         spy(req)
         next()
@@ -37,13 +52,6 @@ suite('theon', function () {
         spy(req)
         next()
       })
-
-    nock('http://localhost')
-      .get('/api/users/123')
-      .reply(200, [{
-        id: '123',
-        username: 'foo'
-      }])
 
     client.render()
       .users
