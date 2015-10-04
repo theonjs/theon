@@ -21,7 +21,7 @@ function responseAdapter(res, _res) {
   return res
 }
 
-},{"lil-http":20}],2:[function(require,module,exports){
+},{"lil-http":21}],2:[function(require,module,exports){
 var isBrowser = typeof window !== 'undefined'
 
 exports.browser = {
@@ -62,75 +62,10 @@ module.exports = function (req, res, cb) {
   })
 }
 
-},{"request":19}],4:[function(require,module,exports){
-var Request = require('./request')
-var Builder = require('./builder')
-var Context = require('./context')
-
-module.exports = Base
-
-function Base() {
-  this.name = null
-  this.parent = null
-
-  this.aliases = []
-  this.methods = []
-  this.resources = []
-  this.collections = []
-
-  this.ctx = new Context
-}
-
-Base.prototype = Object.create(Request.prototype)
-
-/**
- * Attach entities
- */
-
-Base.prototype.alias = function (name) {
-  this.aliases.push(name)
-  return this
-}
-
-Base.prototype.collection = function (collection) {
-  if (!(collection instanceof Base.Collection)) {
-    collection = new Base.Collection(collection)
-  }
-
-  collection.useParent(this)
-  this.collections.push(collection)
-
-  return collection
-}
-
-Base.prototype.resource = function (resource) {
-  if (!(resource instanceof Base.Resource)) {
-    resource = new Base.Resource(resource)
-  }
-
-  resource.useParent(this)
-  this.resources.push(resource)
-
-  return resource
-}
-
-Base.prototype.resource = function (resource) {
-  if (!(resource instanceof Base.Resource)) {
-    resource = new Base.Resource(resource)
-  }
-
-  resource.useParent(this)
-  this.resources.push(resource)
-
-  return resource
-}
-
-Base.prototype.render = function (client) {
-  return new Builder(client || this).render()
-}
-
-},{"./builder":5,"./context":6,"./request":12}],5:[function(require,module,exports){
+},{"request":20}],4:[function(require,module,exports){
 module.exports = Builder
+
+var entities = ['collections', 'resources']
 
 function Builder(client) {
   this.parent = client
@@ -140,7 +75,7 @@ function Builder(client) {
 Builder.prototype.render = function () {
   var parent = this.parent
 
-  ;['collections', 'resources', 'methods'].forEach(function (kind) {
+  entities.forEach(function (kind) {
     parent[kind].forEach(this.renderMembers, this)
   }, this)
 
@@ -188,7 +123,7 @@ Client.prototype._doRequest = function (method, args) {
   }
 })
 
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var mw = require('midware')
 var utils = require('./utils')
 var agents = require('./agents')
@@ -252,14 +187,22 @@ Context.prototype.get = function () {
   data.query = utils.merge(parent.query, this.query)
   data.params = utils.merge(parent.params, this.params)
   data.cookies = utils.merge(parent.cookies, this.cookies)
-  data.agentOpts = utils.merge(parent.httpAgentOpts, this.httpAgentOpts)
+  data.agentOpts = utils.merge(parent.agentOpts, this.agentOpts)
 
   data.ctx = this
 
   return data
 }
 
-},{"./agents":2,"./utils":16,"midware":21}],7:[function(require,module,exports){
+Context.prototype.buildUrl = function (ctx) {
+  var params = ctx.params
+  var head = ctx.basePath || ''
+  var tail = ctx.path || ''
+  var path = utils.pathParams(head + tail, params)
+  return ctx.rootUrl + path
+}
+
+},{"./agents":2,"./utils":16,"midware":22}],6:[function(require,module,exports){
 var Response = require('./response')
 var series = require('./utils').series
 
@@ -274,7 +217,6 @@ Dispatcher.prototype.run = function (cb) {
 
   var req = this.ctx.get()
   var res = new Response(req)
-  req.url = buildUrl(req)
 
   var phases = [
     function before(next) {
@@ -317,44 +259,85 @@ Dispatcher.prototype.after = function (req, res, next) {
 }
 
 Dispatcher.prototype.dial = function (req, res, next) {
+  // Build full URL
+  req.url = req.ctx.buildUrl(req)
+
   req.ctx.agent(req, res, function (err, res) {
     next(err, req, res)
   })
 }
 
-// to do: isolate
-
-var PATH_REGEXP = new RegExp([
-  // Match escaped characters that would otherwise appear in future matches.
-  // This allows the user to escape special characters that won't transform.
-  '(\\\\.)',
-  // Match Express-style parameters and un-named parameters with a prefix
-  // and optional suffixes. Matches appear as:
-  //
-  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?", undefined]
-  // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined, undefined]
-  // "/*"            => ["/", undefined, undefined, undefined, undefined, "*"]
-  '([\\/.])?(?:(?:\\:(\\w+)(?:\\(((?:\\\\.|[^()])+)\\))?|\\(((?:\\\\.|[^()])+)\\))([+*?])?|(\\*))'
-].join('|'), 'g')
-
-function buildUrl(req) {
-  var path = (req.basePath || '') + (req.path || '')
-
-  while ((res = PATH_REGEXP.exec(path)) != null) {
-    var param = res[3]
-    if (param && !req.params[param]) {
-      throw new Error('Missing required path param: ' + param)
-    }
-    path = path.replace(':' + param, req.params[param])
-  }
-
-  return req.rootUrl + path
-}
-
 function noop() {}
 
-},{"./response":13,"./utils":16}],8:[function(require,module,exports){
-var Base = require('../base')
+},{"./response":13,"./utils":16}],7:[function(require,module,exports){
+var Request = require('../request')
+var Builder = require('../builder')
+var Context = require('../context')
+
+module.exports = Base
+
+function Base() {
+  this.name = null
+  this.parent = null
+
+  this.aliases = []
+  this.methods = []
+  this.resources = []
+  this.collections = []
+
+  this.ctx = new Context
+}
+
+Base.prototype = Object.create(Request.prototype)
+
+/**
+ * Attach entities
+ */
+
+Base.prototype.alias = function (name) {
+  this.aliases.push(name)
+  return this
+}
+
+Base.prototype.collection = function (collection) {
+  if (!(collection instanceof Base.Collection)) {
+    collection = new Base.Collection(collection)
+  }
+
+  collection.useParent(this)
+  this.collections.push(collection)
+
+  return collection
+}
+
+Base.prototype.resource = function (resource) {
+  if (!(resource instanceof Base.Resource)) {
+    resource = new Base.Resource(resource)
+  }
+
+  resource.useParent(this)
+  this.resources.push(resource)
+
+  return resource
+}
+
+Base.prototype.resource = function (resource) {
+  if (!(resource instanceof Base.Resource)) {
+    resource = new Base.Resource(resource)
+  }
+
+  resource.useParent(this)
+  this.resources.push(resource)
+
+  return resource
+}
+
+Base.prototype.render = function (client) {
+  return new Builder(client || this).render()
+}
+
+},{"../builder":4,"../context":5,"../request":12}],8:[function(require,module,exports){
+var Base = require('./base')
 
 module.exports = Client
 
@@ -367,8 +350,8 @@ Client.prototype = Object.create(Base.prototype)
 
 Client.prototype.entity = 'client'
 
-},{"../base":4}],9:[function(require,module,exports){
-var Base = require('../base')
+},{"./base":7}],9:[function(require,module,exports){
+var Base = require('./base')
 
 module.exports = Base.Collection = Collection
 
@@ -381,15 +364,16 @@ Collection.prototype = Object.create(Base.prototype)
 
 Collection.prototype.entity = 'collection'
 
-},{"../base":4}],10:[function(require,module,exports){
+},{"./base":7}],10:[function(require,module,exports){
 module.exports = {
+  Base: require('./base'),
   Client: require('./client'),
   Resource: require('./resource'),
   Collection: require('./collection')
 }
 
-},{"./client":8,"./collection":9,"./resource":11}],11:[function(require,module,exports){
-var Base = require('../base')
+},{"./base":7,"./client":8,"./collection":9,"./resource":11}],11:[function(require,module,exports){
+var Base = require('./base')
 var Request = require('../request')
 
 module.exports = Base.Resource = Resource
@@ -421,7 +405,7 @@ Resource.prototype.render = function () {
   }
 }
 
-},{"../base":4,"../request":12}],12:[function(require,module,exports){
+},{"../request":12,"./base":7}],12:[function(require,module,exports){
 var types = require('./types')
 var Context = require('./context')
 var Dispatcher = require('./dispatcher')
@@ -580,7 +564,7 @@ Request.prototype.useParent = function (parent) {
   return this
 }
 
-},{"./context":6,"./dispatcher":7,"./types":15,"./utils":16}],13:[function(require,module,exports){
+},{"./context":5,"./dispatcher":6,"./types":15,"./utils":16}],13:[function(require,module,exports){
 module.exports = Response
 
 function Response(req) {
@@ -590,6 +574,7 @@ function Response(req) {
   this.body =
   this.json =
   this.type = null
+
   this.headers = {}
   this.typeParams = {}
 
@@ -681,9 +666,8 @@ Response.prototype.toError = function () {
 function params(str) {
   return str.split(/ *; */).reduce(function (obj, str) {
     var parts = str.split(/ *= */)
-      , key = parts.shift()
-      , val = parts.shift()
-
+    var key = parts.shift()
+    var val = parts.shift()
     if (key && val) obj[key] = val
     return obj
   }, {})
@@ -708,7 +692,6 @@ function theon(url) {
  * Export modules
  */
 
-theon.Base       = require('./base')
 theon.Request    = require('./request')
 theon.Context    = require('./context')
 theon.Builder    = require('./builder')
@@ -721,7 +704,7 @@ theon.Dispatcher = require('./dispatcher')
 
 theon.VERSION = '0.1.0'
 
-},{"./base":4,"./builder":5,"./context":6,"./dispatcher":7,"./entities":10,"./request":12}],15:[function(require,module,exports){
+},{"./builder":4,"./context":5,"./dispatcher":6,"./entities":10,"./request":12}],15:[function(require,module,exports){
 module.exports = {
   html: 'text/html',
   json: 'application/json',
@@ -734,10 +717,11 @@ module.exports = {
 },{}],16:[function(require,module,exports){
 module.exports = {
   merge: require('./merge'),
-  series: require('./series')
+  series: require('./series'),
+  pathParams: require('./path-params')
 }
 
-},{"./merge":17,"./series":18}],17:[function(require,module,exports){
+},{"./merge":17,"./path-params":18,"./series":19}],17:[function(require,module,exports){
 module.exports = function merge(x, y) {
   x = x || {}
   for (var k in y) {
@@ -747,6 +731,34 @@ module.exports = function merge(x, y) {
 }
 
 },{}],18:[function(require,module,exports){
+var PATH_REGEXP = new RegExp([
+  // Match escaped characters that would otherwise appear in future matches.
+  // This allows the user to escape special characters that won't transform.
+  '(\\\\.)',
+  // Match Express-style parameters and un-named parameters with a prefix
+  // and optional suffixes. Matches appear as:
+  //
+  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?", undefined]
+  // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined, undefined]
+  // "/*"            => ["/", undefined, undefined, undefined, undefined, "*"]
+  '([\\/.])?(?:(?:\\:(\\w+)(?:\\(((?:\\\\.|[^()])+)\\))?|\\(((?:\\\\.|[^()])+)\\))([+*?])?|(\\*))'
+].join('|'), 'g')
+
+module.exports = function (path, params) {
+  var buf = null
+
+  while ((buf = PATH_REGEXP.exec(path)) != null) {
+    var param = buf[3]
+    if (param && !params[param]) {
+      throw new Error('Missing path param: ' + param)
+    }
+    path = path.replace(':' + param, params[param])
+  }
+
+  return path
+}
+
+},{}],19:[function(require,module,exports){
 var slicer = Array.prototype.slice
 
 module.exports = function series(arr, cb, ctx) {
@@ -766,9 +778,9 @@ module.exports = function series(arr, cb, ctx) {
   next()
 }
 
-},{}],19:[function(require,module,exports){
-
 },{}],20:[function(require,module,exports){
+
+},{}],21:[function(require,module,exports){
 /*! lil-http - v0.1.16 - MIT License - https://github.com/lil-js/http */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -1073,7 +1085,7 @@ module.exports = function series(arr, cb, ctx) {
   return exports.http = http
 }))
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define(['exports'], factory)
