@@ -31,6 +31,7 @@ suite('theon', function () {
     collection
       .resource('get')
       .alias('find')
+      .path('/:id')
       .method('GET')
       .use(function (req, ctx, next) {
         spy(req)
@@ -47,11 +48,16 @@ suite('theon', function () {
     client.render()
       .users
       .get()
-      .path('/123')
+      .param('id', 123)
+      .type('json')
+      .use(function (req, res, next) {
+        spy(req)
+        next()
+      })
       .param('id', 123)
       .end(function (err, res) {
         expect(err).to.be.empty
-        expect(spy.calledThrice).to.be.true
+        expect(spy.args).to.have.length(4)
         expect(res.statusCode).to.be.equal(200)
         expect(res.body[0].id).to.be.equal('123')
         expect(res.body[0].username).to.be.equal('foo')
