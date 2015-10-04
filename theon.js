@@ -21,7 +21,7 @@ function responseAdapter(res, _res) {
   return res
 }
 
-},{"lil-http":18}],2:[function(require,module,exports){
+},{"lil-http":20}],2:[function(require,module,exports){
 var isBrowser = typeof window !== 'undefined'
 
 exports.browser = {
@@ -62,7 +62,7 @@ module.exports = function (req, res, cb) {
   })
 }
 
-},{"request":17}],4:[function(require,module,exports){
+},{"request":19}],4:[function(require,module,exports){
 var Request = require('./request')
 var Builder = require('./builder')
 var Context = require('./context')
@@ -259,7 +259,7 @@ Context.prototype.get = function () {
   return data
 }
 
-},{"./agents":2,"./utils":16,"midware":19}],7:[function(require,module,exports){
+},{"./agents":2,"./utils":16,"midware":21}],7:[function(require,module,exports){
 var Response = require('./response')
 var series = require('./utils').series
 
@@ -732,9 +732,13 @@ module.exports = {
 }
 
 },{}],16:[function(require,module,exports){
-var slicer = Array.prototype.slice
+module.exports = {
+  merge: require('./merge'),
+  series: require('./series')
+}
 
-exports.merge = function (x, y) {
+},{"./merge":17,"./series":18}],17:[function(require,module,exports){
+module.exports = function merge(x, y) {
   x = x || {}
   for (var k in y) {
     x[k] = y[k]
@@ -742,7 +746,10 @@ exports.merge = function (x, y) {
   return x
 }
 
-exports.series = function (arr, cb, ctx) {
+},{}],18:[function(require,module,exports){
+var slicer = Array.prototype.slice
+
+module.exports = function series(arr, cb, ctx) {
   var stack = arr.slice()
   cb = cb || function () {}
 
@@ -759,9 +766,9 @@ exports.series = function (arr, cb, ctx) {
   next()
 }
 
-},{}],17:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /*! lil-http - v0.1.16 - MIT License - https://github.com/lil-js/http */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -1066,7 +1073,7 @@ exports.series = function (arr, cb, ctx) {
   return exports.http = http
 }))
 
-},{}],19:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define(['exports'], factory)
