@@ -19,7 +19,8 @@ A powerful way to build domain-specific, extensible, fluent and expressive HTTP 
 - Path params parsing and matching
 - HTTP agent agnostic: use any agent via adapters
 - Dynamic programmatic API generation
-- Lightweight: 500 LOC, 8KB (2KB gzipped)
+- Dependency free
+- Lightweight: 16KB (~5KB gzipped)
 - Cross-engine: runs in browser and node.js
 
 ## Installation
