@@ -4,7 +4,7 @@
 [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 -->
 
-A powerful way to build domain-specific, extensible, rich and expressive HTTP API clients for any JavaScript environment.
+A convenient way to build domain-specific, extensible, featured and expressive programmatic APIs bindings to HTTP layers in node.js and browers.
 
 **This is much a work in progress**.
 
@@ -13,15 +13,25 @@ A powerful way to build domain-specific, extensible, rich and expressive HTTP AP
 - Modular pluggable design
 - Hierarchical middleware layer
 - Fluent and expressive API
-- Perfectly suitable to create domain-specific APIs
-- Request/Response validators
+- Nested configurations
+- Domain-specific API generator
 - Request/Response interceptors
+- Request/Response validators
+- Bind responses to models
 - Path params parsing and matching
-- HTTP agent agnostic: use any agent via adapters
+- HTTP agent agnostic: use request, superagent, jQuery or any other client
 - Dynamic programmatic API generation
 - Dependency free
 - Lightweight: 16KB (~5KB gzipped)
 - Cross-engine: runs in browser and node.js
+
+## Rationale
+
+I wrote this library to mitigate my personal frustration and needs while writting further HTTP API clients in JavaScript environments.
+
+After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, and some solution could be  conceived to simplify that and support common needs, providing a convenient way to create programmatic bindings to HTTP layers.
+
+After a bit of thinking, travels to the toilet and a sort of human empathy, theon borns. Hopefully it can mitigate your frustration as well, making your life a bit easy and enjoyable.
 
 ## Installation
 
@@ -50,7 +60,25 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 
 ## Usage
 
-Simple HTTP client:
+In order to provide a straightforward programmatic API like this:
+```js
+myapi.users
+  .find()
+  .query({ limit: 50 })
+  .end(function (err, res) { ... })
+
+myapi.auth
+  .signup()
+  .send({ username: 'foo', password: 'b@r' })
+  .end(function (err, res) { ... })
+
+myapi.wallet
+  .create()
+  .send({ username: 'foo', password: 'b@r' })
+  .end(function (err, res) { ... })
+```
+
+Using `theon` you can write:
 ```js
 var theon = require('theon')
 
