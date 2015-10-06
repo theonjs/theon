@@ -6,7 +6,7 @@ const theon = require('..')
 suite('theon', function () {
   test('api', function () {
     expect(theon).to.be.a('function')
-    expect(theon.Builder).to.be.a('function')
+    expect(theon.engine).to.be.an('object')
     expect(theon.Context).to.be.a('function')
     expect(theon.Dispatcher).to.be.a('function')
     expect(theon.entities.Base).to.be.a('function')
