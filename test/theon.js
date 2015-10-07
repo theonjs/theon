@@ -44,6 +44,18 @@ suite('theon', function () {
       })
 
     collection
+      .action('create')
+      .method('POST')
+      .mixin('validate', function (opts) {
+        spy(opts)
+        return opts
+      })
+      .use(function (req, res, next) {
+        spy(req)
+        next()
+      })
+
+    collection
       .resource('get')
       .alias('find')
       .path('/:id')
@@ -53,7 +65,15 @@ suite('theon', function () {
         next()
       })
 
-    client.render()
+    var cli = client.render()
+
+    expect(cli.users.create).to.be.a('function')
+    expect(cli.users.create.validate).to.be.a('function')
+
+    var opts = {}
+    expect(cli.users.create.validate(opts)).to.be.equal(opts)
+
+    cli
       .users
       .get()
       .param('id', 123)
@@ -65,7 +85,7 @@ suite('theon', function () {
       .param('id', 123)
       .end(function (err, res) {
         expect(err).to.be.empty
-        expect(spy.args).to.have.length(4)
+        expect(spy.args).to.have.length(5)
         expect(res.statusCode).to.be.equal(200)
         expect(res.body[0].id).to.be.equal('123')
         expect(res.body[0].username).to.be.equal('foo')

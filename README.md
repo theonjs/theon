@@ -4,26 +4,26 @@
 [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 -->
 
-A convenient way to build domain-specific, extensible, featured and expressive programmatic APIs bindings to HTTP layers in node.js and browers.
+`theon` is a lightweight JavaScript library to easily create domain-specific, extensible, pluggable, elegant and expressive programmatic APIs to HTTP layers.
 
 **This is much a work in progress**.
 
 ## Features
 
 - Modular pluggable design
-- Hierarchical middleware layer
+- Hierarchical middleware layer (inspired in connect)
 - Fluent and expressive API
 - Nested configurations
-- Domain-specific API generator
+- Domain-specific API generator supporting custom names, aliases...
 - Request/Response interceptors
 - Request/Response validators
-- Bind responses to models
+- Bind response body to model
 - Path params parsing and matching
-- HTTP agent agnostic: use request, superagent, jQuery or any other client
+- HTTP agent agnostic: use request, superagent, jQuery or any other via adapters
 - Dynamic programmatic API generation
 - Dependency free
 - Lightweight: 16KB (~5KB gzipped)
-- Cross-engine: runs in browser and node.js
+- Cross-engine: runs in browsers and node.js
 
 ## Rationale
 
