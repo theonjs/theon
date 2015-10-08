@@ -27,7 +27,7 @@ function adapter(res, _res) {
 }
 
 },{"lil-http":30}],3:[function(require,module,exports){
-var isBrowser = typeof window !== 'undefined' && !!window
+var isBrowser = typeof window !== 'undefined'
 
 var agents = exports.agents = isBrowser
   ? require('./browser')
@@ -406,6 +406,7 @@ Base.prototype.helper = function (name, mixin) {
     mixin = new Base.Mixin(name, mixin)
   }
 
+  mixin.useContext(this)
   this.mixins.push(mixin)
   return this
 }
@@ -459,16 +460,23 @@ function Mixin(name, fn) {
   if (typeof fn !== 'function')
     throw new TypeError('mixin must be a function')
 
-  this.name = name
   this.fn = fn
+  this.name = name
+  this.ctx = null
 }
 
 Mixin.prototype.entity = 'mixin'
 
+Mixin.prototype.useContext = function (ctx) {
+  this.ctx = ctx
+}
+
 Mixin.prototype.render = function () {
   var fn = this.fn
+  var ctx = this.ctx
+
   return function mixin() {
-    return fn.apply(this, arguments)
+    return fn.apply(ctx, arguments)
   }
 }
 
@@ -642,6 +650,11 @@ Request.prototype.unsetCookie = function (name) {
   return this
 }
 
+Request.prototype.auth = function (user, password) {
+  this.ctx.opts.auth = { user: user, password: password }
+  return this
+}
+
 /**
  * Attach a new middleware in the incoming phase
  * @param {Function} middleware
@@ -694,7 +707,7 @@ Request.prototype.model = function (model) {
 
 Request.prototype.agent = function (agent) {
   if (typeof agent === 'string')
-    agent = agents[agent]
+    agent = agents.get(agent)
 
   if (typeof agent !== 'function')
     throw new TypeError('unsupported or invalid agent')
@@ -883,6 +896,7 @@ function theon(url) {
 theon.Request    = require('./request')
 theon.Context    = require('./context')
 theon.Dispatcher = require('./dispatcher')
+theon.agents     = require('./agents')
 theon.engine     = require('./engine')
 theon.entities   = require('./entities')
 theon.utils      = require('./utils')
@@ -893,7 +907,7 @@ theon.utils      = require('./utils')
 
 theon.VERSION = '0.1.0'
 
-},{"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":18,"./utils":24}],21:[function(require,module,exports){
+},{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":18,"./utils":24}],21:[function(require,module,exports){
 module.exports = {
   html: 'text/html',
   json: 'application/json',
