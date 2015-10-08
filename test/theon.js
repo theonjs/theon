@@ -48,6 +48,7 @@ suite('theon', function () {
       .method('POST')
       .mixin('validate', function (opts) {
         spy(opts)
+        expect(this).to.be.equal(action)
         return opts
       })
       .use(function (req, res, next) {
