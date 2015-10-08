@@ -30,7 +30,7 @@ suite('theon', function () {
     var client = theon('http://localhost')
       .basePath('/api')
       .set('Version', '1.0')
-      .use(function (req, ctx, next) {
+      .use(function (req, res, next) {
         spy(req)
         next()
       })
@@ -38,12 +38,12 @@ suite('theon', function () {
     var collection = client
       .collection('users')
       .basePath('/users')
-      .use(function (req, ctx, next) {
+      .use(function (req, res, next) {
         spy(req)
         next()
       })
 
-    collection
+    var action = collection
       .action('create')
       .method('POST')
       .mixin('validate', function (opts) {
@@ -55,7 +55,7 @@ suite('theon', function () {
         next()
       })
 
-    collection
+    var resource = collection
       .resource('get')
       .alias('find')
       .path('/:id')
@@ -73,12 +73,23 @@ suite('theon', function () {
     var opts = {}
     expect(cli.users.create.validate(opts)).to.be.equal(opts)
 
+    function testModel(body, req, res) {
+      return {
+        get: function (name) {
+          return body[0][name]
+        }
+      }
+    }
+
     cli
       .users
       .get()
-      .debug()
+      .validate(function (err) {
+        expect(err).to.be.empty
+      })
       .param('id', 123)
       .type('json')
+      .model(testModel)
       .use(function (req, res, next) {
         spy(req)
         next()
@@ -90,6 +101,10 @@ suite('theon', function () {
         expect(res.statusCode).to.be.equal(200)
         expect(res.body[0].id).to.be.equal('123')
         expect(res.body[0].username).to.be.equal('foo')
+
+        expect(res.model.get('id')).to.be.equal('123')
+        expect(res.model.get('username')).to.be.equal('foo')
+
         done(err)
       })
   })
