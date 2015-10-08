@@ -53,20 +53,32 @@ exports.add = function (name, agent) {
 },{"./browser/lil":1,"./node/request":3}],3:[function(require,module,exports){
 module.exports = function (req, res, cb) {
   var request = require('request')
-  var opts = req.opts
-  opts.json = true
+  req.json = true
 
-  return request(opts, function (err, res, body) {
-    if (err) return cb(err, res)
-    if (body) res.body = body
-    cb(err, res)
+  return request(req, function (err, _res, body) {
+    cb(err, adapter(res, _res, body))
   })
+}
+
+function adapter(res, _res, body) {
+  // Expose the agent-specific response
+  res.setOriginalResponse(_res)
+
+  // Define recurrent HTTP fields
+  res.setStatus(_res.statusCode)
+  res.setStatusText(_res.statusText)
+  res.setHeaders(_res.headers)
+
+  // Define body, if present
+  if (body) res.setBody(body)
+
+  return res
 }
 
 },{"request":25}],4:[function(require,module,exports){
 var mw = require('midware')
-var utils = require('./utils')
 var agents = require('./agents')
+var merge = require('./utils').merge
 
 module.exports = Context
 
@@ -117,19 +129,19 @@ Context.prototype.get =
 Context.prototype.raw = function () {
   var parent = this.parent
     ? this.parent.get()
-    : { opts: {} }
+    : {}
 
   var data = {}
-  data.opts = utils.merge(parent.opts, this.opts)
+  data.opts = merge(parent.opts, this.opts)
   data.url = this.buildUrl()
 
-  data.headers = utils.merge(parent.headers, this.headers)
-  data.query = utils.merge(parent.query, this.query)
-  data.params = utils.merge(parent.params, this.params)
-  data.cookies = utils.merge(parent.cookies, this.cookies)
+  data.headers = merge(parent.headers, this.headers)
+  data.query = merge(parent.query, this.query)
+  data.params = merge(parent.params, this.params)
+  data.cookies = merge(parent.cookies, this.cookies)
 
   data.agent = this.agent
-  data.agentOpts = utils.merge(parent.agentOpts, this.agentOpts)
+  data.agentOpts = merge(parent.agentOpts, this.agentOpts)
 
   data.ctx = this
   return data
@@ -157,8 +169,8 @@ Context.prototype.buildUrl = function () {
 }
 
 },{"./agents":2,"./utils":21,"midware":27}],5:[function(require,module,exports){
+var utils = require('./utils')
 var Response = require('./response')
-var series = require('./utils').series
 
 module.exports = Dispatcher
 
@@ -169,7 +181,7 @@ function Dispatcher(req) {
 Dispatcher.prototype.run = function (cb) {
   cb = cb || noop
 
-  var ctx = this.req.raw()
+  var req = this.req.raw()
   var res = new Response(this.req)
 
   var phases = [
@@ -186,24 +198,37 @@ Dispatcher.prototype.run = function (cb) {
 
   function done(err, req, res) {
     if (err === 'intercept') err = null
+    if (req.ctx.debug) req.ctx.debug(err, req, res)
     cb(err, res)
   }
 
-  series(phases, done, this)
+  utils.series(phases, done, this)
   return this
 }
 
 Dispatcher.prototype.runPhase = function (phase, req, res, next) {
   var ctx = req.ctx
 
-  ctx.mw[phase].run(req, res, function (err, _res) {
-    var currentRes = _res || res
-    if (err) return next(err, req, currentRes)
+  var phases = [
+    function middleware(next) {
+      ctx.mw[phase].run(req, res, forward(next))
+    },
+    function validate(res, next) {
+      ctx.validators[phase].run(req, res, forward(next))
+    }
+  ]
 
-    ctx.validators[phase].run(req, currentRes, function (err) {
-      next(err, req, currentRes)
-    })
-  })
+  function forward(next) {
+    return function (err, _res) {
+      next(err, _res || res)
+    }
+  }
+
+  function done(err, res) {
+    next(err, req, res)
+  }
+
+  utils.series(phases, done, this)
 }
 
 Dispatcher.prototype.before = function (req, res, next) {
@@ -215,10 +240,10 @@ Dispatcher.prototype.after = function (req, res, next) {
 }
 
 Dispatcher.prototype.dial = function (req, res, next) {
-  // Build full URL
-  var opts = req()
+  // Render URL with params
+  req.url = utils.pathParams(req.url, req.params)
 
-  req.ctx.agent(req, res, function (err, res) {
+  res.orig = req.ctx.agent(req, res, function (err, res) {
     next(err, req, res)
   })
 }
@@ -234,14 +259,10 @@ function Client(client) {
   this._client = client
 }
 
-Client.prototype.doRequest = function (req, cb) {
-  var opts = args[0] || {}
-  if (opts) opts.method = method
-
+Client.prototype.doRequest = function (opts, cb) {
+  opts = opts || {}
   var res = new Response(opts)
-  this._client.ctx.agent(req, res, function (err, res) {
-    next(err, req, res)
-  })
+  return this._client.ctx.agent(req, res, cb)
 }
 
 ;['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'TRACE', 'OPTIONS'].forEach(function (method) {
@@ -432,11 +453,9 @@ function Mixin(name, fn) {
   if (typeof fn !== 'function')
     throw new TypeError('mixin must be a function')
 
-  Base.call(this, name)
+  this.name = name
   this.fn = fn
 }
-
-Mixin.prototype = Object.create(Base.prototype)
 
 Mixin.prototype.entity = 'mixin'
 
@@ -642,8 +661,13 @@ Request.prototype.options = function (opts) {
   return this
 }
 
-Request.prototype.debug = function (opts) {
-  this.ctx.debug = opts
+Request.prototype.debug = function (debug) {
+  this.ctx.debug = debug
+  return this
+}
+
+Request.prototype.stopDebugging = function () {
+  this.ctx.debug = null
   return this
 }
 
@@ -659,8 +683,8 @@ Request.prototype.useParent = function (parent) {
 
 Request.prototype.raw = function () {
   var opts = this.ctx.raw()
-  //opts.url = this.ctx.buildUrl()
   opts.req = this
+  opts.ctx = this.ctx
   return opts
 }
 
