@@ -1,14 +1,11 @@
-# theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon)
+# theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-<!--
-[![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
--->
 
-`theon` is a lightweight JavaScript library to easily create domain-specific, extensible, pluggable, fluent and expressive programmatic bindings to any HTTP layer.
+`theon` is a lightweight JavaScript library to create in a simple and declarative way domain-specific, extensible, pluggable and fluent programmatic bindings to any HTTP layer.
 
-In other words, you can essentially build a featured API clients to remote HTTP services.
+In other words, you can build rich programmatic APIs for remove HTTP services.
 
-**This is much a work in progress**.
+**Still beta**.
 
 ## Features
 
@@ -21,6 +18,7 @@ In other words, you can essentially build a featured API clients to remote HTTP 
 - Request/response validators
 - Bind bodies to models
 - Path params parsing and matching
+- Provides a declarative, no boilerplate, programmatic API
 - HTTP agent agnostic: use request, superagent, jQuery or any other via adapters
 - Dynamic programmatic API generation
 - Dependency free
@@ -60,6 +58,16 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 ---  | --- | --- | --- | --- | --- |
 +0.10 | +5 | +3.5 | +9 | +10 | +5 |
 
+## Supported HTTP clients
+
+#### Node.js
+
+- [request](https://github.com/request/request) `default` - Popular and featured HTTP client
+
+#### Browsers
+
+- [lil-http](https://github.com/lil-js/http) `default` - Lightweight XHR wrapper for browsers
+
 ## Usage
 
 In order to provide a straightforward programmatic API like this:
@@ -80,7 +88,7 @@ myapi.wallet
   .end(function (err, res) { ... })
 ```
 
-Using `theon` you can write:
+Then using `theon` you can write:
 ```js
 var theon = require('theon')
 
