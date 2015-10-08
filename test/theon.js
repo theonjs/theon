@@ -76,6 +76,7 @@ suite('theon', function () {
     cli
       .users
       .get()
+      .debug()
       .param('id', 123)
       .type('json')
       .use(function (req, res, next) {

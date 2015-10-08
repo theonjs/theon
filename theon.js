@@ -119,10 +119,9 @@ Context.prototype.raw = function () {
     ? this.parent.get()
     : { opts: {} }
 
-  var basePath = parent.opts.basePath || ''
-
   var data = {}
   data.opts = utils.merge(parent.opts, this.opts)
+  data.url = this.buildUrl()
 
   data.headers = utils.merge(parent.headers, this.headers)
   data.query = utils.merge(parent.query, this.query)
@@ -170,8 +169,8 @@ function Dispatcher(req) {
 Dispatcher.prototype.run = function (cb) {
   cb = cb || noop
 
-  var req = this.req.clone()
-  var res = new Response(req)
+  var ctx = this.req.raw()
+  var res = new Response(this.req)
 
   var phases = [
     function before(next) {
@@ -217,8 +216,7 @@ Dispatcher.prototype.after = function (req, res, next) {
 
 Dispatcher.prototype.dial = function (req, res, next) {
   // Build full URL
-  var opts = req.raw()
-  req.opts = opts
+  var opts = req()
 
   req.ctx.agent(req, res, function (err, res) {
     next(err, req, res)
@@ -661,8 +659,8 @@ Request.prototype.useParent = function (parent) {
 
 Request.prototype.raw = function () {
   var opts = this.ctx.raw()
-  var url = this.ctx.buildUrl()
-  opts.url = utils.pathParams(url, opts.params)
+  //opts.url = this.ctx.buildUrl()
+  opts.req = this
   return opts
 }
 
