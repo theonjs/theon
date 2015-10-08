@@ -2,11 +2,11 @@
 module.exports = function (req, res, done) {
   var client = require('lil-http')
   return client(req, function (err, _res) {
-    done(err, responseAdapter(res, _res))
+    done(err, adapter(res, _res))
   })
 }
 
-function responseAdapter(res, _res) {
+function adapter(res, _res) {
   // Expose the agent-specific response
   res.setOriginalResponse(_res)
 
@@ -21,20 +21,19 @@ function responseAdapter(res, _res) {
   return res
 }
 
-},{"lil-http":21}],2:[function(require,module,exports){
+},{"lil-http":26}],2:[function(require,module,exports){
 var isBrowser = typeof window !== 'undefined'
+var agents = null
 
-exports.browser = {
-  embed: require('./browser/lil')
+if (isBrowser) {
+  agents = {
+    embed: require('./browser/lil')
+  }
+} else {
+  agents = {
+    embed: require('./node/request')
+  }
 }
-
-exports.node = {
-  embed: require('./node/request')
-}
-
-var agents = isBrowser
-  ? exports.browser
-  : exports.node
 
 exports.get = function (name) {
   return name
@@ -50,80 +49,21 @@ exports.add = function (name, agent) {
   agents[name] = agent
 }
 
+
 },{"./browser/lil":1,"./node/request":3}],3:[function(require,module,exports){
 module.exports = function (req, res, cb) {
   var request = require('request')
-  req.json = true
+  var opts = req.opts
+  opts.json = true
 
-  return request(req, function (err, res, body) {
+  return request(opts, function (err, res, body) {
     if (err) return cb(err, res)
     if (body) res.body = body
     cb(err, res)
   })
 }
 
-},{"request":20}],4:[function(require,module,exports){
-module.exports = Builder
-
-var entities = ['collections', 'resources']
-
-function Builder(client) {
-  this.parent = client
-  this.client = new Client(client)
-}
-
-Builder.prototype.render = function () {
-  var parent = this.parent
-
-  entities.forEach(function (kind) {
-    parent[kind].forEach(this.renderMembers, this)
-  }, this)
-
-  return this.client
-}
-
-Builder.prototype.renderMembers = function (entity) {
-  var client = this.client
-  var name = entity.name
-
-  if (!name)
-    throw new TypeError('Render error: missing entity name')
-
-  var names = [ name ].concat(entity.aliases)
-
-  names.forEach(function (name) {
-    if (client.hasOwnProperty(name))
-      throw new Error('Name conflict: "' + name + '" is already defined')
-
-    Object.defineProperty(client, name, {
-      enumerable: true,
-      configurable: false,
-      get: function () {
-        return entity.render()
-      },
-      set: function () {
-        throw new Error('Cannot override the property')
-      }
-    })
-  })
-}
-
-// to do: isolate
-function Client(client) {
-  this._client = client
-}
-
-Client.prototype._doRequest = function (method, args) {
-  // to do
-}
-
-;['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'TRACE', 'OPTIONS'].forEach(function (method) {
-  Client.prototype[method] = function () {
-    return this._doRequest(method, arguments)
-  }
-})
-
-},{}],5:[function(require,module,exports){
+},{"request":25}],4:[function(require,module,exports){
 var mw = require('midware')
 var utils = require('./utils')
 var agents = require('./agents')
@@ -131,10 +71,9 @@ var agents = require('./agents')
 module.exports = Context
 
 function Context(ctx) {
-  this.body = null
+  this.body =
   this.parent = null
 
-  this.body = null
   this.opts = {}
   this.query = {}
   this.params = {}
@@ -160,6 +99,7 @@ function Context(ctx) {
 Context.prototype.useParent = function (ctx) {
   this.parent = ctx
   this.setupMiddleware(ctx)
+  return this
 }
 
 Context.prototype.setupMiddleware = function (parent) {
@@ -173,49 +113,64 @@ Context.prototype.setupMiddleware = function (parent) {
   })
 }
 
-Context.prototype.get = function () {
-  var parent = {}
-  var opts = this.opts
+Context.prototype.get =
+Context.prototype.raw = function () {
+  var parent = this.parent
+    ? this.parent.get()
+    : { opts: {} }
 
-  if (this.parent) parent = this.parent.get()
+  var basePath = parent.opts.basePath || ''
 
-  var basePath = parent.basePath || ''
-  var data = utils.merge(parent, opts)
-  data.basePath = basePath + (opts.basePath || '')
+  var data = {}
+  data.opts = utils.merge(parent.opts, this.opts)
 
   data.headers = utils.merge(parent.headers, this.headers)
   data.query = utils.merge(parent.query, this.query)
   data.params = utils.merge(parent.params, this.params)
   data.cookies = utils.merge(parent.cookies, this.cookies)
+
+  data.agent = this.agent
   data.agentOpts = utils.merge(parent.agentOpts, this.agentOpts)
 
   data.ctx = this
-
   return data
 }
 
-Context.prototype.buildUrl = function (ctx) {
-  var params = ctx.params
-  var head = ctx.basePath || ''
-  var tail = ctx.path || ''
-  var path = utils.pathParams(head + tail, params)
-  return ctx.rootUrl + path
+Context.prototype.clone = function () {
+  var ctx = new Context
+  return ctx.useParent(this)
 }
 
-},{"./agents":2,"./utils":16,"midware":22}],6:[function(require,module,exports){
+Context.prototype.buildUrl = function () {
+  var baseUrl = ''
+  var opts = this.opts
+
+  if (this.parent) {
+    baseUrl += this.parent.buildUrl()
+  } else {
+    baseUrl += opts.rootUrl || ''
+  }
+
+  var head = opts.basePath || ''
+  var tail = opts.path || ''
+
+  return baseUrl + head + tail
+}
+
+},{"./agents":2,"./utils":21,"midware":27}],5:[function(require,module,exports){
 var Response = require('./response')
 var series = require('./utils').series
 
 module.exports = Dispatcher
 
-function Dispatcher(ctx) {
-  this.ctx = ctx
+function Dispatcher(req) {
+  this.req = req
 }
 
 Dispatcher.prototype.run = function (cb) {
   cb = cb || noop
 
-  var req = this.ctx.get()
+  var req = this.req.clone()
   var res = new Response(req)
 
   var phases = [
@@ -236,16 +191,18 @@ Dispatcher.prototype.run = function (cb) {
   }
 
   series(phases, done, this)
+  return this
 }
 
 Dispatcher.prototype.runPhase = function (phase, req, res, next) {
   var ctx = req.ctx
 
   ctx.mw[phase].run(req, res, function (err, _res) {
-    if (err) return next(err, req, _res || res)
+    var currentRes = _res || res
+    if (err) return next(err, req, currentRes)
 
-    ctx.validators[phase].run(req, res, function (err, _res) {
-      next(err, req, _res || res)
+    ctx.validators[phase].run(req, currentRes, function (err) {
+      next(err, req, currentRes)
     })
   })
 }
@@ -260,7 +217,8 @@ Dispatcher.prototype.after = function (req, res, next) {
 
 Dispatcher.prototype.dial = function (req, res, next) {
   // Build full URL
-  req.url = req.ctx.buildUrl(req)
+  var opts = req.raw()
+  req.opts = opts
 
   req.ctx.agent(req, res, function (err, res) {
     next(err, req, res)
@@ -269,19 +227,114 @@ Dispatcher.prototype.dial = function (req, res, next) {
 
 function noop() {}
 
-},{"./response":13,"./utils":16}],7:[function(require,module,exports){
+},{"./response":16,"./utils":21}],6:[function(require,module,exports){
+var Dispatcher = require('../dispatcher')
+
+module.exports = Client
+
+function Client(client) {
+  this._client = client
+}
+
+Client.prototype.doRequest = function (req, cb) {
+  var opts = args[0] || {}
+  if (opts) opts.method = method
+
+  var res = new Response(opts)
+  this._client.ctx.agent(req, res, function (err, res) {
+    next(err, req, res)
+  })
+}
+
+;['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'TRACE', 'OPTIONS'].forEach(function (method) {
+  Client.prototype[method] = function (opts, cb) {
+    opts.method = method
+    return this.doRequest(opts, cb)
+  }
+})
+
+},{"../dispatcher":5}],7:[function(require,module,exports){
+var Client = require('./client')
+var has = require('../utils').has
+
+module.exports = Generator
+
+function Generator(src) {
+  this.src = src
+  this.target = null
+}
+
+Generator.entities = [
+  'collections',
+  'resources',
+  'mixins'
+]
+
+Generator.prototype.bind = function (target) {
+  this.target = target
+  return this
+}
+
+Generator.prototype.render = function () {
+  var src = this.src
+
+  this.target = this.target
+    ? this.target
+    : new Client(src)
+
+  Generator.entities.forEach(function (kind) {
+    this.src[kind].forEach(this.renderEntity, this)
+  }, this)
+
+  return this.target
+}
+
+Generator.prototype.renderEntity = function (entity) {
+  var name = entity.name
+  if (!name) throw new TypeError('Render error: missing entity name')
+
+  var value = entity.render()
+  var names = [ name ].concat(entity.aliases)
+
+  names.forEach(function (name) {
+    this.define(name, value)
+  }, this)
+}
+
+Generator.prototype.define =  function (name, value) {
+  if (has(this.target, name)) throw nameConflict(name)
+
+  Object.defineProperty(this.target, name, {
+    enumerable: true,
+    configurable: false,
+    get: function () { return value },
+    set: function () { throw new Error('Cannot overwrite property: ' + name) }
+  })
+}
+
+function nameConflict(name) {
+  return new Error('Name conflict: "' + name + '" is already defined')
+}
+
+},{"../utils":21,"./client":6}],8:[function(require,module,exports){
+module.exports = {
+  Client: require('./client'),
+  Generator: require('./generator')
+}
+
+},{"./client":6,"./generator":7}],9:[function(require,module,exports){
 var Request = require('../request')
-var Builder = require('../builder')
+var engine = require('../engine')
 var Context = require('../context')
 
 module.exports = Base
 
-function Base() {
-  this.name = null
+function Base(name) {
+  this.name = name
   this.parent = null
 
+  this.mixins = []
   this.aliases = []
-  this.methods = []
   this.resources = []
   this.collections = []
 
@@ -310,6 +363,7 @@ Base.prototype.collection = function (collection) {
   return collection
 }
 
+Base.prototype.action =
 Base.prototype.resource = function (resource) {
   if (!(resource instanceof Base.Resource)) {
     resource = new Base.Resource(resource)
@@ -321,22 +375,21 @@ Base.prototype.resource = function (resource) {
   return resource
 }
 
-Base.prototype.resource = function (resource) {
-  if (!(resource instanceof Base.Resource)) {
-    resource = new Base.Resource(resource)
+Base.prototype.mixin =
+Base.prototype.helper = function (name, mixin) {
+  if (!(name instanceof Base.Mixin)) {
+    mixin = new Base.Mixin(name, mixin)
   }
 
-  resource.useParent(this)
-  this.resources.push(resource)
-
-  return resource
+  this.mixins.push(mixin)
+  return this
 }
 
 Base.prototype.render = function (client) {
-  return new Builder(client || this).render()
+  return new engine.Generator(client || this).render()
 }
 
-},{"../builder":4,"../context":5,"../request":12}],8:[function(require,module,exports){
+},{"../context":4,"../engine":8,"../request":15}],10:[function(require,module,exports){
 var Base = require('./base')
 
 module.exports = Client
@@ -350,37 +403,61 @@ Client.prototype = Object.create(Base.prototype)
 
 Client.prototype.entity = 'client'
 
-},{"./base":7}],9:[function(require,module,exports){
+},{"./base":9}],11:[function(require,module,exports){
 var Base = require('./base')
 
 module.exports = Base.Collection = Collection
 
 function Collection(name) {
-  Base.call(this)
-  this.name = name
+  Base.call(this, name)
 }
 
 Collection.prototype = Object.create(Base.prototype)
 
 Collection.prototype.entity = 'collection'
 
-},{"./base":7}],10:[function(require,module,exports){
+},{"./base":9}],12:[function(require,module,exports){
 module.exports = {
   Base: require('./base'),
+  Mixin: require('./mixin'),
   Client: require('./client'),
   Resource: require('./resource'),
   Collection: require('./collection')
 }
 
-},{"./base":7,"./client":8,"./collection":9,"./resource":11}],11:[function(require,module,exports){
+},{"./base":9,"./client":10,"./collection":11,"./mixin":13,"./resource":14}],13:[function(require,module,exports){
+var Base = require('./base')
+
+module.exports = Base.Mixin = Mixin
+
+function Mixin(name, fn) {
+  if (typeof fn !== 'function')
+    throw new TypeError('mixin must be a function')
+
+  Base.call(this, name)
+  this.fn = fn
+}
+
+Mixin.prototype = Object.create(Base.prototype)
+
+Mixin.prototype.entity = 'mixin'
+
+Mixin.prototype.render = function () {
+  var fn = this.fn
+  return function mixin() {
+    return fn.apply(this, arguments)
+  }
+}
+
+},{"./base":9}],14:[function(require,module,exports){
 var Base = require('./base')
 var Request = require('../request')
+var Generator = require('../engine').Generator
 
 module.exports = Base.Resource = Resource
 
 function Resource(name) {
-  Base.call(this)
-  this.name = name
+  Base.call(this, name)
 }
 
 Resource.prototype = Object.create(Base.prototype)
@@ -391,7 +468,11 @@ Resource.prototype.render = function () {
   var ctx = this.ctx
   var req = new Request(ctx)
 
-  return function (opts, cb) {
+  new Generator(this)
+    .bind(resource)
+    .render()
+
+  function resource(opts, cb) {
     if (typeof opts === 'object')
       req.options(opts)
 
@@ -403,13 +484,15 @@ Resource.prototype.render = function () {
 
     return req
   }
+
+  return resource
 }
 
-},{"../request":12,"./base":7}],12:[function(require,module,exports){
+},{"../engine":8,"../request":15,"./base":9}],15:[function(require,module,exports){
 var types = require('./types')
 var Context = require('./context')
 var Dispatcher = require('./dispatcher')
-var merge = require('./utils').merge
+var utils = require('./utils')
 
 module.exports = Request
 
@@ -444,7 +527,7 @@ Request.prototype.param = function (name, value) {
 }
 
 Request.prototype.params = function (params) {
-  merge(this.ctx.params, params)
+  utils.merge(this.ctx.params, params)
   return this
 }
 
@@ -454,7 +537,7 @@ Request.prototype.unsetParam = function (name) {
 }
 
 Request.prototype.query = function (query) {
-  merge(this.ctx.query, query)
+  utils.merge(this.ctx.query, query)
   return this
 }
 
@@ -479,7 +562,8 @@ Request.prototype.unset = function (name) {
 }
 
 Request.prototype.headers = function (headers) {
-  merge(this.ctx.headers, headers)
+  utils.merge(this.ctx.headers, headers)
+  return this
 }
 
 Request.prototype.type = function (value) {
@@ -530,17 +614,23 @@ Request.prototype.validateResponse = function (middleware) {
   return this
 }
 
-Request.prototype.end = function (cb) {
-  return new Dispatcher(this.ctx).run(cb)
+Request.prototype.model = function (model) {
+  this.useResponse(function (req, res, next) {
+    var body = res.body
+    if (body) res.model = model(body, req, res)
+    next()
+  })
 }
 
-Request.prototype.agent = function (agent, opts) {
+Request.prototype.end = function (cb) {
+  return new Dispatcher(this).run(cb)
+}
+
+Request.prototype.agent = function (agent) {
   if (typeof agent !== 'function')
     throw new TypeError('agent argument must be a function')
 
   this.ctx.agent = agent
-  if (opts) this.ctx.agentOpts = opts
-
   return this
 }
 
@@ -550,7 +640,12 @@ Request.prototype.agentOpts = function (opts) {
 }
 
 Request.prototype.options = function (opts) {
-  merge(this.ctx.opts, opts)
+  utils.merge(this.ctx.opts, opts)
+  return this
+}
+
+Request.prototype.debug = function (opts) {
+  this.ctx.debug = opts
   return this
 }
 
@@ -564,7 +659,21 @@ Request.prototype.useParent = function (parent) {
   return this
 }
 
-},{"./context":5,"./dispatcher":6,"./types":15,"./utils":16}],13:[function(require,module,exports){
+Request.prototype.raw = function () {
+  var opts = this.ctx.raw()
+  var url = this.ctx.buildUrl()
+  opts.url = utils.pathParams(url, opts.params)
+  return opts
+}
+
+Request.prototype.clone = function () {
+  var ctx = this.ctx.clone()
+  var req = new Request(ctx)
+  req.parent = this.parent
+  return req
+}
+
+},{"./context":4,"./dispatcher":5,"./types":18,"./utils":21}],16:[function(require,module,exports){
 module.exports = Response
 
 function Response(req) {
@@ -621,11 +730,9 @@ Response.prototype.setStatus = function (status) {
 
   var type = status / 100 | 0
 
-  // status / class
   this.statusType = type
   this.status = this.statusCode = status
 
-  // basics
   this.info = 1 == type
   this.ok = 2 == type
   this.clientError = 4 == type
@@ -677,7 +784,7 @@ function type(str) {
   return str.split(/ *; */).shift()
 }
 
-},{}],14:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports = theon
 
 /**
@@ -694,9 +801,10 @@ function theon(url) {
 
 theon.Request    = require('./request')
 theon.Context    = require('./context')
-theon.Builder    = require('./builder')
-theon.entities   = require('./entities')
 theon.Dispatcher = require('./dispatcher')
+theon.engine     = require('./engine')
+theon.entities   = require('./entities')
+theon.utils      = require('./utils')
 
 /**
  * Current version
@@ -704,7 +812,7 @@ theon.Dispatcher = require('./dispatcher')
 
 theon.VERSION = '0.1.0'
 
-},{"./builder":4,"./context":5,"./dispatcher":6,"./entities":10,"./request":12}],15:[function(require,module,exports){
+},{"./context":4,"./dispatcher":5,"./engine":8,"./entities":12,"./request":15,"./utils":21}],18:[function(require,module,exports){
 module.exports = {
   html: 'text/html',
   json: 'application/json',
@@ -714,23 +822,41 @@ module.exports = {
   'form-data': 'application/x-www-form-urlencoded'
 }
 
-},{}],16:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
+module.exports = function clone(y) {
+  var x = {}
+  for (var k in y) x[k] = y[k]
+  return x
+}
+
+},{}],20:[function(require,module,exports){
+var hasOwn = Object.prototype.hasOwnProperty
+
+module.exports = function (o, name) {
+  return !!o && hasOwn.call(o, name)
+}
+
+},{}],21:[function(require,module,exports){
 module.exports = {
+  has: require('./has'),
   merge: require('./merge'),
+  clone: require('./clone'),
   series: require('./series'),
   pathParams: require('./path-params')
 }
 
-},{"./merge":17,"./path-params":18,"./series":19}],17:[function(require,module,exports){
+},{"./clone":19,"./has":20,"./merge":22,"./path-params":23,"./series":24}],22:[function(require,module,exports){
+var clone = require('./clone')
+
 module.exports = function merge(x, y) {
-  x = x || {}
-  for (var k in y) {
-    x[k] = y[k]
-  }
+  x = clone(x || {})
+  for (var k in y) x[k] = y[k]
   return x
 }
 
-},{}],18:[function(require,module,exports){
+},{"./clone":19}],23:[function(require,module,exports){
+// Originally taken from pillarjs/path-to-regexp package:
+// https://github.com/pillarjs/path-to-regexp
 var PATH_REGEXP = new RegExp([
   // Match escaped characters that would otherwise appear in future matches.
   // This allows the user to escape special characters that won't transform.
@@ -758,7 +884,7 @@ module.exports = function (path, params) {
   return path
 }
 
-},{}],19:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 var slicer = Array.prototype.slice
 
 module.exports = function series(arr, cb, ctx) {
@@ -778,9 +904,9 @@ module.exports = function series(arr, cb, ctx) {
   next()
 }
 
-},{}],20:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 
-},{}],21:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /*! lil-http - v0.1.16 - MIT License - https://github.com/lil-js/http */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -1085,7 +1211,7 @@ module.exports = function series(arr, cb, ctx) {
   return exports.http = http
 }))
 
-},{}],22:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define(['exports'], factory)
@@ -1176,5 +1302,5 @@ module.exports = function series(arr, cb, ctx) {
   exports.midware = midware
 }))
 
-},{}]},{},[14])(14)
+},{}]},{},[17])(17)
 });
