@@ -5,12 +5,12 @@
 
 In other words, you can easily build rich programmatic APIs for remote HTTP services, for instance HTTP APIs.
 
-**Still beta**.
+**Still beta**. Documentation, examples and better test coverage is a work in progress yet.
 
 ## Features
 
 - Modular pluggable design
-- Hierarchical middleware layer (inspired in connect)
+- Hierarchical middleware layer (inspired by [connect](https://github.com/senchalabs/connect))
 - Fluent and expressive API
 - Nested configurations
 - Domain-specific API generator
