@@ -128,7 +128,7 @@ Context.prototype.raw = function () {
 
   var data = {}
   data.opts = merge(parent.opts, this.opts)
-  data.url = this.buildUrl()
+  data.path = this.buildPath()
 
   data.headers = merge(parent.headers, this.headers)
   data.query = merge(parent.query, this.query)
@@ -147,18 +147,14 @@ Context.prototype.clone = function () {
   return ctx.useParent(this)
 }
 
-Context.prototype.buildUrl = function () {
+Context.prototype.buildPath = function () {
   var baseUrl = ''
-  var opts = this.opts
 
-  if (this.parent) {
-    baseUrl += this.parent.buildUrl()
-  } else {
-    baseUrl += opts.rootUrl || ''
-  }
+  if (this.parent)
+    baseUrl += this.parent.buildPath()
 
-  var head = opts.basePath || ''
-  var tail = opts.path || ''
+  var head = this.opts.basePath || ''
+  var tail = this.opts.path || ''
 
   return baseUrl + head + tail
 }
@@ -215,7 +211,9 @@ Dispatcher.prototype.after = function (req, res, next) {
 
 Dispatcher.prototype.dial = function (req, res, next) {
   // Render URL with params
-  req.url = utils.pathParams(req.url, req.params)
+  var url = req.opts.rootUrl || ''
+  var path = utils.pathParams(req.path, req.params)
+  req.url = url + path
 
   res.orig = req.ctx.agent(req, res, function (err, res) {
     next(err, req, res)
@@ -266,7 +264,7 @@ Client.prototype.doRequest = function (opts, cb) {
 }
 
 Client.prototype.newRequest = function () {
-  var req = new Request()
+  var req = new Request
   req.ctx.agent = this._client.ctx.agent
   return req
 }
@@ -373,7 +371,8 @@ Base.prototype = Object.create(Request.prototype)
  */
 
 Base.prototype.alias = function (name) {
-  this.aliases.push(name)
+  var aliases = this.aliases
+  aliases.push.apply(aliases, arguments)
   return this
 }
 
