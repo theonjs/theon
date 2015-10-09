@@ -25,6 +25,15 @@ In other words, you can build rich programmatic APIs for remove HTTP services.
 - Lightweight: 16KB (~5KB gzipped)
 - Cross-environment: runs in browsers and node.js
 
+## Contents
+
+- [Rationale](#rationale)
+- [Installation](#installation)
+- [Environments](#environments)
+- [Plugins](#plugins)
+- [Usage](#usage)
+- [API](#api)
+
 ## Rationale
 
 I wrote this library to mitigate my personal frustration and needs while writting further HTTP API clients in JavaScript environments.
@@ -58,7 +67,7 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 ---  | --- | --- | --- | --- | --- |
 +0.10 | +5 | +3.5 | +9 | +10 | +5 |
 
-## Supported HTTP clients
+## HTTP adapters
 
 #### Node.js
 
@@ -67,6 +76,10 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 #### Browsers
 
 - [lil-http](https://github.com/lil-js/http) `default` - Lightweight XHR wrapper for browsers
+
+## Plugins
+
+`to do`
 
 ## Usage
 
@@ -144,7 +157,11 @@ apiClient
 
 ## API
 
-`to do`
+### theon([ url ])
+
+#### Request
+
+#### Response
 
 ## License
 
