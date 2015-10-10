@@ -26,7 +26,7 @@ function adapter(res, _res) {
   return res
 }
 
-},{"lil-http":30}],3:[function(require,module,exports){
+},{"lil-http":31}],3:[function(require,module,exports){
 var isBrowser = typeof window !== 'undefined'
 
 var agents = exports.agents = isBrowser
@@ -53,16 +53,34 @@ module.exports = {
 }
 
 },{"./request":5}],5:[function(require,module,exports){
+var utils = require('../../utils')
+
 module.exports = function (req, res, cb) {
   var request = require('request')
-  req.json = true
 
-  return request(req, function (err, _res, body) {
+  var opts = {
+    url: req.url,
+    qs: req.query,
+    headers: req.headers,
+    useQuerystring: true
+  }
+
+  // Set auth credentials, if required
+  if (req.opts.auth) {
+    opts.auth = req.opts.auth
+  }
+
+  // Extend agent-specific options
+  utils.extend(opts, req.agentOpts)
+
+  return request(opts, function (err, _res, body) {
     cb(err, adapter(res, _res, body))
   })
 }
 
 function adapter(res, _res, body) {
+  if (!_res) return res
+
   // Expose the agent-specific response
   res.setOriginalResponse(_res)
 
@@ -77,7 +95,7 @@ function adapter(res, _res, body) {
   return res
 }
 
-},{"request":29}],6:[function(require,module,exports){
+},{"../../utils":25,"request":30}],6:[function(require,module,exports){
 var agents = require('./agents')
 var Validator = require('./validator')
 var Middleware = require('./middleware')
@@ -95,7 +113,7 @@ function Context(ctx) {
   this.headers = {}
   this.cookies = {}
 
-  this.agentOpts = null
+  this.agentOpts = {}
   this.agent = agents.defaults()
 
   this.validator = new Validator
@@ -159,7 +177,7 @@ Context.prototype.buildPath = function () {
   return baseUrl + head + tail
 }
 
-},{"./agents":3,"./middleware":17,"./utils":24,"./validator":28}],7:[function(require,module,exports){
+},{"./agents":3,"./middleware":17,"./utils":25,"./validator":29}],7:[function(require,module,exports){
 var utils = require('./utils')
 var Response = require('./response')
 
@@ -247,7 +265,7 @@ Dispatcher.prototype.validate = function (phase, req, res, next) {
 
 function noop() {}
 
-},{"./response":19,"./utils":24}],8:[function(require,module,exports){
+},{"./response":19,"./utils":25}],8:[function(require,module,exports){
 var Request = require('../request')
 var Dispatcher = require('../dispatcher')
 
@@ -339,7 +357,7 @@ function nameConflict(name) {
   return new Error('Name conflict: "' + name + '" is already defined')
 }
 
-},{"../utils":24,"./client":8}],10:[function(require,module,exports){
+},{"../utils":25,"./client":8}],10:[function(require,module,exports){
 module.exports = {
   Client: require('./client'),
   Generator: require('./generator')
@@ -548,7 +566,7 @@ Middleware.prototype.eval = function (stack, req, res, next) {
   stack.run(req, res, next)
 }
 
-},{"midware":31}],18:[function(require,module,exports){
+},{"midware":32}],18:[function(require,module,exports){
 var types = require('./types')
 var utils = require('./utils')
 var agents = require('./agents')
@@ -589,7 +607,7 @@ Request.prototype.param = function (name, value) {
 }
 
 Request.prototype.params = function (params) {
-  utils.merge(this.ctx.params, params)
+  utils.extend(this.ctx.params, params)
   return this
 }
 
@@ -598,8 +616,18 @@ Request.prototype.unsetParam = function (name) {
   return this
 }
 
+Request.prototype.setParams = function (params) {
+  this.ctx.params = params
+  return this
+}
+
 Request.prototype.query = function (query) {
-  utils.merge(this.ctx.query, query)
+  utils.extend(this.ctx.query, query)
+  return this
+}
+
+Request.prototype.setQuery = function (query) {
+  this.ctx.query = query
   return this
 }
 
@@ -624,12 +652,24 @@ Request.prototype.unset = function (name) {
 }
 
 Request.prototype.headers = function (headers) {
-  utils.merge(this.ctx.headers, headers)
+  utils.extend(this.ctx.headers, headers)
+  return this
+}
+
+Request.prototype.setHeaders = function (headers) {
+  this.ctx.headers = headers
   return this
 }
 
 Request.prototype.type = function (value) {
-  this.ctx.headers['content-type'] = types[value] || value
+  var ctx = this.ctx
+  var type = types[value] || value
+  ctx.headers['content-type'] = type
+
+  if (~type.indexOf('json')) {
+    ctx.agentOpts.json = true
+  }
+
   return this
 }
 
@@ -716,6 +756,11 @@ Request.prototype.agent = function (agent) {
 }
 
 Request.prototype.agentOpts = function (opts) {
+  utils.extend(this.ctx.agentOpts, opts)
+  return this
+}
+
+Request.prototype.setAgentOpts = function (opts) {
   this.ctx.agentOpts = opts
   return this
 }
@@ -766,7 +811,7 @@ Request.prototype.clone = function () {
   return req
 }
 
-},{"./agents":3,"./context":6,"./dispatcher":7,"./response":19,"./types":21,"./utils":24}],19:[function(require,module,exports){
+},{"./agents":3,"./context":6,"./dispatcher":7,"./response":19,"./types":21,"./utils":25}],19:[function(require,module,exports){
 module.exports = Response
 
 function Response(req) {
@@ -893,6 +938,7 @@ function theon(url) {
  */
 
 theon.Request    = require('./request')
+theon.Response   = require('./response')
 theon.Context    = require('./context')
 theon.Dispatcher = require('./dispatcher')
 theon.agents     = require('./agents')
@@ -901,12 +947,22 @@ theon.entities   = require('./entities')
 theon.utils      = require('./utils')
 
 /**
+ * Entity factories
+ */
+
+;['Resource', 'Collection', 'Mixin'].forEach(function (name) {
+  theon[name.toLowerCase()] = function (arg, arg2) {
+    return new theon.entities[name](arg, arg2)
+  }
+})
+
+/**
  * Current version
  */
 
 theon.VERSION = '0.1.0'
 
-},{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":18,"./utils":24}],21:[function(require,module,exports){
+},{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":18,"./response":19,"./utils":25}],21:[function(require,module,exports){
 module.exports = {
   html: 'text/html',
   json: 'application/json',
@@ -924,22 +980,31 @@ module.exports = function clone(y) {
 }
 
 },{}],23:[function(require,module,exports){
+var clone = require('./clone')
+
+module.exports = function extend(x, y) {
+  for (var k in y) x[k] = y[k]
+  return x
+}
+
+},{"./clone":22}],24:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty
 
 module.exports = function (o, name) {
   return !!o && hasOwn.call(o, name)
 }
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = {
   has: require('./has'),
   merge: require('./merge'),
   clone: require('./clone'),
   series: require('./series'),
+  extend: require('./extend'),
   pathParams: require('./path-params')
 }
 
-},{"./clone":22,"./has":23,"./merge":25,"./path-params":26,"./series":27}],25:[function(require,module,exports){
+},{"./clone":22,"./extend":23,"./has":24,"./merge":26,"./path-params":27,"./series":28}],26:[function(require,module,exports){
 var clone = require('./clone')
 
 module.exports = function merge(x, y) {
@@ -948,7 +1013,7 @@ module.exports = function merge(x, y) {
   return x
 }
 
-},{"./clone":22}],26:[function(require,module,exports){
+},{"./clone":22}],27:[function(require,module,exports){
 // Originally taken from pillarjs/path-to-regexp package:
 // https://github.com/pillarjs/path-to-regexp
 var PATH_REGEXP = new RegExp([
@@ -978,7 +1043,7 @@ module.exports = function (path, params) {
   return path
 }
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 var slicer = Array.prototype.slice
 
 module.exports = function series(arr, cb, ctx) {
@@ -998,7 +1063,7 @@ module.exports = function series(arr, cb, ctx) {
   next()
 }
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 var Middleware = require('./middleware')
 
 module.exports = Validator
@@ -1013,9 +1078,9 @@ Validator.prototype.eval = function (stack, req, res, next) {
   stack.run(req, res, function (err) { next(err) })
 }
 
-},{"./middleware":17}],29:[function(require,module,exports){
+},{"./middleware":17}],30:[function(require,module,exports){
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /*! lil-http - v0.1.16 - MIT License - https://github.com/lil-js/http */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -1320,7 +1385,7 @@ Validator.prototype.eval = function (stack, req, res, next) {
   return exports.http = http
 }))
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define(['exports'], factory)
