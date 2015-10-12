@@ -2,7 +2,7 @@
 
 `theon` is a lightweight JavaScript library which helps you to create in a declarative way domain-specific, extensible, elegant and fluent programmatic bindings to any HTTP layer.
 
-**Still beta**. Documentation, examples and better test coverage is a work in progress yet.
+**Still beta**.
 
 ## Features
 
@@ -34,6 +34,7 @@
 - [Rationale](#rationale)
 - [Installation](#installation)
 - [Environments](#environments)
+- [HTTP adapters](#http-adapters)
 - [Plugins](#plugins)
 - [Usage](#usage)
 - [API](#api)
@@ -47,7 +48,7 @@ After dealing with recurrent scenarios, I realized that the process is essential
 In most scenarios when creating APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services.
 With `theon` you can decouple those parts and provide a convenient abstraction between the HTTP interface details and programmatic API consumers.
 
-Additionally, it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, through a hierarchical middleware layer allowing you to plugin intermediate logic that operations as validators or custom.
+Additionally, it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, through a hierarchical middleware layer allowing you to plugin intermediate logic.
 
 ## Installation
 
@@ -90,25 +91,7 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 
 ## Usage
 
-In order to provide a straightforward programmatic API like this:
-```js
-myapi.users
-  .find()
-  .query({ limit: 50 })
-  .end(function (err, res) { ... })
-
-myapi.auth
-  .signup()
-  .send({ username: 'foo', password: 'b@r' })
-  .end(function (err, res) { ... })
-
-myapi.wallet
-  .create()
-  .send({ username: 'foo', password: 'b@r' })
-  .end(function (err, res) { ... })
-```
-
-Then using `theon` you can write:
+Define your API
 ```js
 var theon = require('theon')
 
@@ -140,11 +123,17 @@ collection
     // Resource specific middleware
     next()
   })
+```
 
+Then render it:
+```js
 // Render the API client: this will be the public
 // interface you must expose for your API consumers
 var apiClient = client.render()
+```
 
+Finally, use it as API consumer:
+```js
 // Use the API as consumer
 apiClient
   .users
@@ -155,7 +144,6 @@ apiClient
     // Request phase specific middleware
     next()
   })
-  .param('id', 123)
   .end(function (err, res) {
     console.log('Response:', res.statusCode)
     console.log('Body:', res.body)
@@ -166,9 +154,194 @@ apiClient
 
 ### theon([ url ])
 
-#### Request
+Create a new API builder.
 
-#### Response
+### theon.client([ url ])
+Inherits from [`Entity`](#entity)
+
+Create a new `client` entity
+
+### theon.collection(name)
+Inherits from [`Entity`](#entity)
+
+Create a new `collection` entity
+
+### theon.resource(name)
+Inherits from [`Entity`](#entity)
+
+Create a new `resource` entity
+
+### theon.mixin(name, fn)
+Inherits from [`Entity`](#entity)
+
+Create a new `mixin` entity
+
+### Entity
+Inherits from [`Request`](#request)
+
+#### Entity#alias(name)
+
+Add an additional entity alias name.
+
+#### Entity#collection(collection)
+
+Attach a collection to the current entity.
+
+#### Entity#action(action)
+Alias: `resource`
+
+Attach an action to the current entity.
+
+#### Entity#mixin(mixin)
+Alias: `helper`
+
+Attach a mixin to the current entity.
+
+#### Entity#addEntity(entity)
+
+Attach a custom subentity.
+
+#### Entity#render([ entity ])
+
+Render the entity. This method is mostly used internally.
+
+### Request([ ctx ])
+
+#### Request#url(url)
+
+Define the base URL of the server.
+
+#### Request#path(path)
+
+Define an URL final path value. `path` will be concatenated to `basePath`.
+
+#### Request#basePath(path)
+
+Define a URL base path value.
+
+#### Request#method(name)
+
+HTTP method to use. Default to `GET`.
+
+#### Request#param(name, value)
+
+#### Request#params(params)
+
+#### Request#persistParam(name, value)
+
+#### Request#persistParams(params)
+
+#### Request#unsetParam(name)
+
+#### Request#setParams(params)
+
+#### Request#query(query)
+
+#### Request#setQuery(query)
+
+#### Request#queryParam(name, value)
+
+#### Request#unsetQuery(name)
+
+#### Request#persistQueryParam(name, value)
+
+#### Request#set(name, value)
+Alias: `header`
+
+#### Request#unset(name)
+
+#### Request#headers(headers)
+
+#### Request#setHeaders(headers)
+
+#### Request#persistHeader(name, value)
+
+#### Request#persistHeaders(headers)
+
+#### Request#type(name)
+
+#### Request#send(body)
+Alias: `body`
+
+#### Request#cookie(name, value)
+
+#### Request#unsetCookie(name)
+
+#### Request#auth(user, password)
+
+#### Request#use(middleware)
+Alias: `useRequest`
+
+#### Request#useResponse(middleware)
+
+#### Request#validator(validator)
+Alias: `requestValidator`
+
+#### Request#responseValidator(validator)
+
+#### Request#validate(cb)
+
+#### Request#model(model)
+
+#### Request#agent(agent)
+
+#### Request#agentOpts(opts)
+
+#### Request#setAgentOpts(opts)
+
+#### Request#persistAgentOpts(opts)
+
+#### Request#options(opts)
+
+#### Request#persistOptions(opts)
+
+#### Request#debug(opts)
+
+#### Request#stopDebugging(opts)
+
+#### Request#useParent(parent)
+
+#### Request#end(cb)
+
+#### Request#raw()
+
+### Response(request)
+
+#### Response#headers = `object`
+
+#### Response#body = `mixed`
+
+#### Response#error = `mixed`
+
+#### Response#statusCode = `number`
+
+#### Response#statusText = `string`
+
+#### Response#orig = `object`
+
+#### Response#setOriginalResponse(orig)
+
+#### Response#setBody(body)
+
+#### Response#setHeaders(headers)
+
+#### Response#setType(contentType)
+
+#### Response#setStatus(status)
+
+#### Response#setStatusText(text)
+
+#### Response#toError() => `Error`
+
+### Context([ parent ])
+
+#### Context#useParent(ctx)
+
+#### Context#raw()
+
+#### Context#clone()
+
+#### Context#buildPath()
 
 ## License
 

@@ -9,7 +9,7 @@ suite('theon', function () {
     expect(theon.engine).to.be.an('object')
     expect(theon.Context).to.be.a('function')
     expect(theon.Dispatcher).to.be.a('function')
-    expect(theon.entities.Base).to.be.a('function')
+    expect(theon.entities.Entity).to.be.a('function')
     expect(theon.entities.Client).to.be.a('function')
     expect(theon.entities.Resource).to.be.a('function')
     expect(theon.entities.Collection).to.be.a('function')
