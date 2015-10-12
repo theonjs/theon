@@ -139,10 +139,9 @@ Context.prototype.setupMiddleware = function (parent) {
   }, this)
 }
 
-Context.prototype.get =
 Context.prototype.raw = function () {
   var parent = this.parent
-    ? this.parent.get()
+    ? this.parent.raw()
     : {}
 
   var data = {}
@@ -357,13 +356,40 @@ module.exports = {
 }
 
 },{"./client":8,"./generator":9}],11:[function(require,module,exports){
+var Entity =  require('./entity')
+
+module.exports = Client
+
+function Client(url) {
+  Entity.call(this)
+  if (url) this.url(url)
+}
+
+Client.prototype = Object.create(Entity.prototype)
+
+Client.prototype.entity = 'client'
+
+},{"./entity":13}],12:[function(require,module,exports){
+var Entity =  require('./entity')
+
+module.exports = Entity.Collection = Collection
+
+function Collection(name) {
+  Entity.call(this, name)
+}
+
+Collection.prototype = Object.create(Entity.prototype)
+
+Collection.prototype.entity = 'collection'
+
+},{"./entity":13}],13:[function(require,module,exports){
 var Request = require('../request')
 var engine = require('../engine')
 var Context = require('../context')
 
-module.exports = Base
+module.exports = Entity
 
-function Base(name) {
+function Entity(name) {
   this.name = name
   this.parent = null
   this.aliases = []
@@ -371,42 +397,42 @@ function Base(name) {
   this.ctx = new Context
 }
 
-Base.prototype = Object.create(Request.prototype)
+Entity.prototype = Object.create(Request.prototype)
 
-Base.prototype.alias = function (name) {
+Entity.prototype.alias = function (name) {
   var aliases = this.aliases
   aliases.push.apply(aliases, arguments)
   return this
 }
 
-Base.prototype.collection = function (collection) {
-  if (!(collection instanceof Base.Collection)) {
-    collection = new Base.Collection(collection)
+Entity.prototype.collection = function (collection) {
+  if (!(collection instanceof Entity.Collection)) {
+    collection = new Entity.Collection(collection)
   }
 
   return this.addEntity(collection)
 }
 
-Base.prototype.action =
-Base.prototype.resource = function (resource) {
-  if (!(resource instanceof Base.Resource)) {
-    resource = new Base.Resource(resource)
+Entity.prototype.action =
+Entity.prototype.resource = function (resource) {
+  if (!(resource instanceof Entity.Resource)) {
+    resource = new Entity.Resource(resource)
   }
 
   return this.addEntity(resource)
 }
 
-Base.prototype.mixin =
-Base.prototype.helper = function (name, mixin) {
-  if (!(name instanceof Base.Mixin)) {
-    mixin = new Base.Mixin(name, mixin)
+Entity.prototype.mixin =
+Entity.prototype.helper = function (name, mixin) {
+  if (!(name instanceof Entity.Mixin)) {
+    mixin = new Entity.Mixin(name, mixin)
   }
 
   this.addEntity(mixin)
   return this
 }
 
-Base.prototype.addEntity = function (entity) {
+Entity.prototype.addEntity = function (entity) {
   if (invalidEntity(entity)) {
     throw new TypeError('entity must implement render() method')
   }
@@ -419,7 +445,7 @@ Base.prototype.addEntity = function (entity) {
   return entity
 }
 
-Base.prototype.render = function (client) {
+Entity.prototype.render = function (client) {
   return new engine.Generator(client || this).render()
 }
 
@@ -427,46 +453,19 @@ function invalidEntity(entity) {
   return !entity || typeof entity.render !== 'function'
 }
 
-},{"../context":6,"../engine":10,"../request":18}],12:[function(require,module,exports){
-var Base = require('./base')
-
-module.exports = Client
-
-function Client(url) {
-  Base.call(this)
-  if (url) this.url(url)
-}
-
-Client.prototype = Object.create(Base.prototype)
-
-Client.prototype.entity = 'client'
-
-},{"./base":11}],13:[function(require,module,exports){
-var Base = require('./base')
-
-module.exports = Base.Collection = Collection
-
-function Collection(name) {
-  Base.call(this, name)
-}
-
-Collection.prototype = Object.create(Base.prototype)
-
-Collection.prototype.entity = 'collection'
-
-},{"./base":11}],14:[function(require,module,exports){
+},{"../context":6,"../engine":10,"../request":18}],14:[function(require,module,exports){
 module.exports = {
-  Base: require('./base'),
   Mixin: require('./mixin'),
+  Entity: require('./entity'),
   Client: require('./client'),
   Resource: require('./resource'),
   Collection: require('./collection')
 }
 
-},{"./base":11,"./client":12,"./collection":13,"./mixin":15,"./resource":16}],15:[function(require,module,exports){
-var Base = require('./base')
+},{"./client":11,"./collection":12,"./entity":13,"./mixin":15,"./resource":16}],15:[function(require,module,exports){
+var Entity =  require('./entity')
 
-module.exports = Base.Mixin = Mixin
+module.exports = Entity.Mixin = Mixin
 
 function Mixin(name, fn) {
   if (typeof fn !== 'function')
@@ -492,18 +491,18 @@ Mixin.prototype.render = function () {
   }
 }
 
-},{"./base":11}],16:[function(require,module,exports){
-var Base = require('./base')
+},{"./entity":13}],16:[function(require,module,exports){
+var Entity =  require('./entity')
 var Request = require('../request')
 var Generator = require('../engine').Generator
 
-module.exports = Base.Resource = Resource
+module.exports = Entity.Resource = Resource
 
 function Resource(name) {
-  Base.call(this, name)
+  Entity.call(this, name)
 }
 
-Resource.prototype = Object.create(Base.prototype)
+Resource.prototype = Object.create(Entity.prototype)
 
 Resource.prototype.entity = 'resource'
 
@@ -531,7 +530,7 @@ Resource.prototype.render = function () {
   return resource
 }
 
-},{"../engine":10,"../request":18,"./base":11}],17:[function(require,module,exports){
+},{"../engine":10,"../request":18,"./entity":13}],17:[function(require,module,exports){
 var mw = require('midware')
 
 module.exports = Middleware
@@ -581,13 +580,13 @@ Request.prototype.url = function (url) {
   return this
 }
 
-Request.prototype.basePath = function (path) {
-  this.ctx.opts.basePath = path
+Request.prototype.path = function (path) {
+  this.ctx.opts.path = path
   return this
 }
 
-Request.prototype.path = function (path) {
-  this.ctx.opts.path = path
+Request.prototype.basePath = function (path) {
+  this.ctx.opts.basePath = path
   return this
 }
 
@@ -660,7 +659,8 @@ Request.prototype.persistQuery = function (query) {
   return this
 }
 
-Request.prototype.set = function (name, value) {
+Request.prototype.set =
+Request.prototype.header = function (name, value) {
   this.ctx.headers[name] = value
   return this
 }
@@ -725,13 +725,8 @@ Request.prototype.auth = function (user, password) {
   return this
 }
 
-/**
- * Attach a new middleware in the incoming phase
- * @param {Function} middleware
- * @return {this}
- */
-
-Request.prototype.use = function (middleware) {
+Request.prototype.use =
+Request.prototype.useRequest = function (middleware) {
   this.ctx.middleware.use('request', middleware)
   return this
 }
@@ -861,7 +856,8 @@ function Response(req) {
   this.orig =
   this.body =
   this.json =
-  this.type = null
+  this.type =
+  this.error = null
 
   this.headers = {}
   this.typeParams = {}
@@ -991,7 +987,7 @@ theon.utils      = require('./utils')
  * Entities factory
  */
 
-;['Resource', 'Collection', 'Mixin'].forEach(function (name) {
+;['Client', 'Resource', 'Collection', 'Mixin'].forEach(function (name) {
   theon[name.toLowerCase()] = function (arg, arg2) {
     return new theon.entities[name](arg, arg2)
   }
