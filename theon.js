@@ -112,6 +112,7 @@ function Context(ctx) {
   this.params = {}
   this.headers = {}
   this.cookies = {}
+  this.persistent = {}
 
   this.agentOpts = {}
   this.agent = agents.defaults()
@@ -145,16 +146,16 @@ Context.prototype.raw = function () {
     : {}
 
   var data = {}
-  data.opts = merge(parent.opts, this.opts)
+  data.opts = merge(parent.opts, this.opts, this.persistent.opts)
   data.path = this.buildPath()
 
-  data.headers = merge(parent.headers, this.headers)
-  data.query = merge(parent.query, this.query)
-  data.params = merge(parent.params, this.params)
+  data.headers = merge(parent.headers, this.headers, this.persistent.headers)
+  data.query = merge(parent.query, this.query, this.persistent.query)
+  data.params = merge(parent.params, this.params, this.persistent.params)
   data.cookies = merge(parent.cookies, this.cookies)
 
   data.agent = this.agent
-  data.agentOpts = merge(parent.agentOpts, this.agentOpts)
+  data.agentOpts = merge(parent.agentOpts, this.agentOpts, this.persistent.agentOpts)
 
   data.ctx = this
   return data
@@ -305,12 +306,6 @@ function Generator(src) {
   this.target = null
 }
 
-Generator.entities = [
-  'collections',
-  'resources',
-  'mixins'
-]
-
 Generator.prototype.bind = function (target) {
   this.target = target
   return this
@@ -323,9 +318,7 @@ Generator.prototype.render = function () {
     ? this.target
     : new Client(src)
 
-  Generator.entities.forEach(function (kind) {
-    this.src[kind].forEach(this.renderEntity, this)
-  }, this)
+  this.src.entities.forEach(this.renderEntity, this)
 
   return this.target
 }
@@ -373,20 +366,12 @@ module.exports = Base
 function Base(name) {
   this.name = name
   this.parent = null
-
-  this.mixins = []
   this.aliases = []
-  this.resources = []
-  this.collections = []
-
+  this.entities = []
   this.ctx = new Context
 }
 
 Base.prototype = Object.create(Request.prototype)
-
-/**
- * Attach entities
- */
 
 Base.prototype.alias = function (name) {
   var aliases = this.aliases
@@ -399,10 +384,7 @@ Base.prototype.collection = function (collection) {
     collection = new Base.Collection(collection)
   }
 
-  collection.useParent(this)
-  this.collections.push(collection)
-
-  return collection
+  return this.addEntity(collection)
 }
 
 Base.prototype.action =
@@ -411,10 +393,7 @@ Base.prototype.resource = function (resource) {
     resource = new Base.Resource(resource)
   }
 
-  resource.useParent(this)
-  this.resources.push(resource)
-
-  return resource
+  return this.addEntity(resource)
 }
 
 Base.prototype.mixin =
@@ -423,13 +402,29 @@ Base.prototype.helper = function (name, mixin) {
     mixin = new Base.Mixin(name, mixin)
   }
 
-  mixin.useContext(this)
-  this.mixins.push(mixin)
+  this.addEntity(mixin)
   return this
+}
+
+Base.prototype.addEntity = function (entity) {
+  if (invalidEntity(entity)) {
+    throw new TypeError('entity must implement render() method')
+  }
+
+  if (entity.useParent) {
+    entity.useParent(this)
+  }
+
+  this.entities.push(entity)
+  return entity
 }
 
 Base.prototype.render = function (client) {
   return new engine.Generator(client || this).render()
+}
+
+function invalidEntity(entity) {
+  return !entity || typeof entity.render !== 'function'
 }
 
 },{"../context":6,"../engine":10,"../request":18}],12:[function(require,module,exports){
@@ -484,7 +479,7 @@ function Mixin(name, fn) {
 
 Mixin.prototype.entity = 'mixin'
 
-Mixin.prototype.useContext = function (ctx) {
+Mixin.prototype.useParent = function (ctx) {
   this.ctx = ctx
 }
 
@@ -611,6 +606,18 @@ Request.prototype.params = function (params) {
   return this
 }
 
+Request.prototype.persistParam = function (name, value) {
+  var params = this.ctx.persistent.params || {}
+  params[name] = value
+  this.ctx.persistent.params = params
+  return this
+}
+
+Request.prototype.persistParams = function (params) {
+  this.ctx.persistent.params = utils.extend(this.ctx.persistent.params, params)
+  return this
+}
+
 Request.prototype.unsetParam = function (name) {
   delete this.ctx.params[name]
   return this
@@ -641,6 +648,18 @@ Request.prototype.unsetQuery = function (name) {
   return this
 }
 
+Request.prototype.persistQueryParam = function (name, value) {
+  var query = this.ctx.persistent.query || {}
+  query[name] = value
+  this.ctx.persistent.query = query
+  return this
+}
+
+Request.prototype.persistQuery = function (query) {
+  this.ctx.persistent.query = utils.extend(this.ctx.persistent.query, query)
+  return this
+}
+
 Request.prototype.set = function (name, value) {
   this.ctx.headers[name] = value
   return this
@@ -658,6 +677,18 @@ Request.prototype.headers = function (headers) {
 
 Request.prototype.setHeaders = function (headers) {
   this.ctx.headers = headers
+  return this
+}
+
+Request.prototype.persistHeader = function (name, value) {
+  var headers = this.ctx.persistent.headers || {}
+  headers[name] = value
+  this.ctx.persistent.headers = headers
+  return this
+}
+
+Request.prototype.persistHeaders = function (headers) {
+  this.ctx.persistent.headers = utils.extend(this.ctx.persistent.headers, headers)
   return this
 }
 
@@ -765,8 +796,18 @@ Request.prototype.setAgentOpts = function (opts) {
   return this
 }
 
+Request.prototype.persistAgentOpts = function (opts) {
+  this.ctx.persistent.agentOpts = opts
+  return this
+}
+
 Request.prototype.options = function (opts) {
-  utils.merge(this.ctx.opts, opts)
+  utils.extend(this.ctx.opts, opts)
+  return this
+}
+
+Request.prototype.persistOptions = function (opts) {
+  this.ctx.persistent.opts = opts
   return this
 }
 
@@ -947,7 +988,7 @@ theon.entities   = require('./entities')
 theon.utils      = require('./utils')
 
 /**
- * Entity factories
+ * Entities factory
  */
 
 ;['Resource', 'Collection', 'Mixin'].forEach(function (name) {
@@ -983,6 +1024,7 @@ module.exports = function clone(y) {
 var clone = require('./clone')
 
 module.exports = function extend(x, y) {
+  x = x || {}
   for (var k in y) x[k] = y[k]
   return x
 }
@@ -1006,14 +1048,21 @@ module.exports = {
 
 },{"./clone":22,"./extend":23,"./has":24,"./merge":26,"./path-params":27,"./series":28}],26:[function(require,module,exports){
 var clone = require('./clone')
+var extend = require('./extend')
+var slicer = Array.prototype.slice
 
 module.exports = function merge(x, y) {
-  x = clone(x || {})
-  for (var k in y) x[k] = y[k]
+  var args = slicer.call(arguments, 1)
+  x = clone(x)
+
+  args.forEach(function (y) {
+    extend(x, y)
+  })
+
   return x
 }
 
-},{"./clone":22}],27:[function(require,module,exports){
+},{"./clone":22,"./extend":23}],27:[function(require,module,exports){
 // Originally taken from pillarjs/path-to-regexp package:
 // https://github.com/pillarjs/path-to-regexp
 var PATH_REGEXP = new RegExp([
