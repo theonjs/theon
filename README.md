@@ -1,8 +1,6 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-`theon` is a lightweight JavaScript library to create in a elegant and declarative way domain-specific, extensible, pluggable and fluent programmatic bindings to any HTTP layer.
-
-With `theon` you can easily build rich programmatic APIs to remote HTTP services.
+`theon` is a lightweight JavaScript library to create in a declarative way domain-specific, extensible, pluggable and fluent programmatic bindings to any HTTP layer, usually when builing API clients to remote HTTP services.
 
 **Still beta**. Documentation, examples and better test coverage is a work in progress yet.
 
@@ -24,6 +22,13 @@ With `theon` you can easily build rich programmatic APIs to remote HTTP services
 - Lightweight: 16KB (~5KB gzipped)
 - Cross-environment: runs in browsers and node.js
 
+<!--
+## How `theon` could be help me?
+
+- Unifies logic and configuration across
+- Decouples HTTP interface details from programmatic API consumers
+-->
+
 ## Contents
 
 - [Rationale](#rationale)
@@ -38,6 +43,11 @@ With `theon` you can easily build rich programmatic APIs to remote HTTP services
 I wrote this library to mitigate my frustration while writting further programmatic API clients to HTTP APIs in JavaScript environments.
 
 After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, and a specific solution can be conceived to simplify the process and provide recurrent features to satifify common needs.
+
+In most scenarios when creating APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services. 
+With `theon` you can decouple those parts and provide a convenient abstraction between the HTTP interface details and programmatic API consumers.
+
+Additionally, it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, through a hierarchical middleware layer allowing you to plugin intermediate logic, custom validators.
 
 ## Installation
 
