@@ -127,12 +127,12 @@ collection
 
 Then render it:
 ```js
-// Render the API client: this will be the public
-// interface you must expose for your API consumers
+// Rending the API will create and expose the public
+// interface ready to be used by your API consumers
 var apiClient = client.render()
 ```
 
-Finally, use it as API consumer:
+Use the API as end consumer:
 ```js
 // Use the API as consumer
 apiClient
@@ -156,22 +156,22 @@ apiClient
 
 Create a new API builder.
 
-### theon.client([ url ])
+#### theon.client([ url ])
 Inherits from [`Entity`](#entity)
 
 Create a new `client` entity
 
-### theon.collection(name)
+#### theon.collection(name)
 Inherits from [`Entity`](#entity)
 
 Create a new `collection` entity
 
-### theon.resource(name)
+#### theon.resource(name)
 Inherits from [`Entity`](#entity)
 
 Create a new `resource` entity
 
-### theon.mixin(name, fn)
+#### theon.mixin(name, fn)
 Inherits from [`Entity`](#entity)
 
 Create a new `mixin` entity
