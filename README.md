@@ -85,9 +85,28 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 
 - [lil-http](https://github.com/lil-js/http) `default` - Lightweight XHR wrapper for browsers
 
+<!--
 ## Plugins
 
 `to do`
+-->
+
+## Entities
+
+`theon` provides built-in generic entities which maps to specific HTTP entities.
+
+- **client**
+- **collection**
+- **resource**
+- **mixin**
+
+The following graph represent the relation between theon's entities and HTTP REST like endpoint:
+
+```
+   /api         /users          /id       /favorites
+     ↓             ↓             ↓            ↓
+[base path]   [collection]   [resource]   [resource]
+```
 
 ## Usage
 
