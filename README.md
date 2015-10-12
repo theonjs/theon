@@ -1,6 +1,6 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-`theon` is a lightweight JavaScript library to create in a declarative way domain-specific, extensible, pluggable and fluent programmatic bindings to any HTTP layer, usually when builing API clients to remote HTTP services.
+`theon` is a lightweight JavaScript library which helps you to create in a declarative way domain-specific, extensible, elegant and fluent programmatic bindings to any HTTP layer, usually when builing API clients to remote HTTP services.
 
 **Still beta**. Documentation, examples and better test coverage is a work in progress yet.
 
@@ -13,12 +13,12 @@
 - Domain-specific API generator
 - Request/response interceptors
 - Request/response validators
-- Bind bodies to models
+- Bind bodies to custom models
 - Path params parsing and matching
-- Provides a declarative, no boilerplate, programmatic API
-- HTTP agent agnostic: use request, superagent, jQuery or any other via adapters
-- Dynamic programmatic API generation
+- Generates a fluent and semantic programmatic API
+- HTTP client agnostic: use `request`, `superagent`, `jQuery` or any other via adapters
 - Dependency free
+- Designed for testability (via mock interceptor)
 - Lightweight: 16KB (~5KB gzipped)
 - Cross-environment: runs in browsers and node.js
 
