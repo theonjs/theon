@@ -1,7 +1,7 @@
 var nock = require('nock')
 var theon = require('..')
 
-// Mock server
+// Set up mock
 nock('http://my.api.com')
   .get('/api/users/123')
   .matchHeader('Version', '1.0')
@@ -39,12 +39,10 @@ collection
     next()
   })
 
-// Render the API client:
-// the public interface you must expose for your API consumers
-var myclient = client.render()
+// Render the API
+var api = client.render()
 
-// And use it
-myclient
+api
   .users
   .get()
   .param('id', 123)

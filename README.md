@@ -1,19 +1,36 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-`theon` is a lightweight and [featured](#features) JavaScript library which helps you to create in a declarative way domain-specific, extensible, elegant and fluent programmatic bindings to any HTTP layer (e.g: API clients).
+A lightweight, declarative and [featured](#features) JavaScript library which helps you to create domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer (e.g: API clients, SDKs...).
 
-Using `theon` you only have to focus in one thing: how do you want your API look like?. Then just let `theon` do the rest of the job generating and configuring it for it.
+`theon` was mainly designed to simplify and minimize the boilerplate process when writting API clients for HTTP services. Just write one API. Run it everywhere.
 
-To get started you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples) and [API](#api) docs.
+To get started, you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples) and [API](#api) docs.
 
 **Still beta**.
+
+## Contents
+
+- [Features](#features)
+- [Benefits](#benefits)
+- [Motivation](#motivation)
+- [Concepts](concepts)
+- [Installation](#installation)
+- [Environments](#environments)
+- [HTTP adapters](#http-agent-adapters)
+- [Usage](#usage)
+- [API](#api)
+  - [Middleware](#middleware)
+  - [Validator](#validator)
+  - [Docs](#docs)
+
+<!-- - [Plugins](#plugins) -->
 
 ## Features
 
 - Simple and declarative API
 - Modular pluggable design
 - Hierarchical middleware layer (inspired by [connect](https://github.com/senchalabs/connect))
-- Nested configurations
+- Nested configurations based on inheritance
 - Domain-specific API generation
 - Request/response interceptors (via middleware)
 - Request/response validators
@@ -29,26 +46,19 @@ To get started you can take a look to [usage instructions](#usage), [examples](h
 ## Benefits
 
 - Write APIs in a simple but powerful way
-- Create domain-specific fluent APIs
-- Create APIs that are simple and fast to maintain
-- Decouple HTTP details from API consumers
-- Make HTTP changes agnostic to your API consumers
-- Use the power of plugins to augment some specific feature
-- Validate request and response before and after resolve the request
+- Easily create domain-specific fluent APIs
+- Create API clients that are simple and easy to maintain
+- Decouple and underline HTTP interface details from API consumers
+- Use or write your own plugins to augment some specific feature
+- Validate request and response before and after the request is resolved
+- Minimize the boilerplate while writting API clients
 - Bind bodies to models easily
-- Not coupled to a specific HTTP agent: pick what you prefer for the job
+- Hierarchical nested configuration with inheritance support
+- HTTP agent agnostic: pick what do you need based on the environment (`request`, `superagent`, `$.ajax`, or used the embed one)
+- Ubiquitous: write one API. Run it in any JavaScript environment
+- Easy to test via interceptor middleware
 
-## Contents
-
-- [Rationale](#rationale)
-- [Installation](#installation)
-- [Environments](#environments)
-- [HTTP adapters](#http-agent-adapters)
-- [Plugins](#plugins)
-- [Usage](#usage)
-- [API](#api)
-
-## Rationale
+## Motivation
 
 I wrote this library to mitigate my frustration while writting further programmatic API clients to HTTP APIs in JavaScript environments.
 
@@ -57,7 +67,62 @@ After dealing with recurrent scenarios, I realized that the process is essential
 In most scenarios when creating APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services.
 With `theon` you can decouple those parts and provide a convenient abstraction between the HTTP interface details and programmatic API consumers.
 
-Additionally, it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, through a hierarchical middleware layer allowing you to plugin intermediate logic.
+Additionally it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, through a hierarchical middleware layer allowing you to plugin intermediate logic.
+
+## Concepts
+
+`theon` introduces the concept of entity, which is basically a built-in abstract object which maps to specific HTTP entities and stores its details, such as headers or query params.
+
+You have to understand and use them properly while building you API.
+
+The following graph represent the relation between theon entities and a common HTTP REST-like endpoint:
+
+```
+   /api         /users          /id      /favorites
+     ↓             ↓             ↓           ↓
+  [client] + [collection] + [resource] + [resource]
+     ↓             ↓             ↓           ↓
+  [mixin]?      [mixin]?     [mixin]?     [mixin]?
+```
+
+**Built-in entities**:
+
+#### client
+
+`client` represents the API client parent high-level entity.
+Every `theon` instance is a client and it's restricted to only one per `theon` instance.
+
+- Can inherit from other `entity`, usually another `client`.
+- Can host `collections` and `resources`
+- Can have `mixins`
+
+#### collection
+
+`collection` represents a set of entities. It was mainly designed to store a bunch of  other `collection` or `resources`, mostly used as sort of isolation entity to divide and compose different parts of your API.
+
+- Can inherit from other `entity`, usually a `client`.
+- Can host other `collections` or `resources`
+- Can have `mixins`
+- Cannot perform requests itself
+
+#### resource
+
+`resource` is an entity designed to be attached to a specific HTTP resource, endpoint or action. They're usually embedded as part of collections.
+
+- Can inherit from other `entity`, usually a `collection`.
+- Can host `collections`, `resource`
+- Can have `mixins`
+- Can perform requests
+
+#### mixin
+
+A `mixin` is a custom user-defined preconfigured task hosting any kind of logic.
+The `mixin` entity is analog to its programmaming terminology, meaning it mostly to extend a component with some specific feature as a sort of plug in.
+
+- Can inherit from other entities, usually a `resource`.
+- Cannot host other entities
+- Cannot have other `mixins`
+- Can perform requests
 
 ## Installation
 
@@ -99,29 +164,6 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 
 `to do`
 -->
-
-## Concepts
-
-`theon` introduces the concept of entity, which is basically a built-in abstract object which maps to specific HTTP entities and stores its details, such as headers or query params.
-
-You have to understand and use them properly while building you API.
-
-Built-in supported entities:
-
-- **client**
-- **collection**
-- **resource**
-- **mixin**
-
-The following graph represent the relation between theon's entities and HTTP REST like endpoint:
-
-```
-   /api         /users          /id      /favorites
-     ↓             ↓             ↓           ↓
-  [client] + [collection] + [resource] + [resource]
-     ↓             ↓             ↓           ↓
-  [mixin]?      [mixin]?     [mixin]?     [mixin]?
-```
 
 ## Usage
 
@@ -185,6 +227,14 @@ apiClient
 ```
 
 ## API
+
+### Middleware
+
+`to do`
+
+### Validator
+
+`to do`
 
 ### theon([ url ])
 
@@ -337,7 +387,7 @@ Alias: `requestValidator`
 
 #### Request#end(cb)
 
-#### Request#raw()
+#### Request#raw() => [RawContext](#RawContext)
 
 ### Response(request)
 
@@ -376,6 +426,29 @@ Alias: `requestValidator`
 #### Context#clone()
 
 #### Context#buildPath()
+
+### RawContext
+
+Side-effect free raw HTTP context params.
+It's passed to the middleware and validator call chain.
+
+#### RawContext#headers = `object`
+
+#### RawContext#query = `object`
+
+#### RawContext#params = `object`
+
+#### RawContext#body = `mixed`
+
+#### RawContext#opts = `object`
+
+#### RawContext#agent = `function`
+
+#### RawContext#agentOpts = `object`
+
+#### RawContext#ctx = `Context`
+
+Current context reference.
 
 ## License
 
