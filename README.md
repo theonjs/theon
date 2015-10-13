@@ -2,8 +2,7 @@
 
 `theon` is a lightweight and [featured](#features) JavaScript library which helps you to create in a declarative way domain-specific, extensible, elegant and fluent programmatic bindings to any HTTP layer (e.g: API clients).
 
-With `theon` you just have to focus in one thing: describe your programmatic API and eventually pre-configure it.
-Then just `theon` do the rest of the job generating it for it.
+Using `theon` you only have to focus in one thing: how do you want your API look like?. Then just let `theon` do the rest of the job generating and configuring it for it.
 
 To get started you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples) and [API](#api) docs.
 
@@ -101,9 +100,13 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 `to do`
 -->
 
-## Entities
+## Concepts
 
-`theon` provides built-in generic entities which maps to specific HTTP entities.
+`theon` introduces the concept of entity, which is basically a built-in abstract object which maps to specific HTTP entities and stores its details, such as headers or query params.
+
+You have to understand and use them properly while building you API.
+
+Built-in supported entities:
 
 - **client**
 - **collection**
@@ -113,9 +116,11 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 The following graph represent the relation between theon's entities and HTTP REST like endpoint:
 
 ```
-   /api         /users          /id       /favorites
-     ↓             ↓             ↓            ↓
-[base path]   [collection]   [resource]   [resource]
+   /api         /users          /id      /favorites
+     ↓             ↓             ↓           ↓
+  [client] + [collection] + [resource] + [resource]
+     ↓             ↓             ↓           ↓
+  [mixin]?      [mixin]?     [mixin]?     [mixin]?
 ```
 
 ## Usage
