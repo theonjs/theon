@@ -168,8 +168,9 @@ Context.prototype.clone = function () {
 Context.prototype.buildPath = function () {
   var baseUrl = ''
 
-  if (this.parent)
+  if (this.parent) {
     baseUrl += this.parent.buildPath()
+  }
 
   var head = this.opts.basePath || ''
   var tail = this.opts.path || ''
@@ -256,7 +257,9 @@ Dispatcher.prototype.runPhase = function (phase, req, res, next) {
 }
 
 Dispatcher.prototype.middleware = function (phase, req, res, next) {
-  req.ctx.middleware.run(phase, req, res, next)
+  req.ctx.middleware.run(phase, req, res, function (err, _res) {
+    next(err, _res || res)
+  })
 }
 
 Dispatcher.prototype.validate = function (phase, req, res, next) {
