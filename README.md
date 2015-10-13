@@ -1,40 +1,50 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-`theon` is a lightweight JavaScript library which helps you to create in a declarative way domain-specific, extensible, elegant and fluent programmatic bindings to any HTTP layer.
+`theon` is a lightweight and [featured](#features) JavaScript library which helps you to create in a declarative way domain-specific, extensible, elegant and fluent programmatic bindings to any HTTP layer (e.g: API clients).
+
+With `theon` you just have to focus in one thing: describe your programmatic API and eventually pre-configure it.
+Then just `theon` do the rest of the job generating it for it.
+
+To get started you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples) and [API](#api) docs.
 
 **Still beta**.
 
 ## Features
 
+- Simple and declarative API
 - Modular pluggable design
 - Hierarchical middleware layer (inspired by [connect](https://github.com/senchalabs/connect))
-- Fluent and expressive API
 - Nested configurations
 - Domain-specific API generation
-- Request/response interceptors
+- Request/response interceptors (via middleware)
 - Request/response validators
 - Bind bodies to custom models
 - Path params parsing and matching
 - Generates a fluent and semantic programmatic API
 - HTTP client agnostic: use `request`, `superagent`, `jQuery` or any other via adapters
 - Dependency free
-- Designed for testability (via mock interceptor)
+- Designed for testability (via interceptor middleware)
 - Lightweight: 16KB (~5KB gzipped)
 - Runs in browsers and node.js
 
-<!--
-## How `theon` could be help me?
+## Benefits
 
-- Unifies logic and configuration across
-- Decouples HTTP interface details from programmatic API consumers
--->
+- Write APIs in a simple but powerful way
+- Create domain-specific fluent APIs
+- Create APIs that are simple and fast to maintain
+- Decouple HTTP details from API consumers
+- Make HTTP changes agnostic to your API consumers
+- Use the power of plugins to augment some specific feature
+- Validate request and response before and after resolve the request
+- Bind bodies to models easily
+- Not coupled to a specific HTTP agent: pick what you prefer for the job
 
 ## Contents
 
 - [Rationale](#rationale)
 - [Installation](#installation)
 - [Environments](#environments)
-- [HTTP adapters](#http-adapters)
+- [HTTP adapters](#http-agent-adapters)
 - [Plugins](#plugins)
 - [Usage](#usage)
 - [API](#api)
@@ -75,7 +85,7 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 ---  | --- | --- | --- | --- | --- |
 +0.10 | +5 | +3.5 | +9 | +10 | +5 |
 
-## HTTP adapters
+## HTTP agent adapters
 
 #### Node.js
 
