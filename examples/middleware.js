@@ -19,7 +19,8 @@ var client = theon('http://my.api.com')
     next()
   })
 
-client.collection('users')
+client
+  .collection('users')
   .basePath('/users')
   .resource('get')
   .path('/:id')
@@ -39,6 +40,7 @@ api.users.get()
   .param('id', '123')
   .end(function (err, res) {
     console.log('---------------------')
+    console.log('Error:', err)
     console.log('Response:', res.status)
     console.log('Body:', res.body)
   })

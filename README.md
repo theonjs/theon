@@ -2,9 +2,9 @@
 
 A lightweight, declarative and [featured](#features) JavaScript library which helps you to create domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer (e.g: API clients, SDKs...).
 
-`theon` was mainly designed to simplify and minimize the boilerplate process when writting API clients for HTTP services. Just write one API. Run it everywhere.
+`theon` was mainly designed to provide a convenient abstraction and bindings between remote HTTP interfaces and programmatic layer. It assist you to simplify and minimize the boilerplate process when writting API clients, taking one core idea: just declare one API. Run it everywhere.
 
-To get started, you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples) and [API](#api) docs.
+To get started, you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples), [midleware layer](#middleware), supported [HTTP agents](#http-agent-adapters) and [API](#api) docs.
 
 **Still beta**.
 
@@ -18,6 +18,7 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - [Environments](#environments)
 - [Usage](#usage)
 - [HTTP adapters](#http-agent-adapters)
+- [Plugins](#plugins)
 - [Middleware](#middleware)
 - [Validator](#validator)
 - [API](#api)
@@ -33,6 +34,7 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - Domain-specific API generation
 - Request/response interceptors (via middleware)
 - Request/response validators
+- Supports hooks for easy observable interface
 - Bind bodies to custom models
 - Path params parsing and matching
 - Generates a fluent and semantic programmatic API
@@ -369,6 +371,8 @@ Alias: `useRequest`
 
 #### Request#useResponse(middleware)
 
+#### Request#observe(event, hook)
+
 #### Request#validator(validator)
 Alias: `requestValidator`
 
@@ -393,6 +397,7 @@ Alias: `requestValidator`
 #### Request#useParent(parent)
 
 #### Request#end(cb)
+Alias: `done`
 
 #### Request#raw() => [RawContext](#RawContext)
 
