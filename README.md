@@ -20,6 +20,7 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - [HTTP adapters](#http-agent-adapters)
 - [Plugins](#plugins)
 - [Middleware](#middleware)
+- [Hooks](#hooks)
 - [Validator](#validator)
 - [API](#api)
 
@@ -34,7 +35,7 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - Domain-specific API generation
 - Request/response interceptors (via middleware)
 - Request/response validators
-- Supports hooks for easy observable interface
+- Build-in observable hooks
 - Bind bodies to custom models
 - Path params parsing and matching
 - Generates a fluent and semantic programmatic API
@@ -238,6 +239,32 @@ apiClient
 ### API
 
 ### Writting a middleware
+
+### Hooks
+
+#### Phases
+
+- **error**
+- **before**
+- **before request**
+- **before request middleware**
+- **before request validator**
+- **before response middleware**
+- **before response validator**
+- **before dial**
+- **after**
+- **after dial**
+- **after request**
+- **after response**
+- **after request middleware**
+- **after request validator**
+- **after response validator**
+- **after response validator**
+- **response**
+
+#### API
+
+#### Writting hooks
 
 ## Validator
 
