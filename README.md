@@ -16,12 +16,11 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - [Concepts](concepts)
 - [Installation](#installation)
 - [Environments](#environments)
-- [HTTP adapters](#http-agent-adapters)
 - [Usage](#usage)
+- [HTTP adapters](#http-agent-adapters)
+- [Middleware](#middleware)
+- [Validator](#validator)
 - [API](#api)
-  - [Middleware](#middleware)
-  - [Validator](#validator)
-  - [Docs](#docs)
 
 <!-- - [Plugins](#plugins) -->
 
@@ -149,22 +148,6 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 ---  | --- | --- | --- | --- | --- |
 +0.10 | +5 | +3.5 | +9 | +10 | +5 |
 
-## HTTP agent adapters
-
-#### Node.js
-
-- [request](https://github.com/request/request) `default` - Popular and featured HTTP client
-
-#### Browsers
-
-- [lil-http](https://github.com/lil-js/http) `default` - Lightweight XHR wrapper for browsers
-
-<!--
-## Plugins
-
-`to do`
--->
-
 ## Usage
 
 Define your API
@@ -226,15 +209,43 @@ apiClient
   })
 ```
 
+## HTTP agent adapters
+
+#### Node.js
+
+- [request](https://github.com/request/request) `default` - Popular and featured HTTP client
+
+#### Browsers
+
+- [lil-http](https://github.com/lil-js/http) `default` - Lightweight XHR wrapper for browsers
+
+### Writting adapters
+
+`to do`
+
+<!--
+## Plugins
+
+`to do`
+-->
+
+## Middleware
+
+### Phases
+
+### API
+
+### Writting a middleware
+
+## Validator
+
+### Phases
+
+### API
+
+### Writting a validator
+
 ## API
-
-### Middleware
-
-`to do`
-
-### Validator
-
-`to do`
 
 ### theon([ url ])
 
@@ -379,10 +390,6 @@ Alias: `requestValidator`
 
 #### Request#persistOptions(opts)
 
-#### Request#debug(opts)
-
-#### Request#stopDebugging(opts)
-
 #### Request#useParent(parent)
 
 #### Request#end(cb)
@@ -419,6 +426,8 @@ Alias: `requestValidator`
 
 ### Context([ parent ])
 
+#### Context#store = `Store`
+
 #### Context#useParent(ctx)
 
 #### Context#raw()
@@ -449,6 +458,22 @@ It's passed to the middleware and validator call chain.
 #### RawContext#ctx = `Context`
 
 Current context reference.
+
+### Store([ parent ])
+
+#### Store#parent? = `Store`
+
+#### Store#get(key)
+
+#### Store#set(key, value)
+
+#### Store#setParent(key, value)
+
+#### Store#remove(key)
+
+#### Store#has(key)
+
+#### Store#useParent(store)
 
 ## License
 

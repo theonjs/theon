@@ -36,6 +36,19 @@ suite('utils', function () {
     expect(utils.has(0, 'x')).to.be.false
   })
 
+  test('normalize', function () {
+    var o = {'Foo': true}
+    expect(utils.normalize({Foo: true})).to.be.deep.equal({foo: true})
+    expect(utils.normalize({FOO: true})).to.be.deep.equal({foo: true})
+    expect(utils.normalize({foo: true})).to.be.deep.equal({foo: true})
+  })
+
+  test('lower', function () {
+    expect(utils.lower('FoO')).to.be.equal('foo')
+    expect(utils.lower(null)).to.be.equal('')
+    expect(utils.lower({})).to.be.equal('')
+  })
+
   test('pathParams', function () {
     expect(utils.pathParams('/path/:id', {id: '123'}))
       .to.be.equal('/path/123')
