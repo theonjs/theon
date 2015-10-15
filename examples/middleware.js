@@ -33,14 +33,13 @@ client
     next()
   })
 
-// Render the API
+// Render the cient
 var api = client.render()
 
 api.users.get()
   .param('id', '123')
   .end(function (err, res) {
     console.log('---------------------')
-    console.log('Error:', err)
     console.log('Response:', res.status)
     console.log('Body:', res.body)
   })

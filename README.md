@@ -384,6 +384,8 @@ Alias: `header`
 
 #### Request#type(name)
 
+#### Request#format(type)
+
 #### Request#send(body)
 Alias: `body`
 
@@ -404,6 +406,8 @@ Alias: `useRequest`
 Alias: `requestValidator`
 
 #### Request#responseValidator(validator)
+
+#### Request#map(fn)
 
 #### Request#validate(cb)
 
