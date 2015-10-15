@@ -33,9 +33,9 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - Hierarchical middleware layer (inspired by [connect](https://github.com/senchalabs/connect))
 - Nested configurations based on inheritance
 - Domain-specific API generation
+- Observable hooks
 - Request/response interceptors (via middleware)
 - Request/response validators
-- Build-in observable hooks
 - Bind bodies to custom models
 - Path params parsing and matching
 - Generates a fluent and semantic programmatic API
