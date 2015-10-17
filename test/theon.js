@@ -1,6 +1,7 @@
 const nock = require('nock')
 const sinon = require('sinon')
 const expect = require('chai').expect
+const stream = require('stream')
 const theon = require('..')
 
 suite('theon', function () {
@@ -108,5 +109,184 @@ suite('theon', function () {
 
         done(err)
       })
+  })
+
+  test('cancellable request', function (done) {
+    nock('http://localhost')
+      .get('/boo')
+      .delayConnection(1000)
+      .reply(200, { hello: 'world' })
+
+    var client = theon('http://localhost')
+      .resource('boo')
+      .path('/boo')
+      .renderAll()
+
+    client
+      .boo()
+      .observe('dialing', function (req, res, next) {
+        next('stop')
+      })
+      .end(function (err, res) {
+        expect(err.message).to.be.equal('Request cancelled: stop')
+        expect(res.statusCode).to.be.equal(0)
+        done()
+      })
+  })
+
+  test('writable stream', function (done) {
+    var spy = sinon.spy()
+    var writable = new stream.Writable
+    writable._write = function (chunk, encoding, next) {
+      spy(JSON.parse(chunk.toString()))
+      next()
+    }
+
+    writable.on('finish', function () {
+      expect(spy.args[0][0]).to.be.deep.equal({ hello: 'world' })
+      done()
+    })
+
+    nock('http://localhost')
+      .get('/foo')
+      .reply(200, {hello: 'world'})
+
+    var client = theon('http://localhost')
+      .resource('foo')
+      .path('/foo')
+      .renderAll()
+
+    client.foo()
+      .pipe(writable)
+  })
+
+  test('readable stream', function (done) {
+    var spy = sinon.spy()
+    var readable = new stream.Readable
+    readable._read = function (chunk, encoding, next) {
+      readable.push('{"hello":"world"}')
+      readable.push(null)
+    }
+
+    nock('http://localhost')
+      .post('/foo', { hello: 'world' })
+      .reply(200, { hello: 'world' })
+
+    var client = theon('http://localhost')
+      .type('json')
+      .resource('foo')
+      .path('/foo')
+      .method('POST')
+      .renderAll()
+
+    client.foo()
+      .stream(readable)
+      .end(function (err, res) {
+        expect(err).to.be.null
+        expect(res.statusCode).to.be.equal(200)
+        expect(res.body).to.be.deep.equal({ hello: 'world' })
+        done()
+      })
+  })
+
+  test('hooks', function (done) {
+    nock.cleanAll()
+    nock('http://localhost')
+      .get('/foo')
+      .reply(200, { hello: 'world' })
+
+    var spy = sinon.spy()
+    var client = theon('http://localhost')
+      .type('json')
+      .resource('foo')
+      .path('/foo')
+      .renderAll()
+
+    var disabledHooks = [
+      'error'
+    ]
+
+    var enabledHooks = [
+      'before',
+      'before request',
+      'before middleware request',
+      'middleware request',
+      'after middleware request',
+      'before validator request',
+      'validator request',
+      'after validator request',
+      'after request',
+      'before dial',
+      'dialing',
+      'after dial',
+      'before response',
+      'before middleware response',
+      'middleware response',
+      'after middleware response',
+      'before validator response',
+      'validator response',
+      'after validator response',
+      'after response',
+      'after'
+    ]
+
+    var req = client.foo()
+
+    enabledHooks.forEach(function (event) {
+      req.observe(event, track(event))
+    })
+
+    disabledHooks.forEach(function (event) {
+      req.observe(event, function (req, res, next) {
+        next(new Error('Hook ' + event + ' should not be dispatched'))
+      })
+    })
+
+    req
+      .end(function (err, res) {
+        expect(err).to.be.null
+        expect(res.statusCode).to.be.equal(200)
+        expect(res.body).to.be.deep.equal({ hello: 'world' })
+        expect(spy.args).to.have.length(enabledHooks.length)
+        done()
+      })
+
+    function track(event) {
+      return function (req, res, next) {
+        spy(event, req, res)
+        next()
+      }
+    }
+  })
+
+  test('hooks inheritance', function (done) {
+    nock.cleanAll()
+    nock('http://localhost')
+      .get('/foo')
+      .reply(200, { hello: 'world' })
+
+    var spy = sinon.spy()
+    var client = theon('http://localhost')
+      .type('json')
+      .observe('before', track)
+      .resource('foo')
+      .path('/foo')
+      .observe('before', track)
+      .renderAll()
+
+    client.foo()
+      .observe('before', track)
+      .end(function (err, res) {
+        expect(err).to.be.null
+        expect(res.statusCode).to.be.equal(200)
+        expect(res.body).to.be.deep.equal({ hello: 'world' })
+        expect(spy.calledThrice).to.be.true
+        done()
+      })
+
+    function track(req, res, next) {
+      spy(req, res)
+      next()
+    }
   })
 })

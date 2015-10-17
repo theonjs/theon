@@ -1,10 +1,10 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-A lightweight, declarative and [featured](#features) JavaScript library which helps you to create domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer (e.g: API clients, SDKs...).
+A lightweight, declarative and [featured](#features) JavaScript library to create domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer (e.g: API clients, SDKs...).
 
-`theon` was mainly designed to provide a convenient abstraction and bindings between remote HTTP interfaces and programmatic layer. It assist you to simplify and minimize the boilerplate process when writting API clients, taking one core idea: just declare one API. Run it everywhere.
+`theon` was mainly designed to provide a convenient abstraction layer between remote HTTP interfaces and programmatic layer. It assist you to simplify and minimize the boilerplate process when writting API clients, taking one core idea: just declare your API one time, run it everywhere.
 
-To get started, you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples), [midleware layer](#middleware), supported [HTTP agents](#http-agent-adapters) and [API](#api) docs.
+To get started, you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples), [midleware layer](#middleware), supported [HTTP agents](#http-adapters) and [API](#api) docs.
 
 **Still beta**.
 
@@ -17,11 +17,15 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - [Installation](#installation)
 - [Environments](#environments)
 - [Usage](#usage)
-- [HTTP adapters](#http-agent-adapters)
+- [HTTP adapters](#http-adapters)
+  - [Writting HTTP adapters](#writting-http-adapters)
 - [Plugins](#plugins)
 - [Middleware](#middleware)
+  - [Writting a middleware](#writting-a-middleware)
 - [Hooks](#hooks)
-- [Validator](#validator)
+  - [Writting hooks](#writting-hooks)
+- [Validators](#validators)
+  - [Writting validators](#writting-validators)
 - [API](#api)
 
 <!-- - [Plugins](#plugins) -->
@@ -37,12 +41,13 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - Request/response interceptors (via middleware)
 - Request/response validators
 - Bind bodies to custom models
+- Basic support for node.js streams
 - Path params parsing and matching
 - Generates a fluent and semantic programmatic API
 - HTTP client agnostic: use `request`, `superagent`, `jQuery` or any other via adapters
 - Dependency free
 - Designed for testability (via interceptor middleware)
-- Lightweight: 16KB (~5KB gzipped)
+- Lightweight: 18KB (~6KB gzipped)
 - Runs in browsers and node.js
 
 ## Benefits
@@ -124,7 +129,7 @@ The `mixin` entity is analog to its programmaming terminology, meaning it mostly
 - Can inherit from other entities, usually a `resource`.
 - Cannot host other entities
 - Cannot have other `mixins`
-- Can perform requests
+- Can perform requests (either by native implementation or inheriting the client)
 
 ## Installation
 
@@ -153,7 +158,7 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 
 ## Usage
 
-Define your API
+Declare your API
 ```js
 var theon = require('theon')
 
@@ -187,14 +192,14 @@ collection
   })
 ```
 
-Then render it:
+Render it:
 ```js
 // Rending the API will create and expose the public
 // interface ready to be used by your API consumers
 var apiClient = client.render()
 ```
 
-Use the API as end consumer:
+Finally, use the API as a consumer:
 ```js
 // Use the API as consumer
 apiClient
@@ -212,7 +217,19 @@ apiClient
   })
 ```
 
-## HTTP agent adapters
+## Examples
+
+See the [`examples`](https://github.com/h2non/theon/tree/master/examples) directory for featured examples.
+
+## HTTP adapters
+
+One of the design goals of `theon` is making it HTTP agent agnostic, meaning it's not couple to any specific one, or in other words, given the ability to the developer to pick which one is prefered based on its specific needs and runtime scenario.
+
+To become more concrete, `theon` is not an HTTP client perse, neither implements one, it's just an abstraction layer to build and configure HTTP domain specific stuff.
+
+So instead of implementing an HTTP client, `theon` relies on an external adapter which should be responsible of communicate with the real HTTP client, providing a proxy layer between `theon` interface and HTTP agent specific interface.
+
+`theon` provides by default two HTTP adapters for both node.js and browser environment, but it's up-to-you to write your own adapter to talk with another HTTP client, such as `superagent`, `got`, `$.ajax`, `angular.$http` or any other.
 
 #### Node.js
 
@@ -222,51 +239,245 @@ apiClient
 
 - [lil-http](https://github.com/lil-js/http) `default` - Lightweight XHR wrapper for browsers
 
-### Writting adapters
+### API
 
-`to do`
+An HTTP agent should be a `function` expecting the following params:
 
-<!--
+- **req** - [`theon.RawContext`](#rawcontext) - Request params context storing headers
+- **res** - [`theon.Response`](#responserequest) - Response object to fill
+- **cb** - `Function(Error, theon.Response)` - Callback to resolve the request
+
+And the `function` must return an object, which should implement at least the `abort()` method.
+
+To clarify, using the TypeScript interface notation, it would be:
+```ts
+interface AdapterResponse {
+  abort(): void;
+}
+
+function httpAdapter(
+  req: theon.RawContext,
+  res: theon.Response,
+  cb: (Error, theon.Response) => void
+) AdapterResponse
+```
+
+### Writting HTTP adapters
+
+One of the main responsabilities of an HTTP agent adapter is acting as a interface mapper between `theon` scope and the target HTTP client, adapting both request and response interfaces.
+
+Here you can see an example of an HTTP adapter implementation for the node's [request](https://github.com/request/request) package:
+
+```js
+var theon = require('theon')
+var request = require('request')
+
+function requestAdapter(req, res, cb) {
+  var opts = {
+    url: req.url,
+    qs: req.query,
+    body: req.body,
+    headers: req.headers,
+    method: req.method,
+    useQuerystring: true
+  }
+
+  // Set JSON format
+  opts.json = req.opts.format === 'json'
+
+  // Set auth credentials, if required
+  if (req.opts.auth) {
+    opts.auth = req.opts.auth
+  }
+
+  // Extend agent-specific options
+  Object.assign(opts, req.agentOpts)
+
+  // If stream passed, pipe it!
+  // Note: not all the HTTP clients has to support stream
+  // in that case, you can resolve with an error or throw something
+  return req.stream
+    ? req.stream.pipe(request(opts, handler))
+    : request(opts, handler)
+
+  function handler(err, _res, body) {
+    cb(err, adapter(res, _res, body))
+  }
+}
+
+// We map fields to theon.Response interface for full compatibility
+function adapter(res, _res, body) {
+  if (!_res) return res
+
+  // Expose the agent-specific response
+  res.setOriginalResponse(_res)
+
+  // Define recurrent HTTP fields
+  res.setStatus(_res.statusCode)
+  res.setStatusText(_res.statusText)
+  res.setHeaders(_res.headers)
+
+  // Define body, if present
+  if (body) res.setBody(body)
+
+  return res
+}
+
+// Important: tell theon to use the HTTP adapter
+theon.agents.set(requestAdapter)
+```
+
 ## Plugins
 
-`to do`
--->
+Due to the library is young at this time, there are not plugins available, however I would like to write a couple of them in a near future. Here's is wish list:
+
+- **consul** - Server discovery using Consul
+- **retry** - Provide retry a policy in your API clients
+- **JSONSchema** - Validate incoming and outgoing bodies againts a JSON schema.
 
 ## Middleware
 
+`theon` has been designed with strong extensibility capabilities in mind.
+Extensibility in `theon` is mostly achieved via its built-in middleware layer,
+which allows you to plug in and extend the client features with custom logic.
+
+Middleware layer has a hierarchical design, meaning you can plug in middlewares in parent scopes and them will be called from child scopes. For instance, you can plug in a middleware at client global scope, and then nested one at resource level. Both middleware will be called, from top to bottom in hierarchical order, thus global will come first.
+
+Middleware layer is behavies like a FIFO queue with control-flow capabilities, meaning you can run asynchrous tasks too.
+
+It was strongly inspired in the well-known middleware pattern by connect/express.
+
 ### Phases
+
+- **request** - Dispatched before send the request over the network
+- **response** - Dispatched after the client receives the response
 
 ### API
 
+#### Request#use(middleware)
+Alias: `useRequest`
+
+Attach a new middleware in the `request` phase.
+
+#### Request#useResponse(middleware)
+
+Attach a new middleware in the `response` phase.
+
+#### Middleware notation
+
+`middleware` must implement the following TypeScript notation:
+
+```ts
+function middleware(
+  req: theon.RawContext,
+  res: theon.Response,
+  next: (Error?, theon.Response?) => void
+)
+```
+
 ### Writting a middleware
 
-### Hooks
+Writting a middleware is a simple task.
+If you already know how to write a middleware for connect/express, you're mostly done.
 
-#### Phases
+The following example implements a `request` phase middleware
+```js
 
-- **error**
+```
+
+## Hooks
+
+`theon` provides a built-in layer to attach hooks to observe and manage in detail the different phases in the HTTP flow live cycle inside your client.
+
+They has been specially designed to provide control capabilities across the different internal phases of any HTTP transaction handled internally in `theon` clients.
+Furthermore, they are mostly useful to perform `pre` and `post` processing operations, such as defining defaults params and adapt/map things before they're processed by subsequent phases.
+
+Hooks behavies like a traditional middleware, meaning you can alter, replace, intercept or even cancel any HTTP transaction at any stage.
+
+Hooks also rely in control-flow capabilities, so you can run asynchronous tasks inside them.
+
+### Phases
+
+List of supported hook phases by execution order:
+
 - **before**
 - **before request**
-- **before request middleware**
-- **before request validator**
-- **before response middleware**
-- **before response validator**
-- **before dial**
-- **after**
-- **after dial**
+- **before middleware request**
+- **middleware request**
+- **after middleware request**
+- **before validator request**
+- **validator request**
+- **after validator request**
 - **after request**
+- **before dial**
+- **dialing**
+- **after dial**
+- **before response**
+- **before middleware response**
+- **middleware response**
+- **after middleware response**
+- **before validator response**
+- **validator response**
+- **after validator response**
 - **after response**
-- **after request middleware**
-- **after request validator**
-- **after response validator**
-- **after response validator**
-- **response**
+- **after**
+- **error** - Only dispatched in case of error
 
-#### API
+### API
 
-#### Writting hooks
+#### Request#observe(phase, hook)
 
-## Validator
+Attach a new observer hook to a given phase.
+
+#### Hook notation
+
+`hook` must implement the following TypeScript notation:
+
+```ts
+function hook(
+  req: theon.RawContext,
+  res: theon.Response,
+  next: (Error?, theon.Response?) => void
+)
+```
+
+### Writting hooks
+
+Observable hooks has the same interface, and thus the same implementation as standard middleware or validators.
+
+```js
+var client = theon('http://my.api.com')
+
+var users = client
+  .basePath('/api')
+  .resource('users')
+  .path('/users')
+
+// Attach a default observer for all the requests
+users
+  .observe('response', function (req, res, next) {
+    console.log('Log response:', res.statusCode, res.headers)
+    next()
+  })
+
+// Render the API client
+var api = users.renderAll()
+
+api
+  .users()
+  // Attach an observer for the current request at API client level
+  .observe('response', function (req, res, next) {
+    console.log('Log body:', res.body)
+    next()
+  })
+  .end(function (err, res) {
+    console.log('Done!')
+  })
+```
+
+## Validators
+
+
 
 ### Phases
 
@@ -276,7 +487,7 @@ apiClient
 
 ## API
 
-### theon([ url ])
+### theon([ url ]) => `Client`
 
 Create a new API builder.
 
@@ -299,6 +510,31 @@ Create a new `resource` entity
 Inherits from [`Entity`](#entity)
 
 Create a new `mixin` entity
+
+#### theon.agents
+
+API to manage HTTP agents adapters.
+
+#### theon.agents.agents = { name: agentAdapterFn }
+
+Map of agents by name and adapter function.
+
+#### theon.agents.defaults() => `function`
+
+Retrieve the default HTTP agent adapter bases on the runtime environment.
+
+#### theon.agents.get(name) => `function`
+
+Retrieve an HTTP agent adapter by name.
+
+#### theon.agents.set(agent)
+
+Set an HTTP agent to be used by default.
+All the HTTP traffic will be handled by this agent.
+
+#### theon.agents.add(name, adapterFn)
+
+Register a new HTTP agent adapter by name.
 
 ### Entity
 Inherits from [`Request`](#request)
@@ -407,7 +643,10 @@ Alias: `requestValidator`
 
 #### Request#responseValidator(validator)
 
+#### Request#interceptor(interceptor)
+
 #### Request#map(fn)
+Alias: `bodyMap`
 
 #### Request#validate(cb)
 
@@ -429,6 +668,11 @@ Alias: `requestValidator`
 
 #### Request#end(cb)
 Alias: `done`
+
+#### Request#pipe(stream)
+
+#### Request#stream(stream)
+Alias: `bodyStream`
 
 #### Request#raw() => [RawContext](#RawContext)
 
@@ -464,6 +708,12 @@ Alias: `done`
 
 #### Context#store = `Store`
 
+#### Context#method = `string`
+
+#### Context#body = `mixed`
+
+#### Context#stream = `ReadableStream`
+
 #### Context#useParent(ctx)
 
 #### Context#raw()
@@ -485,6 +735,10 @@ It's passed to the middleware and validator call chain.
 
 #### RawContext#body = `mixed`
 
+#### RawContext#method = `string`
+
+#### RawContext#stream = `ReadableStream`
+
 #### RawContext#opts = `object`
 
 #### RawContext#agent = `function`
@@ -493,7 +747,11 @@ It's passed to the middleware and validator call chain.
 
 #### RawContext#ctx = `Context`
 
-Current context reference.
+Current original context instance.
+
+#### RawContext#req = `Request`
+
+Current original request instance.
 
 ### Store([ parent ])
 

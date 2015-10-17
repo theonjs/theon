@@ -1,3 +1,4 @@
+const sinon = require('sinon')
 const expect = require('chai').expect
 const utils = require('../lib/utils')
 
@@ -47,6 +48,16 @@ suite('utils', function () {
     expect(utils.lower('FoO')).to.be.equal('foo')
     expect(utils.lower(null)).to.be.equal('')
     expect(utils.lower({})).to.be.equal('')
+  })
+
+  test('once', function () {
+    var spy = sinon.spy()
+    var fn = utils.once(spy)
+    expect(spy.calledOnce).to.be.false
+    fn()
+    expect(spy.calledOnce).to.be.true
+    fn()
+    expect(spy.calledOnce).to.be.true
   })
 
   test('pathParams', function () {
