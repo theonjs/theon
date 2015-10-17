@@ -455,7 +455,7 @@ var users = client
 
 // Attach a default observer for all the requests
 users
-  .observe('response', function (req, res, next) {
+  .observe('after response', function (req, res, next) {
     console.log('Log response:', res.statusCode, res.headers)
     next()
   })
@@ -466,7 +466,7 @@ var api = users.renderAll()
 api
   .users()
   // Attach an observer for the current request at API client level
-  .observe('response', function (req, res, next) {
+  .observe('after response', function (req, res, next) {
     console.log('Log body:', res.body)
     next()
   })
@@ -477,13 +477,17 @@ api
 
 ## Validators
 
-
-
 ### Phases
 
 ### API
 
 ### Writting a validator
+
+## Interceptors
+
+### API
+
+### Writting an interceptor
 
 ## API
 

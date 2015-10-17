@@ -189,6 +189,44 @@ suite('theon', function () {
       })
   })
 
+  test('context store', function (done) {
+    nock.cleanAll()
+    nock('http://localhost')
+      .get('/foo')
+      .reply(200, { hello: 'world' })
+
+    var spy = sinon.spy()
+    var client = theon('http://localhost')
+      .type('json')
+
+    client.store().set('foo', 'bar')
+
+    var api = client
+      .resource('foo')
+      .path('/foo')
+      .renderAll()
+
+    api.foo()
+      .use(function (req, res, next) {
+        req.store.set('boo', 'foo')
+        next()
+      })
+      .use(function (req, res, next) {
+        spy(req.store.get('foo'))
+        spy(req.store.get('boo'))
+        next()
+      })
+      .end(function (err, res) {
+        expect(err).to.be.null
+        expect(res.statusCode).to.be.equal(200)
+        expect(spy.args[0][0]).to.be.equal('bar')
+        expect(spy.args[1][0]).to.be.equal('foo')
+        expect(res.req.store.get('foo')).to.be.equal('bar')
+        expect(res.req.store.get('boo')).to.be.equal('foo')
+        done()
+      })
+  })
+
   test('hooks', function (done) {
     nock.cleanAll()
     nock('http://localhost')

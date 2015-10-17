@@ -26,7 +26,7 @@ function adapter(res, _res) {
   return res
 }
 
-},{"lil-http":31}],3:[function(require,module,exports){
+},{"lil-http":35}],3:[function(require,module,exports){
 var isBrowser = typeof window !== 'undefined'
 
 var agents = exports.agents = isBrowser
@@ -43,6 +43,10 @@ exports.defaults = function () {
   return exports.get()
 }
 
+exports.set = function (agent) {
+  agents.embed = agent
+}
+
 exports.add = function (name, agent) {
   agents[name] = agent
 }
@@ -53,17 +57,21 @@ module.exports = {
 }
 
 },{"./request":5}],5:[function(require,module,exports){
+var request = require('request')
 var utils = require('../../utils')
 
 module.exports = function (req, res, cb) {
-  var request = require('request')
-
   var opts = {
     url: req.url,
     qs: req.query,
+    body: req.body,
     headers: req.headers,
+    method: req.method,
     useQuerystring: true
   }
+
+  // Set JSON format
+  opts.json = req.opts.format === 'json'
 
   // Set auth credentials, if required
   if (req.opts.auth) {
@@ -73,9 +81,14 @@ module.exports = function (req, res, cb) {
   // Extend agent-specific options
   utils.extend(opts, req.agentOpts)
 
-  return request(opts, function (err, _res, body) {
+  // If stream passed, pipe it!
+  return req.stream
+    ? req.stream.pipe(request(opts, handler))
+    : request(opts, handler)
+
+  function handler(err, _res, body) {
     cb(err, adapter(res, _res, body))
-  })
+  }
 }
 
 function adapter(res, _res, body) {
@@ -95,17 +108,20 @@ function adapter(res, _res, body) {
   return res
 }
 
-},{"../../utils":25,"request":30}],6:[function(require,module,exports){
+},{"../../utils":27,"request":34}],6:[function(require,module,exports){
 var agents = require('./agents')
-var Validator = require('./validator')
-var Middleware = require('./middleware')
-var merge = require('./utils').merge
+var Store = require('./store')
+var Middleware = require('midware-pool')
+var utils = require('./utils')
+var merge = utils.merge
 
 module.exports = Context
 
 function Context(ctx) {
+  this.body =
+  this.stream =
+  this.method =
   this.parent = null
-  this.body = null
 
   this.opts = {}
   this.query = {}
@@ -117,46 +133,58 @@ function Context(ctx) {
   this.agentOpts = {}
   this.agent = agents.defaults()
 
-  this.validator = new Validator
+  this.store = new Store
   this.middleware = new Middleware
 
   if (ctx) this.useParent(ctx)
 }
 
-Context.prototype.useParent = function (ctx) {
-  this.parent = ctx
-  this.setupMiddleware(ctx)
+Context.fields = [
+  'opts',
+  'headers',
+  'query',
+  'params',
+  'cookies',
+  'agentOpts'
+]
+
+Context.prototype.useParent = function (parent) {
+  this.parent = parent
+
+  ;['middleware', 'store'].forEach(function (key) {
+    this[key].useParent(parent[key])
+  }, this)
+
   return this
 }
 
-Context.prototype.setupMiddleware = function (parent) {
-  ['middleware', 'validator'].forEach(function (key) {
-    ['request', 'response'].forEach(function (phase) {
-      this[key].use(phase, function (req, res, next) {
-        parent[key].run(phase, req, res, next)
-      })
-    }, this)
-  }, this)
+Context.prototype.raw = function () {
+  var data = this.mergeParams()
+  data.path = this.buildPath()
+  data.agent = this.agent
+
+  // Set defaults
+  if (!data.method) data.method = 'GET'
+
+  defineProperty(data, 'ctx', this)
+  defineProperty(data, 'store', this.store)
+
+  return data
 }
 
-Context.prototype.raw = function () {
-  var parent = this.parent
-    ? this.parent.raw()
-    : {}
-
+Context.prototype.mergeParams = function () {
   var data = {}
-  data.opts = merge(parent.opts, this.opts, this.persistent.opts)
-  data.path = this.buildPath()
+  var parent = this.parent ? this.parent.raw() : {}
 
-  data.headers = merge(parent.headers, this.headers, this.persistent.headers)
-  data.query = merge(parent.query, this.query, this.persistent.query)
-  data.params = merge(parent.params, this.params, this.persistent.params)
-  data.cookies = merge(parent.cookies, this.cookies)
+  ;['method', 'body', 'stream'].forEach(function (name) {
+    data[name] = this[name] || parent[name]
+  }, this)
 
-  data.agent = this.agent
-  data.agentOpts = merge(parent.agentOpts, this.agentOpts, this.persistent.agentOpts)
+  Context.fields.forEach(function (name) {
+    var merger = name === 'headers' ? mergeHeaders : merge
+    data[name] = merger(parent[name], this[name], this.persistent[name])
+  }, this)
 
-  data.ctx = this
   return data
 }
 
@@ -178,7 +206,18 @@ Context.prototype.buildPath = function () {
   return baseUrl + head + tail
 }
 
-},{"./agents":3,"./middleware":17,"./utils":25,"./validator":29}],7:[function(require,module,exports){
+function defineProperty(o, name, value) {
+  Object.defineProperty(o, name, {
+    value: value,
+    enumerable: true
+  })
+}
+
+function mergeHeaders() {
+  return utils.normalize(merge.apply(null, arguments))
+}
+
+},{"./agents":3,"./store":21,"./utils":27,"midware-pool":36}],7:[function(require,module,exports){
 var utils = require('./utils')
 var Response = require('./response')
 
@@ -191,8 +230,10 @@ function Dispatcher(req) {
 Dispatcher.prototype.run = function (cb) {
   cb = cb || noop
 
+  var request = this.req
+  var ctx = this.req.ctx
   var req = this.req.raw()
-  var res = new Response(this.req)
+  var res = new Response(req)
 
   var phases = [
     function before(next) {
@@ -209,66 +250,133 @@ Dispatcher.prototype.run = function (cb) {
   function done(err, req, res) {
     if (err === 'intercept') err = null
 
-    // Debug request/response, if enabled
-    if (req.ctx.debug) req.ctx.debug(err, req, res)
+    // Set request context, if not present
+    if (!res.req) res.req = req
 
     // Resolve the callback
-    cb(err, res)
+    if (!err) return cb(null, res)
+
+    // Expose the error
+    req.error = err
+
+    // Dispatch the error hook
+    ctx.middleware.run('error', req, res, function (_err, _res) {
+      cb(_err || err, _res || res)
+    })
   }
 
   utils.series(phases, done, this)
-  return this
+
+  return this.req
 }
 
 Dispatcher.prototype.before = function (req, res, next) {
-  this.runPhase('request', req, res, next)
+  utils.series([
+    function before(next) {
+      this.runHook('before', req, res, next)
+    },
+    function request(req, res, next) {
+      this.runPhase('request', req, res, next)
+    }
+  ], next, this)
 }
 
 Dispatcher.prototype.after = function (req, res, next) {
-  this.runPhase('response', req, res, next)
+  utils.series([
+    function response(next) {
+      this.runPhase('response', req, res, next)
+    },
+    function after(req, res, next) {
+      this.runHook('after', req, res, next)
+    }
+  ], next, this)
 }
 
 Dispatcher.prototype.dial = function (req, res, next) {
-  // Render URL with params
+  // Compose the full URL
   var url = req.opts.rootUrl || ''
   var path = utils.pathParams(req.path, req.params)
   req.url = url + path
 
-  res.orig = req.ctx.agent(req, res, function (err, res) {
-    next(err, req, res)
+  utils.series([
+    function before(next) {
+      req.ctx.middleware.run('before dial', req, res, forward(req, res, next))
+    },
+    this.dialer,
+    function after(req, res, next) {
+      req.ctx.middleware.run('after dial', req, res, forward(req, res, next))
+    }
+  ], next, this)
+}
+
+Dispatcher.prototype.dialer = function (req, res, next) {
+  var nextFn = utils.once(forward(req, res, next))
+
+  // Call the HTTP agent adapter
+  res.orig = req.ctx.agent(req, res, nextFn)
+
+  // Handle writable stream pipes
+  if (res.orig && res.orig.pipe) {
+    this.req.pipes.forEach(function (stream) {
+      res.orig.pipe(stream)
+    })
+  }
+
+  // Dispatch the dialing observer
+  req.ctx.middleware.run('dialing', req, res, function (err) {
+    if (!err) return
+
+    if (res.orig && typeof res.orig.abort === 'function') {
+      nextFn(new Error('Request cancelled: ' + (err.message || err)))
+      res.orig.abort()
+    }
   })
+}
+
+Dispatcher.prototype.runHook = function (event, req, res, next) {
+  req.ctx.middleware.run(event, req, res, forward(req, res, next))
 }
 
 Dispatcher.prototype.runPhase = function (phase, req, res, next) {
-  var phases = [
-    function middleware(next) {
-      this.middleware(phase, req, res, next)
+  utils.series([
+    function before(next) {
+      this.runHook('before ' + phase, req, res, next)
     },
-    function validate(res, next) {
-      this.validate(phase, req, res, next)
+    function middleware(req, res, next) {
+      this.runStack('middleware', phase, req, res, next)
+    },
+    function validate(req, res, next) {
+      this.runStack('validator', phase, req, res, next)
+    },
+    function after(req, res, next) {
+      this.runHook('after ' + phase, req, res, next)
     }
-  ]
+  ], next, this)
+}
 
-  function done(err, _res) {
+Dispatcher.prototype.runStack = function (stack, phase, req, res, next) {
+  utils.series([
+    function before(next) {
+      this.runHook('before ' + stack + ' ' + phase, req, res, next)
+    },
+    function run(req, res, next) {
+      req.ctx.middleware.run(stack + ' ' + phase, req, res, forward(req, res, next))
+    },
+    function after(req, res, next) {
+      this.runHook('after ' + stack + ' ' + phase, req, res, next)
+    },
+  ], next, this)
+}
+
+function forward(req, res, next) {
+  return function (err, _res) {
     next(err, req, _res || res)
   }
-
-  utils.series(phases, done, this)
-}
-
-Dispatcher.prototype.middleware = function (phase, req, res, next) {
-  req.ctx.middleware.run(phase, req, res, function (err, _res) {
-    next(err, _res || res)
-  })
-}
-
-Dispatcher.prototype.validate = function (phase, req, res, next) {
-  req.ctx.validator.run(phase, req, res, next)
 }
 
 function noop() {}
 
-},{"./response":19,"./utils":25}],8:[function(require,module,exports){
+},{"./response":20,"./utils":27}],8:[function(require,module,exports){
 var Request = require('../request')
 var Dispatcher = require('../dispatcher')
 
@@ -297,7 +405,7 @@ Client.prototype.newRequest = function () {
   }
 })
 
-},{"../dispatcher":7,"../request":18}],9:[function(require,module,exports){
+},{"../dispatcher":7,"../request":19}],9:[function(require,module,exports){
 var Client = require('./client')
 var has = require('../utils').has
 
@@ -352,7 +460,7 @@ function nameConflict(name) {
   return new Error('Name conflict: "' + name + '" is already defined')
 }
 
-},{"../utils":25,"./client":8}],10:[function(require,module,exports){
+},{"../utils":27,"./client":8}],10:[function(require,module,exports){
 module.exports = {
   Client: require('./client'),
   Generator: require('./generator')
@@ -452,11 +560,18 @@ Entity.prototype.render = function (client) {
   return new engine.Generator(client || this).render()
 }
 
+Entity.prototype.renderAll = function (client) {
+  if (this.parent) {
+    return this.parent.renderAll(client)
+  }
+  return this.render(client || this)
+}
+
 function invalidEntity(entity) {
   return !entity || typeof entity.render !== 'function'
 }
 
-},{"../context":6,"../engine":10,"../request":18}],14:[function(require,module,exports){
+},{"../context":6,"../engine":10,"../request":19}],14:[function(require,module,exports){
 module.exports = {
   Mixin: require('./mixin'),
   Entity: require('./entity'),
@@ -497,6 +612,7 @@ Mixin.prototype.render = function () {
 },{"./entity":13}],16:[function(require,module,exports){
 var Entity =  require('./entity')
 var Request = require('../request')
+var extend = require('../utils').extend
 var Generator = require('../engine').Generator
 
 module.exports = Entity.Resource = Resource
@@ -509,11 +625,23 @@ Resource.prototype = Object.create(Entity.prototype)
 
 Resource.prototype.entity = 'resource'
 
-Resource.prototype.render = function () {
-  var ctx = this.ctx
-  var req = new Request(ctx)
+Resource.prototype.meta = function (meta) {
+  var store = this.ctx.store
 
-  new Generator(this)
+  var data = store.get('meta')
+  if (data) {
+    meta = extend(data, meta)
+  }
+
+  store.set('meta', meta)
+  return this
+}
+
+Resource.prototype.render = function () {
+  var req = new Request
+  req.useParent(this)
+
+  return new Generator(this)
     .bind(resource)
     .render()
 
@@ -529,52 +657,42 @@ Resource.prototype.render = function () {
 
     return req
   }
-
-  return resource
 }
 
-},{"../engine":10,"../request":18,"./entity":13}],17:[function(require,module,exports){
-var mw = require('midware')
-
-module.exports = Middleware
-
-function Middleware() {
-  this.stack = {}
+},{"../engine":10,"../request":19,"../utils":27,"./entity":13}],17:[function(require,module,exports){
+module.exports = {
+  map: require('./map')
 }
 
-Middleware.prototype.use = function (phase, fn) {
-  var stack = this.stack[phase]
+},{"./map":18}],18:[function(require,module,exports){
+module.exports = function map(mapper) {
+  return function (req, res, next) {
+    var body = res.body
+    if (!body) return next()
 
-  if (!stack) {
-    stack = this.stack[phase] = mw()
+    mapper(body, function (err, body) {
+      if (err) return next(err)
+      if (body) res.body = body
+      next()
+    })
   }
-
-  stack(fn)
-  return this
 }
 
-Middleware.prototype.run = function (phase, req, res, next) {
-  var stack = this.stack[phase]
-  if (!stack) return next()
-  this.eval(stack, req, res, next)
-}
-
-Middleware.prototype.eval = function (stack, req, res, next) {
-  stack.run(req, res, next)
-}
-
-},{"midware":32}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var types = require('./types')
 var utils = require('./utils')
 var agents = require('./agents')
 var Context = require('./context')
 var Response = require('./response')
 var Dispatcher = require('./dispatcher')
+var middleware = require('./middleware')
 
 module.exports = Request
 
 function Request(ctx) {
+  this.pipes = []
   this.parent = null
+  this.dispatcher = null
   this.ctx = new Context(ctx)
 }
 
@@ -594,7 +712,7 @@ Request.prototype.basePath = function (path) {
 }
 
 Request.prototype.method = function (name) {
-  this.ctx.opts.method = name
+  this.ctx.method = name
   return this
 }
 
@@ -608,11 +726,16 @@ Request.prototype.params = function (params) {
   return this
 }
 
-Request.prototype.persistParam = function (name, value) {
-  var params = this.ctx.persistent.params || {}
-  params[name] = value
-  this.ctx.persistent.params = params
+Request.prototype.persistField = function (type, name, value) {
+  var persistent = this.ctx.persistent
+  var types = persistent[type] || {}
+  types[name] = value
+  persistent[type] = types
   return this
+}
+
+Request.prototype.persistParam = function (name, value) {
+  return this.persistField('params', name, value)
 }
 
 Request.prototype.persistParams = function (params) {
@@ -635,6 +758,10 @@ Request.prototype.query = function (query) {
   return this
 }
 
+Request.prototype.store = function () {
+  return this.ctx.store
+}
+
 Request.prototype.setQuery = function (query) {
   this.ctx.query = query
   return this
@@ -651,10 +778,7 @@ Request.prototype.unsetQuery = function (name) {
 }
 
 Request.prototype.persistQueryParam = function (name, value) {
-  var query = this.ctx.persistent.query || {}
-  query[name] = value
-  this.ctx.persistent.query = query
-  return this
+  return this.persistField('query', name, value)
 }
 
 Request.prototype.persistQuery = function (query) {
@@ -664,28 +788,28 @@ Request.prototype.persistQuery = function (query) {
 
 Request.prototype.set =
 Request.prototype.header = function (name, value) {
-  this.ctx.headers[name] = value
+  this.ctx.headers[utils.lower(name)] = value
   return this
 }
 
 Request.prototype.unset = function (name) {
-  delete this.ctx.headers[name]
+  delete this.ctx.headers[utils.lower(name)]
   return this
 }
 
 Request.prototype.headers = function (headers) {
-  utils.extend(this.ctx.headers, headers)
+  utils.extend(this.ctx.headers, utils.normalize(headers))
   return this
 }
 
 Request.prototype.setHeaders = function (headers) {
-  this.ctx.headers = headers
+  this.ctx.headers = utils.normalize(headers)
   return this
 }
 
 Request.prototype.persistHeader = function (name, value) {
   var headers = this.ctx.persistent.headers || {}
-  headers[name] = value
+  headers[utils.lower(name)] = value
   this.ctx.persistent.headers = headers
   return this
 }
@@ -695,7 +819,13 @@ Request.prototype.persistHeaders = function (headers) {
   return this
 }
 
-Request.prototype.type = function (value) {
+Request.prototype.format = function (type) {
+  this.ctx.opts.format = type
+  return this
+}
+
+Request.prototype.type =
+Request.prototype.mimeType = function (value) {
   var ctx = this.ctx
   var type = types[value] || value
   ctx.headers['content-type'] = type
@@ -728,25 +858,36 @@ Request.prototype.auth = function (user, password) {
   return this
 }
 
+Request.prototype.map =
+Request.prototype.bodyMap = function (mapper) {
+  this.ctx.middleware.use('after response', middleware.map(mapper))
+  return this
+}
+
 Request.prototype.use =
 Request.prototype.useRequest = function (middleware) {
-  this.ctx.middleware.use('request', middleware)
+  this.ctx.middleware.use('middleware request', middleware)
   return this
 }
 
 Request.prototype.useResponse = function (middleware) {
-  this.ctx.middleware.use('response', middleware)
+  this.ctx.middleware.use('middleware response', middleware)
   return this
 }
 
 Request.prototype.validator =
 Request.prototype.requestValidator = function (middleware) {
-  this.ctx.validator.use('request', middleware)
+  this.ctx.middleware.use('validator request', middleware)
   return this
 }
 
 Request.prototype.responseValidator = function (middleware) {
-  this.ctx.validator.use('response', middleware)
+  this.ctx.middleware.use('validator response', middleware)
+  return this
+}
+
+Request.prototype.interceptor = function (interceptor) {
+  this.ctx.middleware.use('before dial', interceptor)
   return this
 }
 
@@ -755,8 +896,13 @@ Request.prototype.validate = function (cb) {
   var res = new Response(this.req)
 
   new Dispatcher(this)
-    .validate('request', req, res, cb)
+    .runStack('validator', 'request', req, res, cb)
 
+  return this
+}
+
+Request.prototype.observe = function (phase, hook) {
+  this.ctx.middleware.use(phase, hook)
   return this
 }
 
@@ -809,22 +955,9 @@ Request.prototype.persistOptions = function (opts) {
   return this
 }
 
-Request.prototype.debug = function (debug) {
-  if (typeof debug !== 'function')
-    throw new TypeError('debug must be a function')
-
-  this.ctx.debug = debug
-  return this
-}
-
-Request.prototype.stopDebugging = function () {
-  this.ctx.debug = null
-  return this
-}
-
 Request.prototype.useParent = function (parent) {
   if (!(parent instanceof Request))
-    throw new TypeError('Parent context is not a valid argument')
+    throw new TypeError('Parent context is not a valid')
 
   this.parent = parent
   this.ctx.useParent(parent.ctx)
@@ -832,14 +965,41 @@ Request.prototype.useParent = function (parent) {
   return this
 }
 
-Request.prototype.end = function (cb) {
-  return new Dispatcher(this).run(cb)
+Request.prototype.dispatch = function (cb) {
+  if (this.dispatcher) return this
+  this.dispatcher = new Dispatcher(this)
+
+  // Push to the event loop to force async
+  var self = this
+  setTimeout(function () {
+    self.dispatcher.run(cb)
+  }, 0)
+
+  return this
+}
+
+Request.prototype.end =
+Request.prototype.done = function (cb) {
+  return this.dispatch(cb)
+}
+
+Request.prototype.pipe = function (stream) {
+  this.pipes.push(stream)
+  return this.dispatch()
+}
+
+Request.prototype.stream =
+Request.prototype.bodyStream = function (stream) {
+  if (!stream || typeof stream.pipe !== 'function')
+    throw new TypeError('Invalid stream interface')
+
+  this.ctx.stream = stream
+  return this
 }
 
 Request.prototype.raw = function () {
   var opts = this.ctx.raw()
-  opts.req = this
-  opts.ctx = this.ctx
+  opts.client = this
   return opts
 }
 
@@ -850,7 +1010,7 @@ Request.prototype.clone = function () {
   return req
 }
 
-},{"./agents":3,"./context":6,"./dispatcher":7,"./response":19,"./types":21,"./utils":25}],19:[function(require,module,exports){
+},{"./agents":3,"./context":6,"./dispatcher":7,"./middleware":17,"./response":20,"./types":23,"./utils":27}],20:[function(require,module,exports){
 module.exports = Response
 
 function Response(req) {
@@ -962,7 +1122,45 @@ function type(str) {
   return str.split(/ *; */).shift()
 }
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
+module.exports = Store
+
+function Store(parent) {
+  this.parent = parent
+  this.map = Object.create(null)
+}
+
+Store.prototype.getParent = function (key) {
+  if (this.parent) return this.parent.get(key)
+}
+
+Store.prototype.get = function (key) {
+  var value = this.map[key]
+  if (value !== undefined) return value
+  return this.getParent(key)
+}
+
+Store.prototype.set = function (key, value) {
+  if (key) this.map[key] = value
+}
+
+Store.prototype.setParent = function (key, value) {
+  if (this.parent) this.parent.set(name, value)
+}
+
+Store.prototype.useParent = function (parent) {
+  this.parent = parent
+}
+
+Store.prototype.remove = function (key) {
+  this.map[key] = undefined
+}
+
+Store.prototype.has = function (key) {
+  return this.get(key) !== undefined
+}
+
+},{}],22:[function(require,module,exports){
 module.exports = theon
 
 /**
@@ -1002,7 +1200,7 @@ theon.utils      = require('./utils')
 
 theon.VERSION = '0.1.0'
 
-},{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":18,"./response":19,"./utils":25}],21:[function(require,module,exports){
+},{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":19,"./response":20,"./utils":27}],23:[function(require,module,exports){
 module.exports = {
   html: 'text/html',
   json: 'application/json',
@@ -1012,14 +1210,14 @@ module.exports = {
   'form-data': 'application/x-www-form-urlencoded'
 }
 
-},{}],22:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = function clone(y) {
   var x = {}
   for (var k in y) x[k] = y[k]
   return x
 }
 
-},{}],23:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 var clone = require('./clone')
 
 module.exports = function extend(x, y) {
@@ -1028,24 +1226,34 @@ module.exports = function extend(x, y) {
   return x
 }
 
-},{"./clone":22}],24:[function(require,module,exports){
+},{"./clone":24}],26:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty
 
-module.exports = function (o, name) {
+module.exports = function has(o, name) {
   return !!o && hasOwn.call(o, name)
 }
 
-},{}],25:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports = {
   has: require('./has'),
+  once: require('./once'),
+  lower: require('./lower'),
   merge: require('./merge'),
   clone: require('./clone'),
   series: require('./series'),
   extend: require('./extend'),
+  normalize: require('./normalize'),
   pathParams: require('./path-params')
 }
 
-},{"./clone":22,"./extend":23,"./has":24,"./merge":26,"./path-params":27,"./series":28}],26:[function(require,module,exports){
+},{"./clone":24,"./extend":25,"./has":26,"./lower":28,"./merge":29,"./normalize":30,"./once":31,"./path-params":32,"./series":33}],28:[function(require,module,exports){
+module.exports = function lower(str) {
+  return typeof str === 'string'
+    ? str.toLowerCase()
+    : ''
+}
+
+},{}],29:[function(require,module,exports){
 var clone = require('./clone')
 var extend = require('./extend')
 var slicer = Array.prototype.slice
@@ -1061,7 +1269,26 @@ module.exports = function merge(x, y) {
   return x
 }
 
-},{"./clone":22,"./extend":23}],27:[function(require,module,exports){
+},{"./clone":24,"./extend":25}],30:[function(require,module,exports){
+module.exports = function normalize(o) {
+  var buf = {}
+  Object.keys(o || {}).forEach(function (name) {
+    buf[name.toLowerCase()] = o[name]
+  })
+  return buf
+}
+
+},{}],31:[function(require,module,exports){
+module.exports = function once(fn) {
+  var called = false
+  return function () {
+    if (called) return
+    called = true
+    fn.apply(null, arguments)
+  }
+}
+
+},{}],32:[function(require,module,exports){
 // Originally taken from pillarjs/path-to-regexp package:
 // https://github.com/pillarjs/path-to-regexp
 var PATH_REGEXP = new RegExp([
@@ -1091,7 +1318,8 @@ module.exports = function (path, params) {
   return path
 }
 
-},{}],28:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
+var once = require('./once')
 var slicer = Array.prototype.slice
 
 module.exports = function series(arr, cb, ctx) {
@@ -1105,30 +1333,15 @@ module.exports = function series(arr, cb, ctx) {
     if (!fn) return cb.apply(ctx, arguments)
 
     var args = slicer.call(arguments, 1)
-    fn.apply(ctx, args.concat(next))
+    fn.apply(ctx, args.concat(once(next)))
   }
 
   next()
 }
 
-},{}],29:[function(require,module,exports){
-var Middleware = require('./middleware')
+},{"./once":31}],34:[function(require,module,exports){
 
-module.exports = Validator
-
-function Validator() {
-  Middleware.call(this)
-}
-
-Validator.prototype = Object.create(Middleware.prototype)
-
-Validator.prototype.eval = function (stack, req, res, next) {
-  stack.run(req, res, function (err) { next(err) })
-}
-
-},{"./middleware":17}],30:[function(require,module,exports){
-
-},{}],31:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /*! lil-http - v0.1.16 - MIT License - https://github.com/lil-js/http */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -1433,7 +1646,109 @@ Validator.prototype.eval = function (stack, req, res, next) {
   return exports.http = http
 }))
 
-},{}],32:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
+var midware = require('midware')
+var MiddlewarePool = require('./pool')
+
+module.exports = pool
+
+function pool(parent) {
+  return new MiddlewarePool(parent)
+}
+
+pool.Pool = 
+pool.MiddlewarePool = MiddlewarePool
+pool.midware = midware
+},{"./pool":37,"midware":38}],37:[function(require,module,exports){
+var midware = require('midware')
+
+module.exports = MiddlewarePool
+
+function MiddlewarePool(parent) {
+  this.ctx = null
+  this.pool = Object.create(null)
+  if (parent) this.useParent(parent)
+}
+
+MiddlewarePool.prototype.registered = function (name) {
+  return typeof this.pool[name] === 'function'
+}
+
+MiddlewarePool.prototype.flush = function (name) {
+  if (this.registered(name)) {
+    this.pool[name].stack.splice(0)
+  }
+}
+
+MiddlewarePool.prototype.flushAll = function () {
+  this.pool = Object.create(null)
+}
+
+MiddlewarePool.prototype.remove  = function (name, fn) {
+  if (this.registered(name)) {
+    this.pool[name].remove(fn)
+  }
+}
+
+MiddlewarePool.prototype.stack = function (name) {
+  if (this.registered(name)) {
+    return this.pool[name].stack
+  }
+}
+
+MiddlewarePool.prototype.useCtx = function (ctx) {
+  this.ctx = ctx
+}
+
+MiddlewarePool.prototype.useParent = function (parent) {
+  if (!(parent instanceof MiddlewarePool))
+    throw new TypeError('Invalid parent middleware')
+
+  this.parent = parent
+}
+
+MiddlewarePool.prototype.use = function (name, fn) {
+  var pool = this.pool[name]
+  var args = toArr(arguments, 1)
+
+  if (!pool) {
+    pool = this.pool[name] = midware(this.ctx)
+  }
+
+  if (Array.isArray(fn)) {
+    args = fn
+  }
+
+  pool.apply(null, args)
+}
+
+MiddlewarePool.prototype.runParent = function (args, done) {
+  if (!this.parent) return done()
+  this.parent.run.apply(this.parent, args.concat(done))
+}
+
+MiddlewarePool.prototype.run = function (name /* ...args, done */) {
+  var pool = this.pool
+  var args = toArr(arguments)
+  var done = args.pop()
+
+  this.runParent(args, run)
+
+  function run(err, end) {
+    if (err || end) return done(err, end)
+
+    var middleware = pool[name]
+    if (!middleware) return done()
+
+    middleware.run.apply(null, args.slice(1).concat(done))
+  }
+}
+
+function toArr(args, index) {
+  return [].slice.call(args, index || 0)
+}
+
+},{"midware":38}],38:[function(require,module,exports){
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define(['exports'], factory)
@@ -1524,5 +1839,5 @@ Validator.prototype.eval = function (stack, req, res, next) {
   exports.midware = midware
 }))
 
-},{}]},{},[20])(20)
+},{}]},{},[22])(22)
 });
