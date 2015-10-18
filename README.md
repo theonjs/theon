@@ -160,10 +160,14 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 
 ## Tutorial
 
-Lets assume we have the following HTTP interface and we want to create a convenient programmatic API client to interact with it easily, with the following requirements:
+We want to create a convenient programmatic API client to interact with a remote HTTP service easily.
+
+We have the following requirements:
 
 - The HTTP API only uses JSON as interchange format.
-- We also have to pass
+- We have to pass a header to define the API version
+
+And we have the following HTTP interface:
 
 - POST /api/auth/login
 - POST /api/auth/signup
@@ -178,6 +182,7 @@ Firstly, as API developers, we gonna create and configure our client:
 var theon = require('theon')
 
 var client = theon('http://my.api.com')
+  .set('Version', '1.0') // Define the API version header at global level
   .basePath('/api') // We define the base path for all the requests
   .type('json') // Our payloads and responses will be always JSON
 ```
