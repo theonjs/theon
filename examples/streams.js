@@ -6,6 +6,10 @@ nock('http://localhost')
   .get('/foo')
   .reply(200, {hello: 'world'})
 
+nock('http://localhost')
+  .post('/foo', { hello: 'world' })
+  .reply(200, { hello: 'world' })
+
 // Pipe response into a writable stream
 var writable = new stream.Writable
 writable._write = function (chunk, encoding, next) {
@@ -20,10 +24,6 @@ var client = theon('http://localhost')
 
 client.foo()
   .pipe(writable)
-
-nock('http://localhost')
-  .post('/foo', { hello: 'world' })
-  .reply(200, { hello: 'world' })
 
 // Pipe response into a writable stream
 var readable = new stream.Readable

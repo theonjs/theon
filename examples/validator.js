@@ -11,40 +11,41 @@ nock('http://my.api.com')
   }])
 
 var client = theon('http://my.api.com')
-  .set('version', '1.0')
-  .basePath('/api')
 
-client.collection('users')
-  .basePath('/users')
+var users = client
+  .basePath('/api')
+  .collection('users')
   .resource('get')
   .path('/:id')
+  // Attach a resource level validator
   .validator(function (req, res, next) {
-    if (!req.headers.version) {
-      return next(new Error('Missing required header: version'))
+    if (req.params.id > 10000) {
+      return next(new Error('validation error: id param must be lower than 10000'))
     }
-    return next()
+    next() // otherwise continue
   })
+  // Attach a resource level response validator
   .responseValidator(function (req, res, next) {
-    if (!res.headers.version) {
-      return next(new Error('Invalid response: missing version header'))
+    if (!res.body) {
+      return next(new Error('response validation error: body cannot be empty'))
     }
-    return next()
+    next() // otherwise continue
   })
 
-// Render the API
-var api = client.render()
+// Render the API client
+var api = users.renderAll()
 
-// Invalid request
-api.users.get()
-  .param('id', '123')
-  .end(function (err, res) {
-    console.log('Error:', err)
+api
+  .users
+  .get()
+  .param('id', 123)
+  // Attach another validator at public API client level
+  .validator(function (req, res, next) {
+    if (typeof req.params.id !== 'number') {
+      return next(new Error('validation error: id param must a number'))
+    }
+    next() // otherwise continue
   })
-
-// Invalid response
-api.users.get()
-  .param('id', '123')
-  .set('version', '1.0')
   .end(function (err, res) {
-    console.log('Error:', err)
+    console.log('Done!')
   })

@@ -2,11 +2,11 @@
 
 A lightweight, declarative and [featured](#features) JavaScript library to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer (e.g: API clients, SDKs...).
 
-`theon` was mainly designed to provide a convenient abstraction layer between remote HTTP interfaces and programmatic layer. It assist you to simplify and minimize the boilerplate process when writting API clients, taking one core idea: just declare your API one time, run it everywhere.
+`theon` was designed to provide a convenient abstraction layer between remote HTTP interfaces and programmatic layer. It assist you to simplify and minimize the boilerplate process when writting API clients: just declare one time your API, run it everywhere.
 
 To get started, you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples), [midleware layer](#middleware), supported [HTTP agents](#http-adapters) and [API](#api) docs.
 
-**Still beta**. Don't use it in hostile environments yet.
+**Still young**. Don't use it in hostile environments yet.
 
 ## Contents
 
@@ -16,7 +16,8 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - [Concepts](concepts)
 - [Installation](#installation)
 - [Environments](#environments)
-- [Usage](#usage)
+- [Examples](#examples)
+- [Tutorial](#tutorial)
 - [HTTP adapters](#http-adapters)
   - [Writting HTTP adapters](#writting-http-adapters)
 - [Plugins](#plugins)
@@ -31,20 +32,21 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 ## Features
 
 - Simple and declarative API
-- Modular pluggable design
+- Modular pluggable design with poweful composition features
 - Hierarchical middleware layer (inspired in [connect](https://github.com/senchalabs/connect) middleware)
-- Nested configurations based on inheritance
-- Domain-specific API generation
-- Observable hooks
-- Request/response interceptors (via middleware)
+- Nested configurations with powerful inheritance
+- Domain specific and fluent API generation (inspired in [superagent](https://github.com/visionmedia/superagent))
+- Powerful observable hooks at any phase of the HTTP flow live cycle
+- Request/response interceptors
 - Request/response validators
 - Bind bodies to custom models
-- Basic support for node.js streams
-- Path params parsing and matching
-- Generates a fluent and semantic programmatic API
-- HTTP client agnostic: use `request`, `superagent`, `jQuery` or any other via adapters
+- Built-in store context to persist session related data
+- Maps HTTP entities to programmatic entities with custom logic
+- Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js)
+- Path params parsing and matching (with express-like path notation)
+- HTTP client agnostic: use `request`, `superagent`, `jQuery` or any other HTTP agent via adapters
 - Dependency free
-- Designed for testability (via interceptor middleware)
+- Designed for testability
 - Lightweight: 26KB (~7KB gzipped)
 - Runs in browsers and node.js
 
@@ -52,16 +54,18 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 
 - Write APIs in a declarative and powerful way
 - Easily create domain-specific fluent APIs
-- Create API clients that are simple and easy to maintain
-- Decouple and underline HTTP interface details from API consumers
+- Create API clients that are simple to use and easy to maintain
+- Underline HTTP interface details from API consumers
+- And make future changes silently from consumers eyes.
 - Use or write your own plugins to augment some specific feature
-- Validate request and response before and after the request is resolved
-- Minimize the boilerplate while writting API clients
-- Bind bodies to models easily
-- Hierarchical nested configuration with inheritance support
+- Validate request and responses params and bodies easily
+- Bind bodies to models
+- Perform pre/post operations (e.g: logging, validation, defaults...)
+- Save session data based on the client state live cycle (e.g: auth tokens, sessions...)
+- Minimize the boilerplate process while writting API clients
 - HTTP agent agnostic: pick what do you need based on the environment (`request`, `superagent`, `$.ajax`, or used the embed one)
 - Ubiquitous: write one API. Run it in any JavaScript environment
-- Easy to test via interceptor middleware
+- Easy to test via interceptor/mock middleware
 
 ## Motivation
 
@@ -154,80 +158,167 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 ---  | --- | --- | --- | --- | --- |
 +0.10 | +5 | +3.5 | +9 | +10 | +5 |
 
-## Usage
+## Tutorial
 
-Declare your API
+Lets assume we have the following HTTP interface and we want to create a convenient programmatic API client to interact with it easily, with the following requirements:
+
+- The HTTP API only uses JSON as interchange format.
+- We also have to pass
+
+- POST /api/auth/login
+- POST /api/auth/signup
+- GET /api/users
+- GET /api/users/:id
+- POST /api/users/:id
+- DELETE /api/users/:id
+
+Firstly, as API developers, we gonna create and configure our client:
+
 ```js
 var theon = require('theon')
 
-// First, we must build a new client
-var clientBuilder = theon('http://my.api.com')
-  .basePath('/api')
-  .set('Version', '1.0')
-  .use(function (req, res, next) {
-    // Global HTTP middleware
+var client = theon('http://my.api.com')
+  .basePath('/api') // We define the base path for all the requests
+  .type('json') // Our payloads and responses will be always JSON
+```
+
+Then, we can start declaring the entities based on the HTTP API paths.
+
+Lets start building the `auth` entity.
+```js
+var auth = client
+  .collection('auth')
+  .basePath('/auth')
+  .method('POST') // use this method for all the requests
+
+// Maps to POST /api/auth/login
+auth
+  .action('login')
+  .path('/login')
+
+// Maps to POST /api/auth/signup
+auth
+  .action('signup')
+  .path('/signup')
+  // Every time a new user is create successfully
+  // we store its session and set the auth header
+  .useResponse(function (req, res, next) {
+    // Store the response for future use
+    req.root.store.set('session', res.body)
+    // Set token for autentication to all the outgoing requests
+    req.root.persistHeader('Authorization', res.body.token)
+    // Continue the middleware chain
     next()
   })
+````
 
-// Attach a new collection
-var collection = clientBuilder
+Now we have our `auth` entity declared.
+Lets continue declaring the `users` entity in a different collection:
+
+```js
+var users = client
   .collection('users')
   .basePath('/users')
-  .use(function (req, res, next) {
-    // Collection specific HTTP middleware
-    next()
-  })
 
-// Attach a new resource to that collection
-collection
-  .resource('get')
-  .alias('find')
+// Maps to GET /api/users
+users
+  .action('find')
+  .alias('search')
+
+// Maps to GET /api/users/:id
+users
+  .action('get')
   .path('/:id')
-  .method('GET')
-  .use(function (req, res, next) {
-    // Resource specific middleware
+
+// Maps to POST /api/users/:id
+users
+  .action('update')
+  .path('/:id')
+  .method('POST')
+
+// Maps to DELETE /api/users/:id
+users
+  .action('delete')
+  .path('/:id')
+  .method('DELETE')
+  // Attach a response middleware to perform post request operations
+  .useResponse(function (req, res, next) {
+    // Every time the user is deleted, we clean its session
+    req.root.store.remove('session')
+    req.root.unset('Authorization')
+    // Continue the middleware chain
     next()
   })
 ```
 
-Render it:
+Now we have all our API defined, but it's not ready yet for API end consumers.
+We have to render it to provide the public API ready to be used by API consumers.
+
+Let's render it:
 ```js
-// Rending the API will create and expose the public
-// interface ready to be used by your API consumers
-var apiClient = client.render()
+var api = client.render()
 ```
 
-Finally, use the API as a consumer:
+Now the public API is available via `api`.
+Lets see how it was rendered and play a bit with it as end API consumers.
+
+In the following example we're going to register a new user:
 ```js
-// Use the API as consumer
-apiClient
-  .users
+api.auth
+  .signup()
+  .send({ username: 'foo', password: 'b@r' })
+  .end(function (err, res, client) {
+    console.log('Response:', res.statusCode, res.body)
+  })
+```
+
+Now our client is authenticated, so we can try to fetching the user:
+```js
+api.users
   .get()
-  .param('id', 123)
-  .type('json')
-  .use(function (req, res, next) {
-    // Request phase specific middleware
-    next()
-  })
+   // important: we have to pass the path param
+  .param('id', 1)
+  // Note the don't have to explicitely pass any authentication credentials
   .end(function (err, res) {
-    console.log('Response:', res.statusCode)
-    console.log('Body:', res.body)
+    console.log('User:', res.body)
   })
 ```
+
+Also, we can perform a users search:
+```js
+api.users
+  .find()
+  .query({ username: 'foo' })
+  .end(function (err, res) {
+    console.log('Search:', res.body)
+  })
+```
+
+Finally, we want to delete the user:
+```js
+api.users
+  .delete()
+  .param('id', 123)
+  .end(function (err, res) {
+    console.log('Search:', res.body)
+  })
+```
+
+You can see (and run) the tutorial script [here](https://github.com/h2non/theon/tree/master/examples/tutorial.js).
 
 ## Examples
 
-See the [`examples`](https://github.com/h2non/theon/tree/master/examples) directory for featured examples.
+Take a look to the [`examples`](https://github.com/h2non/theon/tree/master/examples) directory for featured use case examples.
 
 ## HTTP adapters
 
-One of the design goals of `theon` is making it HTTP agent agnostic, meaning it's not couple to any specific one, or in other words, given the ability to the developer to pick which one is prefered based on its specific needs and runtime scenario.
+One of the design goals of `theon` is making it HTTP agent agnostic, meaning it's not coupled to any specific HTTP client or any environment. In other words, `theon` gives the ability to the developer to pick the prefered one based on its particular needs and runtime scenario.
 
-To become more concrete, `theon` is not an HTTP client perse, neither implements one, it's just an abstraction layer to build and configure HTTP domain specific stuff.
+To become more concrete, `theon` is not an HTTP client perse, neither implements something, it's just an abstraction layer to build and configure HTTP domain specific stuff.
 
-So instead of implementing an HTTP client, `theon` relies on an external adapter which should be responsible of communicate with the real HTTP client, providing a proxy layer between `theon` interface and HTTP agent specific interface.
+So instead of implementing an HTTP client, `theon` relies on an external adapter which should be responsible of communicate with the real HTTP client, providing a proxy layer between `theon` interface and the target HTTP agent specific interface.
 
-`theon` provides by default two HTTP adapters for both node.js and browser environment, but it's up-to-you to write your own adapter to talk with another HTTP client, such as `superagent`, `got`, `$.ajax`, `angular.$http` or any other.
+`theon` provides by default two HTTP adapters for both node.js and browser environments, but it's up to you to write your own adapter to talk with another HTTP client, such as `superagent`, `got`, `$.ajax`, `angular.$http` or any other.
 
 #### Node.js
 
@@ -376,13 +467,45 @@ function middleware(
 
 ### Writting a middleware
 
-Writting a middleware is a simple task.
+Writting a middleware is simple.
 If you already know how to write a middleware for connect/express, you're mostly done.
 
-The following example implements a `request` phase middleware
 ```js
+var client = theon('http://my.api.com')
+  .set('Version', '1.0')
+  .basePath('/api')
+  .use(function (req, res, next) {
+    // Global HTTP middleware
+    console.log('Running global middleware...')
+    next()
+  })
 
+client
+  .collection('users')
+  .basePath('/users')
+  .resource('get')
+  .path('/:id')
+  .use(function (req, res, next) {
+    console.log('Resource request middleware...')
+    next()
+  })
+  .useResponse(function (req, res, next) {
+    console.log('Resource response middleware...')
+    next()
+  })
+
+// Render the cient
+var api = client.render()
+
+api.users.get()
+  .param('id', '123')
+  .end(function (err, res) {
+    console.log('Response:', res.status)
+    console.log('Body:', res.body)
+  })
 ```
+
+See [examples/middleware.js](https://github.com/h2non/theon/tree/master/examples/middleware.js) for a working example.
 
 ## Hooks
 
@@ -449,8 +572,11 @@ var client = theon('http://my.api.com')
 
 var users = client
   .basePath('/api')
-  .resource('users')
-  .path('/users')
+  .set('Version', '1.0')
+  .collection('users')
+  .basePath('/users')
+  .resource('get')
+  .path('/:id')
 
 // Attach a default observer for all the requests
 users
@@ -463,7 +589,9 @@ users
 var api = users.renderAll()
 
 api
-  .users()
+  .users
+  .get()
+  .param('id', 123)
   // Attach an observer for the current request at API client level
   .observe('after response', function (req, res, next) {
     console.log('Log body:', res.body)
@@ -474,19 +602,239 @@ api
   })
 ```
 
+See [examples/hooks.js](https://github.com/h2non/theon/tree/master/examples/hooks.js) for a working example.
+
 ## Validators
+
+A validator is technically a middleware that is executed before the standard middleware call chain and it's responsible of validating the request/response objects, for instance validating payloads againts a JSON schema or HAR object.
+
+Validators can be attached to any `theon` entity and in both request/response phases.
+
+You can use a validator to perform a validation of the request object before it's sent over the network in order to verify it has all the required params expected by the server.
+In the other hand, you can validate also the response in order to determine if it's satisfy the expectations in the client side (e.g: validate teh response body, error messages...).
 
 ### Phases
 
+- **request** - Validate the request object before it's send over the network
+- **response** - Validate the response object once it has been received in the client
+
 ### API
+
+#### Request#validator(validator)
+
+Attach a new request validator.
+
+#### Request#responseValidator(validator)
+
+Attach a new response validator.
+
+#### Validator notation
+
+Validators has the same interface as middleware or hooks.
+
+A `validator` function must implement the following TypeScript notation:
+
+```ts
+function validator(
+  req: theon.RawContext,
+  res: theon.Response,
+  next: (Error?, theon.Response?) => void
+)
+```
 
 ### Writting a validator
 
+```js
+var client = theon('http://my.api.com')
+
+var users = client
+  .basePath('/api')
+  .collection('users')
+  .resource('get')
+  .path('/:id')
+  // Attach a resource level validator
+  .validator(function (req, res, next) {
+    if (req.params.id > 10000) {
+      return next(new Error('validation error: id param must be lower than 10000'))
+    }
+    next() // otherwise continue
+  })
+  // Attach a resource level response validator
+  .responseValidator(function (req, res, next) {
+    if (!res.body) {
+      return next(new Error('response validation error: body cannot be empty'))
+    }
+    next() // otherwise continue
+  })
+
+// Render the API client
+var api = users.renderAll()
+
+api
+  .users
+  .get()
+  .param('id', 123)
+  // Attach another validator at public API client level
+  .validator(function (req, res, next) {
+    if (typeof req.params.id !== 'number') {
+      return next(new Error('validation error: id param must a number'))
+    }
+    next() // otherwise continue
+  })
+  .end(function (err, res) {
+    console.log('Done!')
+  })
+```
+
+See [examples/validator.js](https://github.com/h2non/theon/tree/master/examples/validator.js) for a working example.
+
 ## Interceptors
+
+Interceptors are a very useful feature in `theon` in other to intercept the HTTP traffic flow.
+
+It becomes particularly useful for testing in other to mock requests for testing or provide default responses given a certain conditions.
+
+Technically speaking it's equivalent to a middleware, so you can rely in control flow capatibilities and inspect both request/response objects.
+
+### Phases
+
+- **before dial** - Executed before proceed with the network dialing phase.
 
 ### API
 
+#### Request#interceptor(interceptor)
+
+Attach a new interceptor.
+
+#### Interceptor notation
+
+Validators has the same interface as middleware or hooks.
+
+An `interceptor` function must implement the following TypeScript notation:
+
+```ts
+function interceptor(
+  req: theon.RawContext,
+  res: theon.Response,
+  next: (Error?, theon.Response?) => void
+)
+```
+
 ### Writting an interceptor
+
+```js
+var client = theon('http://my.api.com')
+
+var users = client
+  .basePath('/api')
+  .collection('users')
+  .basePath('/users')
+  .resource('get')
+  .path('/:id')
+  // Attach a resource level interceptor
+  .interceptor(function (req, res, next) {
+    // Determine if we should interceptor the request
+    if (req.params.id > 100) {
+      res.setStatus(400)
+      res.setStatusText('Bad Request')
+      res.setBody({ error: 'Invalid user ID' })
+      // We must pass an custom string to notify we intercepted the request
+      return next('intercept')
+    }
+
+    next() // otherwise continue
+  })
+
+// Render the API
+var api = users.renderAll()
+
+// Intercepted request
+api.users
+  .get()
+  .param('id', 101)
+  .end(function (err, res) {
+    console.log('Response:', res.statusCode)
+  })
+
+// Non-intercepted
+api.users
+  .get()
+  .param('id', 99)
+  .end(function (err, res) {
+    console.log('Response:', res.statusCode)
+  })
+```
+
+See [examples/interceptor.js](https://github.com/h2non/theon/tree/master/examples/interceptor.js) for a working example.
+
+## Evaluators
+
+Evaluators are designed to inspect the response object and determine, given a certain user-defined rules, if the request was failed or not, and handle it accordinly.
+
+By default `theon` doesn't handle error status such as `400` as failed request, but you can use a validator to do it and behave accordingly to your needs.
+
+### Phases
+
+- **response** - Executed once the client received the response from the server
+
+### API
+
+#### Request#evaluator(evaluator)
+
+Attach a new evaluator function.
+
+#### Evaluator notation
+
+Evaluators has the same interface as middleware or hooks.
+
+An `evaluator` function must implement the following TypeScript notation:
+
+```ts
+function evaluator(
+  req: theon.RawContext,
+  res: theon.Response,
+  next: (Error?, theon.Response?) => void
+)
+```
+
+### Writting an evaluator
+
+```js
+var users = client
+  .basePath('/api')
+  .collection('users')
+  .basePath('/users')
+  .resource('get')
+  .path('/:id')
+  // Attach a resource level evaluator
+  .evaluator(function (req, res, next) {
+    if (res.status >= 400) {
+      return next(new Error('Invalid status code: ' + res.status))
+    }
+    next() // otherwise continue
+  })
+
+// Render the API
+var api = users.renderAll()
+
+// Invalid request
+api.users
+  .get()
+  .param('id', 1)
+  .end(function (err, res) {
+    console.log('Error:', err)
+  })
+
+// Non-intercepted
+api.users
+  .get()
+  .param('id', 2)
+  .end(function (err, res) {
+    console.log('Response:', res.statusCode)
+  })
+```
+
+See [examples/evaluator.js](https://github.com/h2non/theon/tree/master/examples/evaluator.js) for a working example.
 
 ## API
 
@@ -668,8 +1016,16 @@ Alias: `requestValidator`
 
 #### Request#interceptor(interceptor)
 
+#### Request#evaluator(fn)
+
+Attach a `before response` hook to evaluate the response and determine if it's valid or not.
+Useful to evaludate response status and force an error. E.g: `status` >= 400
+
 #### Request#map(fn)
 Alias: `bodyMap`
+
+Attach a body mapper to transform, normalize, filter... the response body.
+Similar to `model` feature but operating overwritting the original `body`.
 
 #### Request#validate(cb)
 
@@ -773,6 +1129,14 @@ Alias: `bodyStream`
 
 Side-effect free raw HTTP context params.
 It's passed to the middleware and validator call chain.
+
+#### RawContext#root = `Request`
+
+Reference to the parent root `Request` instance.
+
+#### RawContext#client = `Request`
+
+Reference to the current `Request` instance.
 
 #### RawContext#headers = `object`
 

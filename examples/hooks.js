@@ -11,44 +11,34 @@ nock('http://my.api.com')
   }])
 
 var client = theon('http://my.api.com')
-  .set('Version', '1.0')
-  .basePath('/api')
-  .observe('before request', function (req, res, next) {
-    console.log('Global observe: before request')
-    next()
-  })
-  .use(function (req, res, next) {
-    // Global HTTP middleware
-    console.log('Running global middleware...')
-    next()
-  })
 
-client
+var users = client
+  .basePath('/api')
+  .set('Version', '1.0')
   .collection('users')
   .basePath('/users')
   .resource('get')
   .path('/:id')
-  .observe('before request', function (req, res, next) {
-    console.log('Resource observe: before request')
-    next()
-  })
-  .use(function (req, res, next) {
-    console.log('Resource request middleware...')
-    next()
-  })
-  .useResponse(function (req, res, next) {
-    console.log('Resource response middleware...')
+
+// Attach a default observer for all the requests
+users
+  .observe('after response', function (req, res, next) {
+    console.log('Log response:', res.statusCode, res.headers)
     next()
   })
 
-// Render the API
-var api = client.render()
+// Render the API client
+var api = users.renderAll()
 
-api.users.get()
-  .param('id', '123')
+api
+  .users
+  .get()
+  .param('id', 123)
+  // Attach an observer for the current request at API client level
+  .observe('after response', function (req, res, next) {
+    console.log('Log body:', res.body)
+    next()
+  })
   .end(function (err, res) {
-    console.log('---------------------')
-    console.log('Error:', err)
-    console.log('Response:', res.status)
-    console.log('Body:', res.body)
+    console.log('Done!')
   })
