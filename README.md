@@ -1,12 +1,12 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-A lightweight, declarative and [featured](#features) JavaScript library to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer (e.g: API clients, SDKs...).
+A lightweight, declarative and [featured](#features) JavaScript library for node.js and browsers to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer (e.g: API clients, SDKs...).
 
-`theon` was designed to provide a convenient abstraction layer between remote HTTP interfaces and programmatic layer. It assist you to simplify and minimize the boilerplate process when writting API clients: just declare one time your API, run it everywhere.
+`theon` provides a convenient abstraction to build rich API clients which interact with one o multiple HTTP layers. It was designed with extensibility and versatibility in mind, providing a built-in middleware layer which supports plugins, observer hooks, validators, inteceptors and more.
 
-To get started, you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples), [midleware layer](#middleware), supported [HTTP agents](#http-adapters) and [API](#api) docs.
+To get started, you can take a look to [concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
-**Still young**. Don't use it in hostile environments yet.
+**Still young**. Some work is still in progress and docs should be improved, but the API won't change.
 
 ## Contents
 
@@ -56,6 +56,7 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - Easily create domain-specific fluent APIs
 - Create API clients that are simple to use and easy to maintain
 - Underline HTTP interface details from API consumers
+- Map HTTP interfaces and resources to programmatic entities
 - And make future changes silently from consumers eyes.
 - Use or write your own plugins to augment some specific feature
 - Validate request and responses params and bodies easily
