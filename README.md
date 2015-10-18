@@ -1,12 +1,12 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-A lightweight, declarative and [featured](#features) JavaScript library for node.js and browsers to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer (e.g: API clients, SDKs...).
+A lightweight, declarative and [featured](#features) JavaScript library for node.js and browsers to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer, mostly designed to easily create reusable API clients and SDKs.
 
-`theon` provides a convenient abstraction to build rich API clients which interact with one o multiple HTTP layers. It was designed with extensibility and versatibility in mind, providing a built-in middleware layer which supports plugins, observer hooks, validators, inteceptors and more.
+`theon` provides a convenient abstraction to build rich API clients which interact with one o multiple HTTP layers. It was designed with extensibility and versatibility in mind, providing a built-in [middleware layer](#middleware) which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators), [interceptors](#interceptors) and [more](#valiators).
 
-To get started, you can take a look to [concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
+To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
-**Still young**: some work needs to be done, mostly in terms of documentation and testing, but API consistency is guaranteed.
+**Note**: still young, some work needs to be done, mostly in terms of documentation and testing, but API consistency is guaranteed.
 
 ## Contents
 
@@ -14,10 +14,10 @@ To get started, you can take a look to [concepts](#concepts), [tutorial](#tutori
 - [Benefits](#benefits)
 - [Motivation](#motivation)
 - [Concepts](#concepts)
-    - [Client](#client)
-    - [Collection](#collection)
-    - [Resource](#resource)
-    - [Mixin](#mixin)
+  - [Client](#client)
+  - [Collection](#collection)
+  - [Resource](#resource)
+  - [Mixin](#mixin)
 - [Installation](#installation)
 - [Environments](#environments)
 - [Tutorial](#tutorial)
@@ -183,7 +183,7 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 
 ## Tutorial
 
-We want to create a convenient programmatic API client to interact with a remote HTTP service easily.
+Let's imagine we want to create a programmatic API client to interact with a remote HTTP service easily.
 
 We have the following requirements:
 
@@ -199,7 +199,7 @@ And we have the following HTTP interface:
 - POST /api/users/:id
 - DELETE /api/users/:id
 
-Firstly, as API developers, we gonna create and configure our client:
+Firstly, as API developers, we gonna create and configure our client using `theon`:
 
 ```js
 var theon = require('theon')
@@ -548,7 +548,7 @@ Hooks also rely in control-flow capabilities, so you can run asynchronous tasks 
 
 ### Phases
 
-List of supported hook phases by execution order:
+Supported hook phases available for subscription, listed by execution order:
 
 - **before**
 - **before request**

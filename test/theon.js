@@ -249,6 +249,48 @@ suite('theon', function () {
     }
   })
 
+  test('nested urls', function (done) {
+    nock.cleanAll()
+    nock('http://bar')
+      .get('/')
+      .reply(200, { hello: 'bar' })
+
+    nock('http://foo')
+      .get('/')
+      .delayConnection(100)
+      .reply(200, { hello: 'foo' })
+
+    var client = theon()
+      .type('json')
+
+    client
+      .resource('foo')
+      .url('http://foo')
+
+    client
+      .resource('bar')
+      .url('http://bar')
+
+    var api = client.render()
+
+    api
+      .foo()
+      .end(function (err, res) {
+        expect(err).to.be.null
+        expect(res.statusCode).to.be.equal(200)
+        expect(res.body).to.be.deep.equal({ hello: 'foo' })
+      })
+
+    api
+      .bar()
+      .end(function (err, res) {
+        expect(err).to.be.null
+        expect(res.statusCode).to.be.equal(200)
+        expect(res.body).to.be.deep.equal({ hello: 'bar' })
+        done()
+      })
+  })
+
   test('featured client', function (done) {
     var spy = sinon.spy()
 
