@@ -96,16 +96,16 @@ I initially wrote this library to mitigate my frustration while writing further 
 
 After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, so an specific solution can be conceived to simplify the process and provide a more convenient layer to do it better and faster.
 
-In most scenarios, when you are writing an APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services.
+In most scenarios, when you are writing APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services.
 With `theon` you can decouple those parts and provide a convenient abstraction between the HTTP interface details and programmatic API consumers.
 
-Additionally it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, through a hierarchical middleware layer allowing you to plugin intermediate logic.
+Additionally, it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, mostly through a hierarchical middleware layer allowing you to plugin intermediate logic.
 
 ## Concepts
 
 `theon` introduces the concept of entity, which is basically a built-in abstract object which maps to specific HTTP entities and stores its details, such as headers or query params.
 
-You have to understand and use them properly while building you API.
+You have to understand and use them properly while building your API.
 
 The following graph represent the relation between theon entities and a common HTTP REST-like endpoint:
 
