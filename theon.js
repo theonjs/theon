@@ -193,6 +193,9 @@ Context.prototype.mergeParams = function () {
     data[name] = merger(parent[name], this[name], this.persistent[name])
   }, this)
 
+  var url = this.opts.rootUrl
+  if (url) data.opts.rootUrl = url
+
   return data
 }
 
@@ -755,7 +758,7 @@ Request.prototype.persistParam = function (name, value) {
 }
 
 Request.prototype.persistParams = function (params) {
-  this.ctx.persistent.params = utils.extend(this.ctx.persistent.params, params)
+  utils.extend(this.ctx.persistent.params, params)
   return this
 }
 
@@ -794,7 +797,7 @@ Request.prototype.persistQueryParam = function (name, value) {
 }
 
 Request.prototype.persistQuery = function (query) {
-  this.ctx.persistent.query = utils.extend(this.ctx.persistent.query, query)
+  utils.extend(this.ctx.persistent.query, query)
   return this
 }
 
@@ -810,7 +813,7 @@ Request.prototype.unset = function (name) {
 }
 
 Request.prototype.headers = function (headers) {
-  utils.extend(this.ctx.headers, utils.normalize(headers))
+  utils.extend(this.ctx.persistent.headers, utils.normalize(headers))
   return this
 }
 
@@ -827,7 +830,7 @@ Request.prototype.persistHeader = function (name, value) {
 }
 
 Request.prototype.persistHeaders = function (headers) {
-  this.ctx.persistent.headers = utils.extend(this.ctx.persistent.headers, headers)
+  utils.extend(this.ctx.persistent.headers, headers)
   return this
 }
 
@@ -1241,7 +1244,7 @@ theon.entities   = require('./entities')
  * Current version
  */
 
-theon.VERSION = '0.1.0'
+theon.VERSION = '0.1.1'
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":19,"./response":20}],23:[function(require,module,exports){
 module.exports = {
