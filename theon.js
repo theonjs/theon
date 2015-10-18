@@ -44,11 +44,20 @@ exports.defaults = function () {
 }
 
 exports.set = function (agent) {
-  agents.embed = agent
+  exports.add('embed', agent)
 }
 
 exports.add = function (name, agent) {
+  if (typeof name !== 'string')
+    throw new TypeError('first argument must be a string')
+  if (typeof agent !== 'function')
+    throw new TypeError('agent must be a function')
+
   agents[name] = agent
+}
+
+exports.remove = function (name) {
+  delete agents[name]
 }
 
 },{"./browser":1,"./node":4}],4:[function(require,module,exports){
@@ -109,11 +118,10 @@ function adapter(res, _res, body) {
 }
 
 },{"../../utils":27,"request":34}],6:[function(require,module,exports){
+var Middleware = require('midware-pool')
 var agents = require('./agents')
 var Store = require('./store')
-var Middleware = require('midware-pool')
 var utils = require('./utils')
-var merge = utils.merge
 
 module.exports = Context
 
@@ -160,14 +168,14 @@ Context.prototype.useParent = function (parent) {
 
 Context.prototype.raw = function () {
   var data = this.mergeParams()
-  data.path = this.buildPath()
   data.agent = this.agent
+
+  // Expose needed members
+  data.ctx = this
+  data.store = this.store
 
   // Set defaults
   if (!data.method) data.method = 'GET'
-
-  defineProperty(data, 'ctx', this)
-  defineProperty(data, 'store', this.store)
 
   return data
 }
@@ -177,11 +185,11 @@ Context.prototype.mergeParams = function () {
   var parent = this.parent ? this.parent.raw() : {}
 
   ;['method', 'body', 'stream'].forEach(function (name) {
-    data[name] = this[name] || parent[name]
+    data[name] = this[name] || parent[name] || null
   }, this)
 
   Context.fields.forEach(function (name) {
-    var merger = name === 'headers' ? mergeHeaders : merge
+    var merger = name === 'headers' ? mergeHeaders : utils.merge
     data[name] = merger(parent[name], this[name], this.persistent[name])
   }, this)
 
@@ -194,27 +202,25 @@ Context.prototype.clone = function () {
 }
 
 Context.prototype.buildPath = function () {
-  var baseUrl = ''
-
-  if (this.parent) {
-    baseUrl += this.parent.buildPath()
-  }
-
-  var head = this.opts.basePath || ''
-  var tail = this.opts.path || ''
-
-  return baseUrl + head + tail
+  return Context.buildPath(this)
 }
 
-function defineProperty(o, name, value) {
-  Object.defineProperty(o, name, {
-    value: value,
-    enumerable: true
-  })
+Context.buildPath = function buildPath(ctx) {
+  var base = ''
+
+  if (ctx.parent) {
+    base += buildPath(ctx.parent)
+  }
+
+  var opts = ctx.opts
+  var head = opts.basePath || ''
+  var tail = opts.path || ''
+
+  return base + head + tail
 }
 
 function mergeHeaders() {
-  return utils.normalize(merge.apply(null, arguments))
+  return utils.normalize(utils.merge.apply(null, arguments))
 }
 
 },{"./agents":3,"./store":21,"./utils":27,"midware-pool":36}],7:[function(require,module,exports){
@@ -230,7 +236,6 @@ function Dispatcher(req) {
 Dispatcher.prototype.run = function (cb) {
   cb = cb || noop
 
-  var request = this.req
   var ctx = this.req.ctx
   var req = this.req.raw()
   var res = new Response(req)
@@ -248,20 +253,22 @@ Dispatcher.prototype.run = function (cb) {
   ]
 
   function done(err, req, res) {
+    var client = this.req
+
     if (err === 'intercept') err = null
 
     // Set request context, if not present
     if (!res.req) res.req = req
 
     // Resolve the callback
-    if (!err) return cb(null, res)
+    if (!err) return cb(null, res, client)
 
     // Expose the error
     req.error = err
 
     // Dispatch the error hook
     ctx.middleware.run('error', req, res, function (_err, _res) {
-      cb(_err || err, _res || res)
+      cb(_err || err, _res || res, client)
     })
   }
 
@@ -293,10 +300,16 @@ Dispatcher.prototype.after = function (req, res, next) {
 }
 
 Dispatcher.prototype.dial = function (req, res, next) {
-  // Compose the full URL
   var url = req.opts.rootUrl || ''
-  var path = utils.pathParams(req.path, req.params)
-  req.url = url + path
+  var path = req.ctx.buildPath()
+  var fullPath = utils.pathParams(path, req.params)
+
+  if (fullPath instanceof Error) {
+    return next(fullPath)
+  }
+
+  // Compose the full URL
+  req.url = url + fullPath
 
   utils.series([
     function before(next) {
@@ -378,6 +391,7 @@ function noop() {}
 
 },{"./response":20,"./utils":27}],8:[function(require,module,exports){
 var Request = require('../request')
+var Response = require('../response')
 var Dispatcher = require('../dispatcher')
 
 module.exports = Client
@@ -386,15 +400,15 @@ function Client(client) {
   this._client = client
 }
 
-Client.prototype.doRequest = function (opts, cb) {
-  opts = opts || {}
-  var res = new Response(opts)
-  return this._client.ctx.agent(req, res, cb)
+Client.prototype.doRequest = function (ctx, cb) {
+  ctx = ctx || {}
+  var res = new Response(ctx)
+  return this._client.ctx.agent(ctx, res, cb)
 }
 
-Client.prototype.newRequest = function () {
+Client.prototype.newRequest = function (client) {
   var req = new Request
-  req.ctx.agent = this._client.ctx.agent
+  req.useParent(client || this._client)
   return req
 }
 
@@ -405,7 +419,7 @@ Client.prototype.newRequest = function () {
   }
 })
 
-},{"../dispatcher":7,"../request":19}],9:[function(require,module,exports){
+},{"../dispatcher":7,"../request":19,"../response":20}],9:[function(require,module,exports){
 var Client = require('./client')
 var has = require('../utils').has
 
@@ -497,15 +511,15 @@ Collection.prototype.entity = 'collection'
 var Request = require('../request')
 var engine = require('../engine')
 var Context = require('../context')
+var extend = require('../utils').extend
 
 module.exports = Entity
 
 function Entity(name) {
+  Request.call(this)
   this.name = name
-  this.parent = null
   this.aliases = []
   this.entities = []
-  this.ctx = new Context
 }
 
 Entity.prototype = Object.create(Request.prototype)
@@ -556,6 +570,18 @@ Entity.prototype.addEntity = function (entity) {
   return entity
 }
 
+Entity.prototype.meta = function (meta) {
+  var store = this.ctx.store
+
+  var data = store.get('meta')
+  if (data) {
+    meta = extend(data, meta)
+  }
+
+  store.set('meta', meta)
+  return this
+}
+
 Entity.prototype.render = function (client) {
   return new engine.Generator(client || this).render()
 }
@@ -571,7 +597,7 @@ function invalidEntity(entity) {
   return !entity || typeof entity.render !== 'function'
 }
 
-},{"../context":6,"../engine":10,"../request":19}],14:[function(require,module,exports){
+},{"../context":6,"../engine":10,"../request":19,"../utils":27}],14:[function(require,module,exports){
 module.exports = {
   Mixin: require('./mixin'),
   Entity: require('./entity'),
@@ -612,7 +638,6 @@ Mixin.prototype.render = function () {
 },{"./entity":13}],16:[function(require,module,exports){
 var Entity =  require('./entity')
 var Request = require('../request')
-var extend = require('../utils').extend
 var Generator = require('../engine').Generator
 
 module.exports = Entity.Resource = Resource
@@ -625,27 +650,17 @@ Resource.prototype = Object.create(Entity.prototype)
 
 Resource.prototype.entity = 'resource'
 
-Resource.prototype.meta = function (meta) {
-  var store = this.ctx.store
-
-  var data = store.get('meta')
-  if (data) {
-    meta = extend(data, meta)
-  }
-
-  store.set('meta', meta)
-  return this
-}
-
 Resource.prototype.render = function () {
-  var req = new Request
-  req.useParent(this)
+  var self = this
 
   return new Generator(this)
     .bind(resource)
     .render()
 
   function resource(opts, cb) {
+    var req = new Request
+    req.useParent(self)
+
     if (typeof opts === 'object')
       req.options(opts)
 
@@ -659,7 +674,7 @@ Resource.prototype.render = function () {
   }
 }
 
-},{"../engine":10,"../request":19,"../utils":27,"./entity":13}],17:[function(require,module,exports){
+},{"../engine":10,"../request":19,"./entity":13}],17:[function(require,module,exports){
 module.exports = {
   map: require('./map')
 }
@@ -672,7 +687,7 @@ module.exports = function map(mapper) {
 
     mapper(body, function (err, body) {
       if (err) return next(err)
-      if (body) res.body = body
+      res.body = body
       next()
     })
   }
@@ -694,6 +709,7 @@ function Request(ctx) {
   this.parent = null
   this.dispatcher = null
   this.ctx = new Context(ctx)
+  defineAccessors(this)
 }
 
 Request.prototype.url = function (url) {
@@ -756,10 +772,6 @@ Request.prototype.setParams = function (params) {
 Request.prototype.query = function (query) {
   utils.extend(this.ctx.query, query)
   return this
-}
-
-Request.prototype.store = function () {
-  return this.ctx.store
 }
 
 Request.prototype.setQuery = function (query) {
@@ -828,12 +840,12 @@ Request.prototype.type =
 Request.prototype.mimeType = function (value) {
   var ctx = this.ctx
   var type = types[value] || value
-  ctx.headers['content-type'] = type
 
   if (~type.indexOf('json')) {
     ctx.agentOpts.json = true
   }
 
+  ctx.headers['content-type'] = type
   return this
 }
 
@@ -888,6 +900,11 @@ Request.prototype.responseValidator = function (middleware) {
 
 Request.prototype.interceptor = function (interceptor) {
   this.ctx.middleware.use('before dial', interceptor)
+  return this
+}
+
+Request.prototype.evaluator = function (evaluator) {
+  this.ctx.middleware.use('before response', evaluator)
   return this
 }
 
@@ -966,14 +983,13 @@ Request.prototype.useParent = function (parent) {
 }
 
 Request.prototype.dispatch = function (cb) {
+  // If already dispatched, just ignore it
   if (this.dispatcher) return this
-  this.dispatcher = new Dispatcher(this)
 
-  // Push to the event loop to force async
-  var self = this
-  setTimeout(function () {
-    self.dispatcher.run(cb)
-  }, 0)
+  var dispatcher = this.dispatcher = new Dispatcher(this)
+
+  // Push into the event loop to force asynchronicity
+  setTimeout(function () { dispatcher.run(cb) }, 0)
 
   return this
 }
@@ -985,7 +1001,7 @@ Request.prototype.done = function (cb) {
 
 Request.prototype.pipe = function (stream) {
   this.pipes.push(stream)
-  return this.dispatch()
+  return this
 }
 
 Request.prototype.stream =
@@ -998,9 +1014,10 @@ Request.prototype.bodyStream = function (stream) {
 }
 
 Request.prototype.raw = function () {
-  var opts = this.ctx.raw()
-  opts.client = this
-  return opts
+  var raw = this.ctx.raw()
+  raw.client = this
+  raw.root = this.root
+  return raw
 }
 
 Request.prototype.clone = function () {
@@ -1010,11 +1027,35 @@ Request.prototype.clone = function () {
   return req
 }
 
+Request.accessors = {
+  store: function () {
+    return this.ctx.store
+  },
+  root: function () {
+    return this.parent
+      ? this.parent.root
+      : this
+  }
+}
+
+function defineAccessors(ctx) {
+  Object.keys(Request.accessors).forEach(function (key) {
+    Object.defineProperty(ctx, key, {
+      enumerable: true,
+      configurable: false,
+      get: Request.accessors[key],
+      set: function () {}
+    })
+  })
+}
+
 },{"./agents":3,"./context":6,"./dispatcher":7,"./middleware":17,"./response":20,"./types":23,"./utils":27}],20:[function(require,module,exports){
 module.exports = Response
 
 function Response(req) {
   this.req = req
+  this.store = req ? req.store : null
+  this.client = req ? req.client : null
 
   this.orig =
   this.body =
@@ -1028,6 +1069,8 @@ function Response(req) {
   this.status =
   this.statusType =
   this.statusCode = 0
+
+  this.type =
   this.statusText = ''
 }
 
@@ -1037,7 +1080,7 @@ Response.prototype.setOriginalResponse = function (orig) {
 
 Response.prototype.setBody = function (body) {
   this.body = body
-  if (this.type === 'json') this.json = body
+  if (~this.type.indexOf('json')) this.json = body
 }
 
 Response.prototype.get = function (name) {
@@ -1096,12 +1139,13 @@ Response.prototype.setStatusText = function (text) {
 
 Response.prototype.toError = function () {
   var req = this.req
-  var method = req.method
   var url = req.url
+  var method = req.method
+  var status = this.status || this.statusCode
 
-  var msg = 'cannot ' + method + ' ' + url + ' (' + this.status + ')'
+  var msg = 'cannot ' + method + ' ' + url + ' (' + status + ')'
   var err = new Error(msg)
-  err.status = this.status
+  err.status = status
   err.method = method
   err.url = url
 
@@ -1182,7 +1226,6 @@ theon.Dispatcher = require('./dispatcher')
 theon.agents     = require('./agents')
 theon.engine     = require('./engine')
 theon.entities   = require('./entities')
-theon.utils      = require('./utils')
 
 /**
  * Entities factory
@@ -1200,7 +1243,7 @@ theon.utils      = require('./utils')
 
 theon.VERSION = '0.1.0'
 
-},{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":19,"./response":20,"./utils":27}],23:[function(require,module,exports){
+},{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":19,"./response":20}],23:[function(require,module,exports){
 module.exports = {
   html: 'text/html',
   json: 'application/json',
@@ -1309,9 +1352,11 @@ module.exports = function (path, params) {
 
   while ((buf = PATH_REGEXP.exec(path)) != null) {
     var param = buf[3]
+
     if (param && !params[param]) {
-      throw new Error('Missing path param: ' + param)
+      return new Error('Missing path param: ' + param)
     }
+
     path = path.replace(':' + param, params[param])
   }
 

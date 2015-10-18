@@ -6,7 +6,7 @@ A lightweight, declarative and [featured](#features) JavaScript library for node
 
 To get started, you can take a look to [concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
-**Still young**. Some work is still in progress and docs should be improved, but the API won't change.
+**Still young**: some work needs to be done, mostly in terms of documentation and testing, but API consistency is guaranteed.
 
 ## Contents
 
