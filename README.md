@@ -1,12 +1,12 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-A lightweight, declarative and [featured](#features) JavaScript library to create domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer (e.g: API clients, SDKs...).
+A lightweight, declarative and [featured](#features) JavaScript library to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer (e.g: API clients, SDKs...).
 
 `theon` was mainly designed to provide a convenient abstraction layer between remote HTTP interfaces and programmatic layer. It assist you to simplify and minimize the boilerplate process when writting API clients, taking one core idea: just declare your API one time, run it everywhere.
 
 To get started, you can take a look to [usage instructions](#usage), [examples](https://github.com/h2non/theon/tree/master/examples), [midleware layer](#middleware), supported [HTTP agents](#http-adapters) and [API](#api) docs.
 
-**Still beta**.
+**Still beta**. Don't use it in hostile environments yet.
 
 ## Contents
 
@@ -28,13 +28,11 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
   - [Writting validators](#writting-validators)
 - [API](#api)
 
-<!-- - [Plugins](#plugins) -->
-
 ## Features
 
 - Simple and declarative API
 - Modular pluggable design
-- Hierarchical middleware layer (inspired by [connect](https://github.com/senchalabs/connect))
+- Hierarchical middleware layer (inspired in [connect](https://github.com/senchalabs/connect) middleware)
 - Nested configurations based on inheritance
 - Domain-specific API generation
 - Observable hooks
@@ -47,12 +45,12 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 - HTTP client agnostic: use `request`, `superagent`, `jQuery` or any other via adapters
 - Dependency free
 - Designed for testability (via interceptor middleware)
-- Lightweight: 18KB (~6KB gzipped)
+- Lightweight: 26KB (~7KB gzipped)
 - Runs in browsers and node.js
 
 ## Benefits
 
-- Write APIs in a simple but powerful way
+- Write APIs in a declarative and powerful way
 - Easily create domain-specific fluent APIs
 - Create API clients that are simple and easy to maintain
 - Decouple and underline HTTP interface details from API consumers
@@ -67,11 +65,11 @@ To get started, you can take a look to [usage instructions](#usage), [examples](
 
 ## Motivation
 
-I wrote this library to mitigate my frustration while writting further programmatic API clients to HTTP APIs in JavaScript environments.
+I initially wrote this library to mitigate my frustration while writting further programmatic API clients for multiple HTTP layers across multiple JavaScript environments.
 
-After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, and a specific solution can be conceived to simplify the process and provide recurrent features to satifify common needs.
+After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, this a specific solution can be conceived to simplify the process and provide a more convenient layer to do it better and faster.
 
-In most scenarios when creating APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services.
+In most scenarios, whe you are writting an APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services.
 With `theon` you can decouple those parts and provide a convenient abstraction between the HTTP interface details and programmatic API consumers.
 
 Additionally it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, through a hierarchical middleware layer allowing you to plugin intermediate logic.
@@ -334,6 +332,7 @@ Due to the library is young at this time, there are not plugins available, howev
 - **consul** - Server discovery using Consul
 - **retry** - Provide retry a policy in your API clients
 - **JSONSchema** - Validate incoming and outgoing bodies againts a JSON schema.
+- **APIDocs** - Generate Swagger/Apiary docs reading the resource metadata annotations
 
 ## Middleware
 
@@ -565,11 +564,31 @@ Attach a mixin to the current entity.
 
 Attach a custom subentity.
 
+#### Entity#meta(metadata)
+
+Attach metadata to the current entity.
+Mostly useful for annotations, flagging and documentation purposes.
+
 #### Entity#render([ entity ])
 
-Render the entity. This method is mostly used internally.
+Render the current entity. This method is mostly used internally.
+
+#### Entity#renderAll([ entity ])
+
+Render all the entities, from current to root parent.
+This method is mostly used internally.
 
 ### Request([ ctx ])
+
+#### Request#parent = `Request`
+
+Reference to the parent `Request`, in case that it has a parent node.
+
+#### Request#root = `Request`
+
+Reference to the parent root node, in case that it has a parent node.
+
+Internally, it walks across all the parent nodes recursively until find the latest.
 
 #### Request#url(url)
 
@@ -688,11 +707,17 @@ Alias: `bodyStream`
 
 #### Response#error = `mixed`
 
+#### Response#statusType = `number`
+
 #### Response#statusCode = `number`
 
 #### Response#statusText = `string`
 
 #### Response#orig = `object`
+
+#### Response#serverError = `boolean`
+
+#### Response#clientError = `boolean`
 
 #### Response#setOriginalResponse(orig)
 
@@ -707,6 +732,24 @@ Alias: `bodyStream`
 #### Response#setStatusText(text)
 
 #### Response#toError() => `Error`
+
+#### Response#ok = `boolean`
+
+#### Response#info = `boolean`
+
+#### Response#accepted = `boolean`
+
+#### Response#noContent = `boolean`
+
+#### Response#badRequest = `boolean`
+
+#### Response#unauthorized = `boolean`
+
+#### Response#notAcceptable = `boolean`
+
+#### Response#notFound = `boolean`
+
+#### Response#forbidden = `boolean`
 
 ### Context([ parent ])
 

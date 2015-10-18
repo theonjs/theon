@@ -8,6 +8,7 @@ suite('theon', function () {
   test('api', function () {
     expect(theon).to.be.a('function')
     expect(theon.engine).to.be.an('object')
+    expect(theon.agents).to.be.an('object')
     expect(theon.Context).to.be.a('function')
     expect(theon.Dispatcher).to.be.a('function')
     expect(theon.entities.Entity).to.be.a('function')
@@ -17,7 +18,7 @@ suite('theon', function () {
     expect(theon.VERSION).to.be.a('string')
   })
 
-  test('client', function (done) {
+  test('featured client', function (done) {
     var spy = sinon.spy()
 
     nock('http://localhost')
@@ -111,6 +112,21 @@ suite('theon', function () {
       })
   })
 
+  test('root parent', function () {
+    var client = theon('http://localhost')
+      .collection('foo')
+      .resource('bar')
+      .resource('boo')
+
+    var api = client.renderAll()
+
+    expect(api.foo.bar.boo().root)
+      .to.have.property('ctx')
+      .to.have.property('opts')
+      .to.have.property('rootUrl')
+      .to.be.equal('http://localhost')
+  })
+
   test('cancellable request', function (done) {
     nock('http://localhost')
       .get('/boo')
@@ -199,7 +215,7 @@ suite('theon', function () {
     var client = theon('http://localhost')
       .type('json')
 
-    client.store().set('foo', 'bar')
+    client.store.set('foo', 'bar')
 
     var api = client
       .resource('foo')

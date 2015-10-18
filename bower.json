@@ -1,7 +1,7 @@
 {
   "name": "theon",
-  "version": "0.1.0-beta.1",
-  "description": "Build domain-specific, featured and expressive programmatic bindings to any HTTP layer",
+  "version": "0.1.0",
+  "description": "A library to build domain-specific, extensible and expressive API clients",
   "license": "MIT",
   "repository": "h2non/theon",
   "author": "Tomas Aparicio",
@@ -18,7 +18,10 @@
     "dls",
     "domain",
     "specific",
-    "language"
+    "language",
+    "context",
+    "middleware",
+    "sdk"
   ],
   "ignore": [
     "**/.*",
