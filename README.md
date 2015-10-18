@@ -26,28 +26,28 @@ To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial)
     - [Node.js](#nodejs)
     - [Browsers](#browsers)
   - [API](#api)
-  - [Writting HTTP adapters](#writting-http-adapters)
+  - [Writing HTTP adapters](#writing-http-adapters)
 - [Plugins](#plugins)
 - [Middleware](#middleware)
   - [Phases](#phases)
   - [API](#api-1)
-  - [Writting a middleware](#writting-a-middleware)
+  - [Writing a middleware](#writing-a-middleware)
 - [Hooks](#hooks)
   - [Phases](#phases-1)
   - [API](#api-2)
-  - [Writting hooks](#writting-hooks)
+  - [Writing hooks](#writing-hooks)
 - [Validators](#validators)
   - [Phases](#phases-2)
   - [API](#api-3)
-  - [Writting a validator](#writting-a-validator)
+  - [Writing a validator](#writing-a-validator)
 - [Interceptors](#interceptors)
   - [Phases](#phases-3)
   - [API](#api-4)
-  - [Writting an interceptor](#writting-an-interceptor)
+  - [Writing an interceptor](#writing-an-interceptor)
 - [Evaluators](#evaluators)
   - [Phases](#phases-4)
   - [API](#api-5)
-  - [Writting an evaluator](#writting-an-evaluator)
+  - [Writing an evaluator](#writing-an-evaluator)
 - [API](#api-6)
 - [License](#license)
 
@@ -85,7 +85,7 @@ To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial)
 - Bind bodies to models
 - Perform pre/post operations (e.g: logging, validation, defaults...)
 - Save session data based on the client state live cycle (e.g: auth tokens, sessions...)
-- Minimize the boilerplate process while writting API clients
+- Minimize the boilerplate process while writing API clients
 - HTTP agent agnostic: pick what do you need based on the environment (`request`, `superagent`, `$.ajax`, or used the embed one)
 - Ubiquitous: write one API. Run it in any JavaScript environment
 - Easy to test via interceptor/mock middleware
@@ -96,7 +96,7 @@ I initially wrote this library to mitigate my frustration while writing further 
 
 After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, so an specific solution can be conceived to simplify the process and provide a more convenient layer to do it better and faster.
 
-In most scenarios, whe you are writting an APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services.
+In most scenarios, when you are writing an APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services.
 With `theon` you can decouple those parts and provide a convenient abstraction between the HTTP interface details and programmatic API consumers.
 
 Additionally it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, through a hierarchical middleware layer allowing you to plugin intermediate logic.
@@ -380,7 +380,7 @@ function httpAdapter(
 ) AdapterResponse
 ```
 
-### Writting HTTP adapters
+### Writing HTTP adapters
 
 One of the main responsabilities of an HTTP agent adapter is acting as a interface mapper between `theon` scope and the target HTTP client, adapting both request and response interfaces.
 
@@ -494,9 +494,9 @@ function middleware(
 )
 ```
 
-### Writting a middleware
+### Writing a middleware
 
-Writting a middleware is simple.
+Writing a middleware is simple.
 If you already know how to write a middleware for connect/express, you're mostly done.
 
 ```js
@@ -592,7 +592,7 @@ function hook(
 )
 ```
 
-### Writting hooks
+### Writing hooks
 
 Observable hooks has the same interface, and thus the same implementation as standard middleware or validators.
 
@@ -671,7 +671,7 @@ function validator(
 )
 ```
 
-### Writting a validator
+### Writing a validator
 
 ```js
 var client = theon('http://my.api.com')
@@ -749,7 +749,7 @@ function interceptor(
 )
 ```
 
-### Writting an interceptor
+### Writing an interceptor
 
 ```js
 var client = theon('http://my.api.com')
@@ -826,7 +826,7 @@ function evaluator(
 )
 ```
 
-### Writting an evaluator
+### Writing an evaluator
 
 ```js
 var users = client
@@ -1054,7 +1054,7 @@ Useful to evaludate response status and force an error. E.g: `status` >= 400
 Alias: `bodyMap`
 
 Attach a body mapper to transform, normalize, filter... the response body.
-Similar to `model` feature but operating overwritting the original `body`.
+Similar to `model` feature but operating overwriting the original `body`.
 
 #### Request#validate(cb)
 
