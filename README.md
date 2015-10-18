@@ -189,17 +189,18 @@ We have the following requirements:
 
 - The HTTP API only uses JSON as interchange format.
 - We have to pass a header to define the API version
+- Resource resources are protected and requests must be autenticated
 
 And we have the following HTTP interface:
 
 - POST /api/auth/login
 - POST /api/auth/signup
-- GET /api/users
-- GET /api/users/:id
-- POST /api/users/:id
-- DELETE /api/users/:id
+- GET /api/users - `auth required`
+- GET /api/users/:id - `auth required`
+- POST /api/users/:id - `auth required`
+- DELETE /api/users/:id - `auth required`
 
-Firstly, as API developers, we gonna create and configure our client using `theon`:
+Firstly, as API developers, we're going to create and configure our client through `theon`:
 
 ```js
 var theon = require('theon')
@@ -228,8 +229,8 @@ auth
 auth
   .action('signup')
   .path('/signup')
-  // Every time a new user is create successfully
-  // we store its session and set the auth header
+  // Every time a new user is created successfully
+  // we store the session and set the auth header for future requests
   .useResponse(function (req, res, next) {
     // Store the response for future use
     req.root.store.set('session', res.body)
