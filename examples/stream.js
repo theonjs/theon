@@ -2,20 +2,16 @@ var stream = require('stream')
 var nock = require('nock')
 var theon = require('..')
 
-var writable = new stream.Writable()
-writable._write = function (chunk, encoding, next) {
-  spy(JSON.parse(chunk.toString()))
-  next()
-}
-
-writable.on('finish', function () {
-  expect(spy.args[0][0]).to.be.deep.equal({ hello: 'world' })
-  done()
-})
-
 nock('http://localhost')
   .get('/foo')
   .reply(200, {hello: 'world'})
+
+// Pipe response into a writable stream
+var writable = new stream.Writable
+writable._write = function (chunk, encoding, next) {
+  console.log('Response:', JSON.parse(chunk.toString()))
+  next()
+}
 
 var client = theon('http://localhost')
   .resource('foo')
@@ -24,3 +20,27 @@ var client = theon('http://localhost')
 
 client.foo()
   .pipe(writable)
+
+nock('http://localhost')
+  .post('/foo', { hello: 'world' })
+  .reply(200, { hello: 'world' })
+
+// Pipe response into a writable stream
+var readable = new stream.Readable
+readable._read = function (chunk, encoding, next) {
+  readable.push('{"hello":"world"}')
+  readable.push(null)
+}
+
+var client = theon('http://localhost')
+  .type('json')
+  .method('POST')
+  .resource('foo')
+  .path('/foo')
+  .renderAll()
+
+client.foo()
+  .stream(readable)
+  .end(function (err, res) {
+    console.log('Body', res.body)
+  })

@@ -61,11 +61,29 @@ suite('request', function () {
 
   test('query', function () {
     var req = new Request
-    req.persistParam('foo', 'bar')
-    expect(req.ctx.persistent.params).to.be.deep.equal({foo:'bar'})
+    req.queryParam('foo', 'bar')
+    expect(req.ctx.query).to.be.deep.equal({foo:'bar'})
 
-    req.persistParams({bar:'foo'})
-    expect(req.ctx.persistent.params).to.be.deep.equal({
+    req.query({bar:'foo'})
+    expect(req.ctx.query).to.be.deep.equal({
+      foo: 'bar',
+      bar: 'foo'
+    })
+
+    req.unsetQuery('foo')
+    expect(req.ctx.query).to.be.deep.equal({bar:'foo'})
+
+    req.setQuery({})
+    expect(req.ctx.query).to.be.deep.equal({})
+  })
+
+  test('persistent query', function () {
+    var req = new Request
+    req.persistQueryParam('foo', 'bar')
+    expect(req.ctx.persistent.query).to.be.deep.equal({foo:'bar'})
+
+    req.persistQuery({bar:'foo'})
+    expect(req.ctx.persistent.query).to.be.deep.equal({
       foo: 'bar',
       bar: 'foo'
     })

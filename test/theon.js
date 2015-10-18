@@ -158,11 +158,6 @@ suite('theon', function () {
       next()
     }
 
-    writable.on('finish', function () {
-      expect(spy.args[0][0]).to.be.deep.equal({ hello: 'world' })
-      done()
-    })
-
     nock('http://localhost')
       .get('/foo')
       .reply(200, {hello: 'world'})
@@ -174,6 +169,10 @@ suite('theon', function () {
 
     client.foo()
       .pipe(writable)
+      .end(function (err, res) {
+        expect(spy.args[0][0]).to.be.deep.equal({ hello: 'world' })
+        done()
+      })
   })
 
   test('readable stream', function (done) {
