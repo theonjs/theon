@@ -2,7 +2,7 @@
 
 A lightweight, declarative and [featured](#features) JavaScript library for node.js and browsers to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer, mostly designed to easily create reusable API clients and SDKs.
 
-`theon` provides a convenient abstraction to build rich API clients which interact with one o multiple HTTP layers. It was designed with extensibility and versatibility in mind, providing a built-in [middleware layer](#middleware) which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators), [interceptors](#interceptors) and [more](#valiators).
+`theon` provides a convenient abstraction to build rich API clients which interact with one or multiple HTTP layers. It was designed with extensibility and versatibility in mind, providing a built-in [middleware layer](#middleware) which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators), [interceptors](#interceptors) and [more](#valiators).
 
 To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
@@ -92,9 +92,9 @@ To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial)
 
 ## Motivation
 
-I initially wrote this library to mitigate my frustration while writting further programmatic API clients for multiple HTTP layers across multiple JavaScript environments.
+I initially wrote this library to mitigate my frustration while writing further programmatic API clients for multiple HTTP layers across multiple JavaScript environments.
 
-After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, this a specific solution can be conceived to simplify the process and provide a more convenient layer to do it better and faster.
+After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, so an specific solution can be conceived to simplify the process and provide a more convenient layer to do it better and faster.
 
 In most scenarios, whe you are writting an APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services.
 With `theon` you can decouple those parts and provide a convenient abstraction between the HTTP interface details and programmatic API consumers.
