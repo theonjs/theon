@@ -1,8 +1,10 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-A lightweight, declarative and [featured](#features) JavaScript library for node.js and browsers to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer, mostly designed to easily create reusable API clients and SDKs.
+A lightweight, declarative and [featured](#features) JavaScript library to create API clients and SDKs for node.js and browsers to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer.
 
 `theon` provides a convenient abstraction to build rich API clients which interact with one or multiple HTTP layers. It was designed with extensibility and versatibility in mind, providing a built-in [middleware layer](#middleware) which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators), [interceptors](#interceptors) and [more](#valiators).
+
+It's also HTTP agent agnostic, so you can use `superagent`, `request`, `$.ajax`, `angular.$http` or any other via adapters.
 
 To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
@@ -53,7 +55,7 @@ To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial)
 
 ## Features
 
-- Simple and declarative API
+- Simple, fluent and declarative API
 - Modular pluggable design with poweful composition features
 - Hierarchical middleware layer (inspired in [connect](https://github.com/senchalabs/connect) middleware)
 - Nested configurations with powerful inheritance
@@ -62,6 +64,7 @@ To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial)
 - Request/response interceptors
 - Request/response validators
 - Bind bodies to custom models
+- Powerful reusability features based on prototype inheritance.
 - Built-in store context to persist session related data
 - Maps HTTP entities to programmatic entities with custom logic
 - Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js)
@@ -86,7 +89,7 @@ To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial)
 - Perform pre/post operations (e.g: logging, validation, defaults...)
 - Save session data based on the client state live cycle (e.g: auth tokens, sessions...)
 - Minimize the boilerplate process while writing API clients
-- HTTP agent agnostic: pick what do you need based on the environment (`request`, `superagent`, `$.ajax`, or used the embed one)
+- HTTP agent agnostic: pick what do you need based on the environment (`request`, `superagent`, `$.ajax`, `angular.$http` via agents)
 - Ubiquitous: write one API. Run it in any JavaScript environment
 - Easy to test via interceptor/mock middleware
 
@@ -127,6 +130,8 @@ Every `theon` instance is a client and it's restricted to only one per `theon` i
 - Can inherit from other `entity`, usually another `client`.
 - Can host `collections` and `resources`
 - Can have `mixins`
+- Supports hooks
+- Extendable prototype chain with other entities
 
 #### collection
 
@@ -136,6 +141,8 @@ Every `theon` instance is a client and it's restricted to only one per `theon` i
 - Can host other `collections` or `resources`
 - Can have `mixins`
 - Cannot perform requests itself
+- Supports hooks
+- Extendable prototype chain with other entities
 
 #### resource
 
@@ -145,6 +152,8 @@ Every `theon` instance is a client and it's restricted to only one per `theon` i
 - Can host `collections`, `resource`
 - Can have `mixins`
 - Can perform requests
+- Supports hooks
+- Extendable prototype chain with other entities
 
 #### mixin
 
@@ -155,6 +164,12 @@ The `mixin` entity is analog to its programmaming terminology, meaning it mostly
 - Cannot host other entities
 - Cannot have other `mixins`
 - Can perform requests (either by native implementation or inheriting the client)
+- Do not support entity-level hooks
+- Prototype chain cannot be extended
+
+## Extensibility and composition
+
+`to do`
 
 ## Installation
 
@@ -179,7 +194,7 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
 
 ![Node.js](https://cdn0.iconfinder.com/data/icons/long-shadow-web-icons/512/nodejs-48.png) | ![Chrome](https://raw.github.com/alrra/browser-logos/master/chrome/chrome_48x48.png) | ![Firefox](https://raw.github.com/alrra/browser-logos/master/firefox/firefox_48x48.png) | ![IE](https://raw.github.com/alrra/browser-logos/master/internet-explorer/internet-explorer_48x48.png) | ![Opera](https://raw.github.com/alrra/browser-logos/master/opera/opera_48x48.png) | ![Safari](https://raw.github.com/alrra/browser-logos/master/safari/safari_48x48.png)
 ---  | --- | --- | --- | --- | --- |
-+0.10 | +5 | +3.5 | +9 | +10 | +5 |
++0.10 | +5 | +3.5 | +9 | +12 | +5 |
 
 ## Tutorial
 
@@ -333,6 +348,15 @@ api.users
   })
 ```
 
+Finally, to summarize, as you have seen, now our new API client provides a programmatic binding layer to HTTP API resources, so we can draw the following relation map:
+
+- POST /api/auth/login => `api.auth.login()`
+- POST /api/auth/signup => `api.auth.login()`
+- GET /api/users => `api.users.find()`
+- GET /api/users/:id => `api.users.get()`
+- POST /api/users/:id => `api.users.create()`
+- DELETE /api/users/:id => `api.users.delete()`
+
 You can see (and run) the tutorial script [here](https://github.com/h2non/theon/tree/master/examples/tutorial.js).
 
 ## Examples
@@ -341,13 +365,15 @@ Take a look to the [`examples`](https://github.com/h2non/theon/tree/master/examp
 
 ## HTTP adapters
 
-One of the design goals of `theon` is making it HTTP agent agnostic, meaning it's not coupled to any specific HTTP client or any environment. In other words, `theon` gives the ability to the developer to pick the prefered one based on its particular needs and runtime scenario.
+One of the design goals of `theon` is making it HTTP agent agnostic, meaning it's not coupled to any specific HTTP client and runtime environment boundaries.
 
-To become more concrete, `theon` is not an HTTP client perse, neither implements something, it's just an abstraction layer to build and configure HTTP domain specific stuff.
+In other words, `theon` gives the ability to the developer to pick the prefered one based on its particular needs and runtime scenario, so if you're creating an API client for browsers and particular framework, let's say AngularJS, you don't have any constraint impossed by `theon` to use it.
 
-So instead of implementing an HTTP client, `theon` relies on an external adapter which should be responsible of communicate with the real HTTP client, providing a proxy layer between `theon` interface and the target HTTP agent specific interface.
+To clarify this, it worths to say that `theon` is not an HTTP client perse, neither implements stuff related to the HTTP network domain, it's just an abstraction layer providing a DSL to build and configure high-level HTTP protocol specific stuff.
 
-`theon` provides by default two HTTP adapters for both node.js and browser environments, but it's up to you to write your own adapter to talk with another HTTP client, such as `superagent`, `got`, `$.ajax`, `angular.$http` or any other.
+So instead of implementing an HTTP client, `theon` relies on an external adapter which should be responsible of communicating with the real HTTP client, accesible by the proxy layer between `theon` interface and the target HTTP agent, so all the HTTP network level stuff is completely delegated in the agent adapter.
+
+In other to be more pragmatic, `theon` provides by default two HTTP adapters for both node.js and browser environments, but it's up to you to write your own adapter to talk with another HTTP client, such as `superagent`, `got`, `$.ajax`, `angular.$http` or any other.
 
 #### Node.js
 
@@ -544,6 +570,8 @@ They has been specially designed to provide control capabilities across the diff
 Furthermore, they are mostly useful to perform `pre` and `post` processing operations, such as defining defaults params and adapt/map things before they're processed by subsequent phases.
 
 Hooks behavies like a traditional middleware, meaning you can alter, replace, intercept or even cancel any HTTP transaction at any stage.
+
+Hooks can be attached to any entity, from client globa scope to resource level.
 
 Hooks also rely in control-flow capabilities, so you can run asynchronous tasks inside them.
 
@@ -940,6 +968,11 @@ Attach a mixin to the current entity.
 #### Entity#addEntity(entity)
 
 Attach a custom subentity.
+
+#### Entity#extend(name, value)
+
+Extend the entity with a custom property and value.
+Similar to mixins, but simpler.
 
 #### Entity#meta(metadata)
 
