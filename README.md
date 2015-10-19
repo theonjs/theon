@@ -106,9 +106,11 @@ Additionally, it provides a set of rich features to make you programmatic layer 
 
 ## Concepts
 
-`theon` introduces the concept of entity, which is basically a built-in abstract object which maps to specific HTTP entities and stores its details, such as headers or query params.
+`theon` introduces the concept of entity, which is basically a built-in abstract object which maps and encapsulates specific HTTP protocol level data, such as headers, method, path or query params.
 
-You have to understand and use them properly while building your API.
+In order to build your API you have to understand and use the entities accondingly.
+
+Entities are also useful as a sort of extensibility and composition layer, since you can plug in them at any level of your API and entities can inherit from other entities, taking its functionality too.
 
 The following graph represent the relation between theon entities and a common HTTP REST-like endpoint:
 
@@ -120,7 +122,7 @@ The following graph represent the relation between theon entities and a common H
   [mixin]?      [mixin]?     [mixin]?     [mixin]?
 ```
 
-**Built-in entities**:
+### Supported entities
 
 #### client
 
@@ -131,7 +133,6 @@ Every `theon` instance is a client and it's restricted to only one per `theon` i
 - Can host `collections` and `resources`
 - Can have `mixins`
 - Supports hooks
-- Extendable prototype chain with other entities
 
 #### collection
 
@@ -142,7 +143,6 @@ Every `theon` instance is a client and it's restricted to only one per `theon` i
 - Can have `mixins`
 - Cannot perform requests itself
 - Supports hooks
-- Extendable prototype chain with other entities
 
 #### resource
 
@@ -153,7 +153,6 @@ Every `theon` instance is a client and it's restricted to only one per `theon` i
 - Can have `mixins`
 - Can perform requests
 - Supports hooks
-- Extendable prototype chain with other entities
 
 #### mixin
 
@@ -165,7 +164,6 @@ The `mixin` entity is analog to its programmaming terminology, meaning it mostly
 - Cannot have other `mixins`
 - Can perform requests (either by native implementation or inheriting the client)
 - Do not support entity-level hooks
-- Prototype chain cannot be extended
 
 <!--
 ## Extensibility and composition
