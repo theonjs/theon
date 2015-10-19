@@ -445,7 +445,13 @@ Generator.prototype.render = function () {
     ? this.target
     : new Client(src)
 
+  // Expose the original client, if empty
+  if (!this.target._client) this.target._client = src
+
+  // Render nested entities
   this.src.entities.forEach(this.renderEntity, this)
+  // Render prototype chain, if present
+  if (src.proto) this.renderProto()
 
   return this.target
 }
@@ -462,6 +468,12 @@ Generator.prototype.renderEntity = function (entity) {
   }, this)
 }
 
+Generator.prototype.renderProto = function () {
+  Object.keys(this.src.proto).forEach(function (name) {
+    this.define(name, this.src.proto[name])
+  }, this)
+}
+
 Generator.prototype.define =  function (name, value) {
   if (has(this.target, name)) throw nameConflict(name)
 
@@ -474,7 +486,7 @@ Generator.prototype.define =  function (name, value) {
 }
 
 function nameConflict(name) {
-  return new Error('Name conflict: "' + name + '" is already defined')
+  return new Error('Name conflict: "' + name + '" property already exists')
 }
 
 },{"../utils":27,"./client":8}],10:[function(require,module,exports){
@@ -523,6 +535,7 @@ function Entity(name) {
   this.name = name
   this.aliases = []
   this.entities = []
+  this.proto = Object.create(null)
 }
 
 Entity.prototype = Object.create(Request.prototype)
@@ -585,6 +598,14 @@ Entity.prototype.meta = function (meta) {
   return this
 }
 
+Entity.prototype.extend = function (prop, value) {
+  if (typeof prop === 'string')
+    this.proto[prop] = value
+  else if (prop === Object(prop))
+    extend(this.proto, prop)
+  return this
+}
+
 Entity.prototype.render = function (client) {
   return new engine.Generator(client || this).render()
 }
@@ -631,9 +652,8 @@ Mixin.prototype.useParent = function (ctx) {
 
 Mixin.prototype.render = function () {
   var fn = this.fn
-  var ctx = this.ctx
-
-  return function mixin() {
+  return function () {
+    var ctx = this ? this._client || this : this
     return fn.apply(ctx, arguments)
   }
 }
@@ -1244,7 +1264,7 @@ theon.entities   = require('./entities')
  * Current version
  */
 
-theon.VERSION = '0.1.1'
+theon.VERSION = '0.1.2'
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":19,"./response":20}],23:[function(require,module,exports){
 module.exports = {
