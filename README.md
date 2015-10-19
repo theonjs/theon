@@ -167,9 +167,11 @@ The `mixin` entity is analog to its programmaming terminology, meaning it mostly
 - Do not support entity-level hooks
 - Prototype chain cannot be extended
 
+<!--
 ## Extensibility and composition
 
 `to do`
+-->
 
 ## Installation
 
