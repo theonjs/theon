@@ -249,6 +249,30 @@ suite('theon', function () {
     }
   })
 
+  test('mixin', function (done) {
+    nock.cleanAll()
+    nock('http://localhost')
+      .get('/foo')
+      .reply(200, { hello: 'world' })
+
+    var spy = sinon.spy()
+    var client = theon('http://localhost')
+      .type('json')
+      .resource('foo')
+      .mixin('mixin', mixin)
+      .renderAll()
+
+    function mixin(url) {
+      expect(this.name).to.be.equal('foo')
+      expect(this.root).to.be.an('object')
+      this.root.url(url)
+      expect(this.root.ctx.opts.rootUrl).to.be.equal('http://foo')
+      done()
+    }
+
+    client.foo.mixin('http://foo')
+  })
+
   test('nested urls', function (done) {
     nock.cleanAll()
     nock('http://bar')

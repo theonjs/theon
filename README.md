@@ -2,9 +2,9 @@
 
 A lightweight, declarative and [featured](#features) JavaScript library to create API clients and SDKs for node.js and browsers to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer.
 
-`theon` provides a convenient abstraction to build rich API clients which interact with one or multiple HTTP layers. It was designed with extensibility and versatibility in mind, providing a built-in [middleware layer](#middleware) which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators), [interceptors](#interceptors) and [more](#valiators).
+`theon` provides a convenient abstraction to build rich API clients which interacts with one or multiple HTTP layers. It was designed with extensibility and versatibility in mind, providing a built-in [middleware layer](#middleware) which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators), [interceptors](#interceptors) and [more](#valiators).
 
-It's also HTTP agent agnostic, so you can use `superagent`, `request`, `$.ajax`, `angular.$http` or any other via adapters.
+It's also HTTP agent agnostic, so you can use `superagent`, `request`, `$.ajax`, `angular.$http` or any other via adapters based on your project requirements and runtime scenario.
 
 To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
