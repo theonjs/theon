@@ -104,6 +104,9 @@ With `theon` you can decouple those parts and provide a convenient abstraction b
 
 Additionally, it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, mostly through a hierarchical middleware layer allowing you to plugin intermediate logic.
 
+Furthermore, I took some inspiration from [Google API client for node.js](https://github.com/google/google-api-nodejs-client) and in the way they are building a huge programmatic API layer.
+I believe that with `theon` you can build APIs even better.
+
 ## Concepts
 
 `theon` introduces the concept of entity, which is basically a built-in abstract object which maps and encapsulates specific HTTP protocol level data, such as headers, method, path or query params.
