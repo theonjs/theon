@@ -1110,12 +1110,18 @@ Similar to `model` feature but operating overwriting the original `body`.
 #### Request#end(cb)
 Alias: `done`
 
+Dispatche the request, sending it over the network.
+
 #### Request#pipe(stream)
 
 #### Request#stream(stream)
 Alias: `bodyStream`
 
 #### Request#raw() => [RawContext](#RawContext)
+
+#### Request#clone()
+
+#### Request#newRequest([ parent ])
 
 ### Response(request)
 
