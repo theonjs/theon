@@ -9,7 +9,7 @@ nock('http://my.api.com')
 var client = theon('http://my.api.com')
   .resource('boo')
   .path('/boo')
-  .renderAll()
+  .render()
 
 client
   .boo()

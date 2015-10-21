@@ -20,7 +20,7 @@ writable._write = function (chunk, encoding, next) {
 var client = theon('http://localhost')
   .resource('foo')
   .path('/foo')
-  .renderAll()
+  .render()
 
 client.foo()
   .pipe(writable)
@@ -37,7 +37,7 @@ var client = theon('http://localhost')
   .method('POST')
   .resource('foo')
   .path('/foo')
-  .renderAll()
+  .render()
 
 client.foo()
   .stream(readable)

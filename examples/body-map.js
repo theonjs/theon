@@ -28,7 +28,7 @@ var client = theon('http://my.api.com')
   .path('/:id')
 
 // Render the API
-var api = client.renderAll()
+var api = client.render()
 
 api.users.get()
   .param('id', '123')

@@ -22,7 +22,7 @@ suite('entities', function () {
       .to.have.property('rootUrl')
       .to.be.equal('http://localhost')
     expect(o)
-      .to.have.property('render')
+      .to.have.property('renderEntity')
       .to.be.a('function')
   })
 
@@ -44,7 +44,7 @@ suite('entities', function () {
       .to.have.property('entities')
       .to.be.an('array')
     expect(o)
-      .to.have.property('render')
+      .to.have.property('renderEntity')
       .to.be.a('function')
   })
 
@@ -67,7 +67,7 @@ suite('entities', function () {
       .to.have.property('entities')
       .to.be.an('array')
     expect(o)
-      .to.have.property('render')
+      .to.have.property('renderEntity')
       .to.be.a('function')
   })
 
@@ -87,7 +87,7 @@ suite('entities', function () {
       .to.have.property('fn')
       .to.be.equal(mixin)
     expect(o)
-      .to.have.property('render')
+      .to.have.property('renderEntity')
       .to.be.a('function')
   })
 })

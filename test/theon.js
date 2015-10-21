@@ -24,7 +24,7 @@ suite('theon', function () {
       .resource('bar')
       .resource('boo')
 
-    var api = client.renderAll()
+    var api = client.render()
 
     expect(api.foo.bar.boo().root)
       .to.have.property('ctx')
@@ -42,7 +42,7 @@ suite('theon', function () {
     var client = theon('http://localhost')
       .resource('boo')
       .path('/boo')
-      .renderAll()
+      .render()
 
     client
       .boo()
@@ -50,7 +50,7 @@ suite('theon', function () {
         next('stop')
       })
       .end(function (err, res) {
-        expect(err.message).to.be.equal('Request cancelled: stop')
+        expect(err.message).to.be.equal('Request aborted: stop')
         expect(res.statusCode).to.be.equal(0)
         done()
       })
@@ -71,7 +71,7 @@ suite('theon', function () {
     var client = theon('http://localhost')
       .resource('foo')
       .path('/foo')
-      .renderAll()
+      .render()
 
     client.foo()
       .pipe(writable)
@@ -98,7 +98,7 @@ suite('theon', function () {
       .resource('foo')
       .path('/foo')
       .method('POST')
-      .renderAll()
+      .render()
 
     client.foo()
       .stream(readable)
@@ -125,7 +125,7 @@ suite('theon', function () {
     var api = client
       .resource('foo')
       .path('/foo')
-      .renderAll()
+      .render()
 
     api.foo()
       .use(function (req, res, next) {
@@ -140,6 +140,7 @@ suite('theon', function () {
       .end(function (err, res) {
         expect(err).to.be.null
         expect(res.statusCode).to.be.equal(200)
+        expect(spy.args).to.have.length(2)
         expect(spy.args[0][0]).to.be.equal('bar')
         expect(spy.args[1][0]).to.be.equal('foo')
         expect(res.req.store.get('foo')).to.be.equal('bar')
@@ -147,6 +148,12 @@ suite('theon', function () {
         done()
       })
   })
+
+  test('middleware')
+
+  test('middleware inheritance')
+
+  test('entity middleware')
 
   test('hooks', function (done) {
     nock.cleanAll()
@@ -159,7 +166,7 @@ suite('theon', function () {
       .type('json')
       .resource('foo')
       .path('/foo')
-      .renderAll()
+      .render()
 
     var disabledHooks = [
       'error'
@@ -231,7 +238,7 @@ suite('theon', function () {
       .resource('foo')
       .path('/foo')
       .observe('before', track)
-      .renderAll()
+      .render()
 
     client.foo()
       .observe('before', track)
@@ -240,6 +247,37 @@ suite('theon', function () {
         expect(res.statusCode).to.be.equal(200)
         expect(res.body).to.be.deep.equal({ hello: 'world' })
         expect(spy.calledThrice).to.be.true
+        done()
+      })
+
+    function track(req, res, next) {
+      spy(req, res)
+      next()
+    }
+  })
+
+  test('entity hooks', function (done) {
+    nock.cleanAll()
+    nock('http://localhost')
+      .get('/foo')
+      .reply(200, { hello: 'world' })
+
+    var spy = sinon.spy()
+    var client = theon('http://localhost')
+      .type('json')
+      .observeEntity('before', track)
+      .resource('foo')
+      .path('/foo')
+      .observe('before', track)
+      .render()
+
+    client.foo()
+      .observeEntity('before', track)
+      .end(function (err, res) {
+        expect(err).to.be.null
+        expect(res.statusCode).to.be.equal(200)
+        expect(res.body).to.be.deep.equal({ hello: 'world' })
+        expect(spy.calledTwice).to.be.true
         done()
       })
 
@@ -260,7 +298,7 @@ suite('theon', function () {
       .type('json')
       .resource('foo')
       .mixin('mixin', mixin)
-      .renderAll()
+      .render()
 
     function mixin(url) {
       expect(this.name).to.be.equal('foo')

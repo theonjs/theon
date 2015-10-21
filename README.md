@@ -2,7 +2,7 @@
 
 In a nutshell, `theon` is a lightweight and [featured](#features) JavaScript library to create API clients and SDKs in node.js and browsers. It was especially designed to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer.
 
-`theon` provides a convenient abstraction to build rich API clients which interacts with one or multiple HTTP interfaces. It was designed with strong extensibility and composition capabilities in mind, mostly provided through the hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
+`theon` provides a convenient abstraction to build rich API clients which interacts with one or multiple HTTP interfaces. It was designed with strong extensibility capabilities, mostly provided through the hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
 
 It's also HTTP agent agnostic, so you can use [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other via [adapters](#http-adapters), based on your project requirements and runtime scenario.
 
@@ -984,11 +984,11 @@ Mostly useful for annotations, flagging and documentation purposes.
 
 #### Entity#render([ entity ])
 
-Render the current entity. This method is mostly used internally.
+Render all the entities, from current to root entity.
 
-#### Entity#renderAll([ entity ])
+#### Entity#renderEntity([ entity ])
 
-Render all the entities, from current to root parent.
+Render the current entity, without rendering parent entities.
 This method is mostly used internally.
 
 ### Request([ ctx ])
@@ -1070,21 +1070,37 @@ Alias: `body`
 #### Request#use(middleware)
 Alias: `useRequest`
 
+#### Request#useEntity(middleware)
+Alias: `useEntityRequest`
+
+Attach a middleware restricted to the current entity scope.
+
 #### Request#useResponse(middleware)
+
+#### Request#useEntityResponse(middleware)
+
+Attach a response middleware restricted to the current entity scope.
 
 #### Request#observe(event, hook)
 
 #### Request#validator(validator)
 Alias: `requestValidator`
 
-#### Request#responseValidator(validator)
+#### Request#entityValidator(validator)
+Alias: `requestEntityValidator`
+
+#### Request#entityResponseValidator(validator)
 
 #### Request#interceptor(interceptor)
+
+#### Request#entityInterceptor(interceptor)
 
 #### Request#evaluator(fn)
 
 Attach a `before response` hook to evaluate the response and determine if it's valid or not.
 Useful to evaludate response status and force an error. E.g: `status` >= 400
+
+#### Request#entityEvaluator(fn)
 
 #### Request#map(fn)
 Alias: `bodyMap`

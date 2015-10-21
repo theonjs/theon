@@ -33,7 +33,7 @@ var users = client
   })
 
 // Render the API client
-var api = users.renderAll()
+var api = users.render()
 
 api
   .users

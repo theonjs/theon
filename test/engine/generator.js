@@ -8,7 +8,7 @@ suite('generator', function () {
     return {
       name: name,
       aliases: [ name + name ],
-      render: function () {
+      renderEntity: function () {
         return name
       }
     }

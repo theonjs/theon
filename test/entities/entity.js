@@ -45,7 +45,7 @@ suite('entity', function () {
     var e = new Entity('test')
     e.addEntity(c)
 
-    var o = c.renderAll()
+    var o = c.render()
     expect(o).to.be.an('object')
     expect(o._client).to.be.equal(e)
   })

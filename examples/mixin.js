@@ -25,7 +25,7 @@ var users = client
   })
 
 // Render the API
-var api = users.renderAll()
+var api = users.render()
 
 // Test mixin
 api.users
