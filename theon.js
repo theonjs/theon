@@ -316,11 +316,11 @@ Dispatcher.prototype.dial = function (req, res, next) {
 
   utils.series([
     function before(next) {
-      req.ctx.middleware.run('before dial', req, res, forward(req, res, next))
+      this.runMiddleware('before dial', req, res, next)
     },
     this.dialer,
     function after(req, res, next) {
-      req.ctx.middleware.run('after dial', req, res, forward(req, res, next))
+      this.runMiddleware('after dial', req, res, next)
     }
   ], next, this)
 }
@@ -339,18 +339,23 @@ Dispatcher.prototype.dialer = function (req, res, next) {
   }
 
   // Dispatch the dialing observer
-  req.ctx.middleware.run('dialing', req, res, function (err) {
-    if (!err) return
-
-    if (res.orig && typeof res.orig.abort === 'function') {
-      nextFn(new Error('Request cancelled: ' + (err.message || err)))
+  this.runMiddleware('dialing', req, res, function (err) {
+    if (err && res.orig && typeof res.orig.abort === 'function') {
+      nextFn(new Error('Request aborted: ' + (err.message || err)))
       res.orig.abort()
     }
   })
 }
 
 Dispatcher.prototype.runHook = function (event, req, res, next) {
-  req.ctx.middleware.run(event, req, res, forward(req, res, next))
+  utils.series([
+    function global(next) {
+      this.runMiddleware(event, req, res, next)
+    },
+    function entity(req, res, next) {
+      this.runEntity(event, req, res, next)
+    }
+  ], next, this)
 }
 
 Dispatcher.prototype.runPhase = function (phase, req, res, next) {
@@ -371,17 +376,36 @@ Dispatcher.prototype.runPhase = function (phase, req, res, next) {
 }
 
 Dispatcher.prototype.runStack = function (stack, phase, req, res, next) {
+  var event = stack + ' ' + phase
+
   utils.series([
     function before(next) {
-      this.runHook('before ' + stack + ' ' + phase, req, res, next)
+      this.runHook('before ' + event, req, res, next)
     },
     function run(req, res, next) {
-      req.ctx.middleware.run(stack + ' ' + phase, req, res, forward(req, res, next))
+      this.runMiddleware(event, req, res, next)
+    },
+    function runEntity(req, res, next) {
+      this.runEntity(event, req, res, next)
     },
     function after(req, res, next) {
-      this.runHook('after ' + stack + ' ' + phase, req, res, next)
+      this.runHook('after ' + event, req, res, next)
     },
   ], next, this)
+}
+
+Dispatcher.prototype.runEntity = function (event, req, res, next) {
+  if (!req.client) return next(null, req, res)
+
+  var hierarchy = req.client.entityHierarchy
+  if (!hierarchy) return next(null, req, res)
+
+  var phase = event + ' ' + hierarchy
+  this.runMiddleware(phase, req, res, next)
+}
+
+Dispatcher.prototype.runMiddleware = function (event, req, res, next) {
+  req.ctx.middleware.run(event, req, res, forward(req, res, next))
 }
 
 function forward(req, res, next) {
@@ -460,7 +484,7 @@ Generator.prototype.renderEntity = function (entity) {
   var name = entity.name
   if (!name) throw new TypeError('Render error: missing entity name')
 
-  var value = entity.render()
+  var value = entity.renderEntity()
   var names = [ name ].concat(entity.aliases)
 
   names.forEach(function (name) {
@@ -607,18 +631,18 @@ Entity.prototype.extend = function (prop, value) {
 }
 
 Entity.prototype.render = function (client) {
+  if (this.parent) {
+    return this.parent.render(client)
+  }
+  return this.renderEntity(client)
+}
+
+Entity.prototype.renderEntity = function (client) {
   return new engine.Generator(client || this).render()
 }
 
-Entity.prototype.renderAll = function (client) {
-  if (this.parent) {
-    return this.parent.renderAll(client)
-  }
-  return this.render(client || this)
-}
-
 function invalidEntity(entity) {
-  return !entity || typeof entity.render !== 'function'
+  return !entity || typeof entity.renderEntity !== 'function'
 }
 
 },{"../context":6,"../engine":10,"../request":19,"../utils":27}],14:[function(require,module,exports){
@@ -650,7 +674,7 @@ Mixin.prototype.useParent = function (ctx) {
   this.ctx = ctx
 }
 
-Mixin.prototype.render = function () {
+Mixin.prototype.renderEntity = function () {
   var fn = this.fn
   return function () {
     var ctx = this ? this._client || this : this
@@ -673,7 +697,7 @@ Resource.prototype = Object.create(Entity.prototype)
 
 Resource.prototype.entity = 'resource'
 
-Resource.prototype.render = function () {
+Resource.prototype.renderEntity = function () {
   var self = this
 
   return new Generator(this)
@@ -905,8 +929,21 @@ Request.prototype.useRequest = function (middleware) {
   return this
 }
 
+Request.prototype.useEntity =
+Request.prototype.useEntityRequest = function (middleware) {
+  var phase = 'middleware request ' + this.entityHierarchy
+  this.ctx.middleware.use(phase, middleware)
+  return this
+}
+
 Request.prototype.useResponse = function (middleware) {
   this.ctx.middleware.use('middleware response', middleware)
+  return this
+}
+
+Request.prototype.useEntityResponse = function (middleware) {
+  var phase = 'middleware response ' + this.entityHierarchy
+  this.ctx.middleware.use(phase, middleware)
   return this
 }
 
@@ -916,8 +953,21 @@ Request.prototype.requestValidator = function (middleware) {
   return this
 }
 
+Request.prototype.entityValidator =
+Request.prototype.entityRequestValidator = function (middleware) {
+  var phase = 'validator request ' + this.entityHierarchy
+  this.ctx.middleware.use(phase, middleware)
+  return this
+}
+
 Request.prototype.responseValidator = function (middleware) {
   this.ctx.middleware.use('validator response', middleware)
+  return this
+}
+
+Request.prototype.entityResponseValidator = function (middleware) {
+  var phase = 'validator response ' + this.entityHierarchy
+  this.ctx.middleware.use(phase, middleware)
   return this
 }
 
@@ -926,8 +976,18 @@ Request.prototype.interceptor = function (interceptor) {
   return this
 }
 
+Request.prototype.entityInterceptor = function (interceptor) {
+  this.ctx.middleware.use('before dial ' + this.entityHierarchy, interceptor)
+  return this
+}
+
 Request.prototype.evaluator = function (evaluator) {
   this.ctx.middleware.use('before response', evaluator)
+  return this
+}
+
+Request.prototype.entityEvaluator = function (evaluator) {
+  this.ctx.middleware.use('before response' + this.entityHierarchy, evaluator)
   return this
 }
 
@@ -942,6 +1002,12 @@ Request.prototype.validate = function (cb) {
 }
 
 Request.prototype.observe = function (phase, hook) {
+  this.ctx.middleware.use(phase, hook)
+  return this
+}
+
+Request.prototype.observeEntity = function (phase, hook) {
+  phase += ' ' + this.entityHierarchy
   this.ctx.middleware.use(phase, hook)
   return this
 }
@@ -1050,15 +1116,38 @@ Request.prototype.clone = function () {
   return req
 }
 
-Request.accessors = {
-  store: function () {
-    return this.ctx.store
-  },
-  root: function () {
-    return this.parent
-      ? this.parent.root
-      : this
+Request.prototype.newRequest = function (ctx) {
+  var req = new Request
+  req.useParent(ctx || this)
+  return req
+}
+
+/**
+ * Instance property getter accessors
+ */
+
+Request.accessors = Object.create(null)
+
+Request.accessors.store = function () {
+  return this.ctx.store
+}
+
+Request.accessors.root = function () {
+  return this.parent
+    ? this.parent.root
+    : this
+}
+
+Request.accessors.entityHierarchy = function () {
+  var entity = this.entity || 'node'
+  var name = entity + ':' + (this.name || '*')
+
+  if (this.parent) {
+    var parent = this.parent.entityHierarchy
+    name = (parent ? parent + ' ' : '') + name
   }
+
+  return name
 }
 
 function defineAccessors(ctx) {
