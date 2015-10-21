@@ -507,9 +507,18 @@ Alias: `useRequest`
 
 Attach a new middleware in the `request` phase.
 
+#### Request#useEntity(middleware)
+Alias: `useEntityRequest`
+
+Attach a new middleware in the `request` phase in the current entity scope.
+
 #### Request#useResponse(middleware)
 
 Attach a new middleware in the `response` phase.
+
+#### Request#useEntityResponse(middleware)
+
+Attach a new middleware in the `response` phase in the current entity scope.
 
 #### Middleware notation
 
@@ -610,6 +619,10 @@ Supported hook phases available for subscription, listed by execution order:
 #### Request#observe(phase, hook)
 
 Attach a new observer hook to a given phase.
+
+#### Request#observeEntity(phase, hook)
+
+Attach a new observer hook to a given phase in the current entity scope.
 
 #### Hook notation
 

@@ -256,7 +256,7 @@ suite('theon', function () {
     }
   })
 
-  test('entity hooks', function (done) {
+  test('hooks by entity', function (done) {
     nock.cleanAll()
     nock('http://localhost')
       .get('/foo')
@@ -265,10 +265,12 @@ suite('theon', function () {
     var spy = sinon.spy()
     var client = theon('http://localhost')
       .type('json')
-      .observeEntity('before', track)
+      .observeEntity('before', function () {
+        throw new Error('Parent entity hook should not be called')
+      })
       .resource('foo')
+      .observeEntity('before', track)
       .path('/foo')
-      .observe('before', track)
       .render()
 
     client.foo()
@@ -277,7 +279,7 @@ suite('theon', function () {
         expect(err).to.be.null
         expect(res.statusCode).to.be.equal(200)
         expect(res.body).to.be.deep.equal({ hello: 'world' })
-        expect(spy.calledTwice).to.be.true
+        expect(spy.calledOnce).to.be.true
         done()
       })
 
@@ -434,7 +436,7 @@ suite('theon', function () {
       })
       .param('id', 123)
       .end(function (err, res) {
-        expect(err).to.be.empty
+        expect(err).to.be.null
         expect(spy.args).to.have.length(5)
         expect(res.statusCode).to.be.equal(200)
         expect(res.body[0].id).to.be.equal('123')
