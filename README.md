@@ -4,7 +4,7 @@ In a nutshell, `theon` is a lightweight and [featured](#features) JavaScript lib
 
 `theon` provides a convenient abstraction to build rich API clients which interacts with one or multiple HTTP interfaces. It was designed with strong extensibility capabilities, mostly provided through the hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
 
-It's also HTTP agent agnostic, so you can use [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other via [adapters](#http-adapters), based on your project requirements and runtime scenario.
+It's also HTTP agent agnostic, so you can use [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other via [adapters](#http-adapters).
 
 To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
