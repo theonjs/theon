@@ -1007,8 +1007,7 @@ Request.prototype.observe = function (phase, hook) {
 }
 
 Request.prototype.observeEntity = function (phase, hook) {
-  phase += ' ' + this.entityHierarchy
-  this.ctx.middleware.use(phase, hook)
+  this.ctx.middleware.use(phase + ' ' + this.entityHierarchy, hook)
   return this
 }
 
@@ -1139,12 +1138,15 @@ Request.accessors.root = function () {
 }
 
 Request.accessors.entityHierarchy = function () {
-  var entity = this.entity || 'node'
-  var name = entity + ':' + (this.name || '*')
+  var name = ''
 
   if (this.parent) {
     var parent = this.parent.entityHierarchy
-    name = (parent ? parent + ' ' : '') + name
+    name = parent ? parent + ' ' : name
+  }
+
+  if (this.entity) {
+    name += this.entity + ' ' + (this.name || '*')
   }
 
   return name

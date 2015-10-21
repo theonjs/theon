@@ -697,9 +697,17 @@ In the other hand, you can validate also the response in order to determine if i
 
 Attach a new request validator.
 
+#### Request#entityValidator(validator)
+
+Attach a new request validator at entity scope only.
+
 #### Request#responseValidator(validator)
 
 Attach a new response validator.
+
+#### Request#responseEntityValidator(validator)
+
+Attach a new response validator at entity scope only.
 
 #### Validator notation
 
@@ -778,6 +786,10 @@ Technically speaking it's equivalent to a middleware, so you can rely in control
 #### Request#interceptor(interceptor)
 
 Attach a new interceptor.
+
+#### Request#entityInterceptor(interceptor)
+
+Attach a new interceptor at entity scope only.
 
 #### Interceptor notation
 
