@@ -65,7 +65,8 @@ To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial)
 - Request/response validators
 - Bind bodies to custom models easily
 - Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (but it depends on the HTTP adapter used)
-- Powerful reusability features based on prototype inheritance.
+- Powerful reusability features including hierarchical configuration inheritance.
+- Built-in HTTP context data store to persist data such as token sessions
 - Built-in store context to persist session related data
 - Maps HTTP entities to programmatic entities with custom logic
 - Path params parsing and matching (with express-like path notation)
@@ -104,15 +105,15 @@ With `theon` you can decouple those parts and provide a convenient abstraction b
 
 Additionally, it provides a rich set of features to make you programmatic layer more powerful for either you as API builder and for your API consumers through a hierarchical middleware/hook layer which allows you to plug in and compose intermediate logic.
 
-I took some inspiration from [Google API client for node.js](https://github.com/google/google-api-nodejs-client) and in the way they are building a huge programmatic API layer, but I believe with `theon` you can build APIs even better.
+I took some inspiration from [Google API client for node.js](https://github.com/google/google-api-nodejs-client) and in the way they are building a huge programmatic API layer, but you probably can di it even better with `theon`.
 
 ## Concepts
 
-`theon` introduces the concept of entity, which is basically a built-in abstract object which maps and encapsulates specific HTTP protocol level data, such as headers, method, path or query params.
+`theon` introduces the concept of entity, which is basically an abstract object which maps and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents an entity in your API structure, which is usually also mapped into a HTTP API resource or endpoint.  
 
-In order to build your API you have to understand and use the entities accondingly.
+In order to build your API you have to understand and use the concept of entity properly, and know how to use the different built-in entitities provided by `theon`.
 
-Entities are also useful as a sort of extensibility and composition layer, since you can plug in them at any level of your API and entities can inherit from other entities, taking its functionality too.
+Entities are also useful as a sort of extensibility and composition layer, since you can plug in them at any level of your API. Also, entities can inherit from other entities, inheriting its functionality, configuration, middleware and hooks too.
 
 The following graph represent the relation between theon entities and a common HTTP REST-like endpoint:
 
@@ -128,33 +129,36 @@ The following graph represent the relation between theon entities and a common H
 
 #### client
 
-`client` represents the API client parent high-level entity.
-Every `theon` instance is a client and it's restricted to only one per `theon` instance.
+`client` represents the API client root high-level entity.
+Every `theon` instance is a client entity itself, and it's mostly used as parent container for nested entities.
+
+Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as headers, at client entity level. That means all the configuration attached at client level will be inherited in child entities.
 
 - Can inherit from other `entity`, usually another `client`.
-- Can host `collections` and `resources`
-- Can have `mixins`
-- Supports hooks
+- Can host `collections` and `resources`.
+- Can have `mixins`.
+- Supports middleware and observable hooks.
 
 #### collection
 
 `collection` represents a set of entities. It was mainly designed to store a bunch of  other `collection` or `resources`, mostly used as sort of isolation entity to divide and compose different parts of your API.
 
 - Can inherit from other `entity`, usually a `client`.
-- Can host other `collections` or `resources`
-- Can have `mixins`
-- Cannot perform requests itself
-- Supports hooks
+- Can host other `collections` or `resources`.
+- Can have `mixins`.
+- Cannot perform requests itself.
+- Supports middleware and observable hooks.
 
 #### resource
 
-`resource` is an entity designed to be attached to a specific HTTP resource, endpoint or action. They're usually embedded as part of collections.
+`resource` is an entity designed to be attached to a specific HTTP resource, endpoint or HTTP action. 
+They're usually embedded as part of collections.
 
 - Can inherit from other `entity`, usually a `collection`.
-- Can host `collections`, `resource`
-- Can have `mixins`
-- Can perform requests
-- Supports hooks
+- Can host `collections`, `resource`.
+- Can have `mixins`.
+- Can perform requests.
+- Supports middleware and observable hooks.
 
 #### mixin
 
@@ -162,10 +166,10 @@ A `mixin` is a custom user-defined preconfigured task hosting any kind of logic.
 The `mixin` entity is analog to its programmaming terminology, meaning it mostly to extend a component with some specific feature as a sort of plug in.
 
 - Can inherit from other entities, usually a `resource`.
-- Cannot host other entities
-- Cannot have other `mixins`
-- Can perform requests (either by native implementation or inheriting the client)
-- Do not support entity-level hooks
+- Cannot host other entities.
+- Cannot have other `mixins`.
+- Can perform requests (either by native implementation or inheriting the client).
+- Do not support middleware or hooks.
 
 <!--
 ## Extensibility and composition
