@@ -95,17 +95,16 @@ To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial)
 
 ## Motivation
 
-I initially wrote this library to mitigate my frustration while writing further programmatic API clients for multiple HTTP layers across multiple JavaScript environments.
+I initially wrote this library to mitigate my frustration while writing further programmatic API clients for multiple HTTP layers across JavaScript environments.
 
-After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, so an specific solution can be conceived to simplify the process and provide a more convenient layer to do it better and faster.
+After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, so then an specific solution can be conceived to simplify the process and provide a more convenient layer to do it better and faster.
 
-In most scenarios, when you are writing APIs you have to build an abstract programmatic layer which maps to specific HTTP resources, mostly when dealing with REST oriented HTTP services.
-With `theon` you can decouple those parts and provide a convenient abstraction between the HTTP interface details and programmatic API consumers.
+In most scenarios, when you are writing APIs, you have to build a programmatic layer which maps to specific HTTP resources, usually when dealing with resource-oriented HTTP services.
+With `theon` you can decouple those parts and provide a convenient abstraction between the HTTP interface details and the programmatic layer you want to provide to the API consumers.
 
-Additionally, it provides a set of rich features to make you programmatic layer more powerful for either you as API builder and your API consumers, mostly through a hierarchical middleware layer allowing you to plugin intermediate logic.
+Additionally, it provides a rich set of features to make you programmatic layer more powerful for either you as API builder and for your API consumers through a hierarchical middleware/hook layer which allows you to plug in and compose intermediate logic.
 
-Furthermore, I took some inspiration from [Google API client for node.js](https://github.com/google/google-api-nodejs-client) and in the way they are building a huge programmatic API layer.
-I believe that with `theon` you can build APIs even better.
+I took some inspiration from [Google API client for node.js](https://github.com/google/google-api-nodejs-client) and in the way they are building a huge programmatic API layer, but I believe with `theon` you can build APIs even better.
 
 ## Concepts
 
