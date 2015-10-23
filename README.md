@@ -191,7 +191,7 @@ bower install theon --save
 
 Or loading the script:
 ```html
-<script src="//cdn.rawgit.com/h2non/theon/0.1.3/theon.js"></script>
+<script src="//cdn.rawgit.com/h2non/theon/0.1.4/theon.js"></script>
 ```
 
 ## Environments

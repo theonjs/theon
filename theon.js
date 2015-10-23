@@ -884,7 +884,7 @@ Request.prototype.format = function (type) {
 }
 
 Request.prototype.type =
-Request.prototype.mimeType = function (value) {
+Request.prototype.mimeType = function (value, header) {
   var ctx = this.ctx
   var type = types[value] || value
 
@@ -892,8 +892,12 @@ Request.prototype.mimeType = function (value) {
     ctx.agentOpts.json = true
   }
 
-  ctx.headers['content-type'] = type
+  ctx.headers[header || 'content-type'] = type
   return this
+}
+
+Request.prototype.accept = function (type) {
+  return this.type(type, 'accept')
 }
 
 Request.prototype.send =
@@ -1336,6 +1340,7 @@ function theon(url) {
 theon.Request    = require('./request')
 theon.Response   = require('./response')
 theon.Context    = require('./context')
+theon.Store      = require('./store')
 theon.Dispatcher = require('./dispatcher')
 theon.agents     = require('./agents')
 theon.engine     = require('./engine')
@@ -1357,7 +1362,7 @@ theon.entities   = require('./entities')
 
 theon.VERSION = '0.1.2'
 
-},{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":19,"./response":20}],23:[function(require,module,exports){
+},{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":19,"./response":20,"./store":21}],23:[function(require,module,exports){
 module.exports = {
   html: 'text/html',
   json: 'application/json',
