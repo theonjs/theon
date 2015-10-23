@@ -8,7 +8,7 @@ It's also HTTP agent agnostic, so you can use [superagent](https://github.com/vi
 
 To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
-**Note**: still young, some work needs to be done, mostly in terms of documentation and testing, but API consistency is guaranteed.
+**Note**: `theon` is still young. Some work needs to be done, mostly in terms of documentation and testing, but API consistency is guaranteed.
 
 ## Contents
 
@@ -109,7 +109,7 @@ I took some inspiration from [Google API client for node.js](https://github.com/
 
 ## Concepts
 
-`theon` introduces the concept of entity, which is basically an abstract object which maps and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents an entity in your API structure, which is usually also mapped into a HTTP API resource or endpoint.  
+`theon` introduces the concept of entity, which is basically an abstract object which maps and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents an entity in your API structure, which is usually also mapped into a HTTP API resource or endpoint.
 
 In order to build your API you have to understand and use the concept of entity properly, and know how to use the different built-in entitities provided by `theon`.
 
@@ -151,7 +151,7 @@ Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as 
 
 #### resource
 
-`resource` is an entity designed to be attached to a specific HTTP resource, endpoint or HTTP action. 
+`resource` is an entity designed to be attached to a specific HTTP resource, endpoint or HTTP action.
 They're usually embedded as part of collections.
 
 - Can inherit from other `entity`, usually a `collection`.
@@ -1083,6 +1083,8 @@ Alias: `header`
 #### Request#persistHeaders(headers)
 
 #### Request#type(name)
+
+#### Request#accepts(name)
 
 #### Request#format(type)
 
