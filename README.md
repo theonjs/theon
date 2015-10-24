@@ -373,11 +373,11 @@ Take a look to the [`examples`](https://github.com/h2non/theon/tree/master/examp
 
 One of the design goals of `theon` is making it HTTP agent agnostic, meaning it's not coupled to any specific HTTP client and runtime environment boundaries.
 
-In other words, `theon` gives the ability to the developer to pick the prefered one based on its particular needs and runtime scenario, so if you're creating an API client for browsers and particular framework, let's say AngularJS, you don't have any constraint impossed by `theon` to use it.
+In other words, `theon` gives the ability to the developer to pick the prefered one based on its particular needs and runtime scenario, so if you're creating an API client for browsers and particular framework, let's say AngularJS, you don't have any constraint impossed by `theon` to use the native HTTP agent natively provided by the framework.
 
-To clarify this, it worths to say that `theon` is not an HTTP client perse, neither implements stuff related to the HTTP network domain, it's just an abstraction layer providing a DSL to build and configure high-level HTTP protocol specific stuff.
+To clarify this, it worth to say that `theon` is not an HTTP client perse, neither implements stuff related to the HTTP network domain, it's just an abstraction layer providing a DSL to build and configure high-level HTTP protocol specific stuff.
 
-So instead of implementing an HTTP client, `theon` relies on an external adapter which should be responsible of communicating with the real HTTP client, accesible by the proxy layer between `theon` interface and the target HTTP agent, so all the HTTP network level stuff is completely delegated in the agent adapter.
+So instead of implementing an HTTP client, `theon` relies on an external adapter which should be responsible of communicating with the real HTTP client, making it accesible by the proxy layer between `theon` interface and the target HTTP agent. Then all the HTTP network level stuff is completely delegated in the agent adapter. When the request is handled by the real HTTP agent, it should resolve the result properly and to report it to `theon` layer.
 
 In other to be more pragmatic, `theon` provides by default two HTTP adapters for both node.js and browser environments, but it's up to you to write your own adapter to talk with another HTTP client, such as `superagent`, `got`, `$.ajax`, `angular.$http` or any other.
 
