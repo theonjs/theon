@@ -2,11 +2,11 @@
 
 In a nutshell, `theon` is a lightweight and [featured](#features) JavaScript library to create API clients and SDKs in node.js and browsers. It was especially designed to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer.
 
-`theon` provides a convenient abstraction to build rich API clients which interacts with one or multiple HTTP interfaces with powerful extensibility capabilities thanks to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
+`theon` provide a convenient abstraction to create rich API clients which interacts with one or multiple HTTP interfaces. It also provides a powerful extensibility capabilities thanks to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
 
 It's also HTTP agent agnostic, so you can use [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other via [adapters](#http-adapters).
 
-To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
+To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
 **Note**: `theon` is still young. Some work needs to be done, mostly in terms of documentation and testing, but API consistency is guaranteed.
 
@@ -66,9 +66,9 @@ To get started, take a look to [base concepts](#concepts), [tutorial](#tutorial)
 - Bind bodies to custom models easily
 - Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (but it depends on the HTTP adapter used)
 - Powerful reusability features including hierarchical configuration inheritance.
-- Built-in HTTP context data store to persist data such as token sessions
-- Built-in store context to persist session related data
-- Maps HTTP entities to programmatic entities with custom logic
+- Built-in HTTP context data store to persist data, such as token or session data.
+- Maps HTTP entities to programmatic entities with custom logic.
+- Able to persist HTTP fields shared across all requests, such as headers, cookies...
 - Path params parsing and matching (with express-like path notation)
 - HTTP client agnostic: use `request`, `superagent`, `jQuery` or any other HTTP agent via adapters
 - Dependency free
@@ -105,7 +105,7 @@ With `theon` you can decouple those parts and provide a convenient abstraction b
 
 Additionally, it provides a rich set of features to make you programmatic layer more powerful for either you as API builder and for your API consumers through a hierarchical middleware/hook layer which allows you to plug in and compose intermediate logic.
 
-I took some inspiration from [Google API client for node.js](https://github.com/google/google-api-nodejs-client) and in the way they are building a huge programmatic API layer, but you probably can di it even better with `theon`.
+I took some inspiration from [Google API client for node.js](https://github.com/google/google-api-nodejs-client) and in the way they are building a huge programmatic API layer, but you can probably do it even better with `theon`.
 
 ## Concepts
 
@@ -481,10 +481,10 @@ theon.agents.set(requestAdapter)
 
 Due to the library is young at this time, there are not plugins available, however I would like to write a couple of them in a near future. Here's is wish list:
 
-- **consul** - Server discovery using Consul
-- **retry** - Provide retry a policy in your API clients
+- **consul** - Server discovery using Consul.
+- **retry** - Provide retry a policy in your API clients.
 - **JSONSchema** - Validate incoming and outgoing bodies againts a JSON schema.
-- **APIDocs** - Generate Swagger/Apiary docs reading the resource metadata annotations
+- **APIDocs** - Generate Swagger/Apiary docs reading the resource metadata annotations.
 
 ## Middleware
 
@@ -682,12 +682,13 @@ See [examples/hooks.js](https://github.com/h2non/theon/tree/master/examples/hook
 
 ## Validators
 
-A validator is technically a middleware that is executed before the standard middleware call chain and it's responsible of validating the request/response objects, for instance validating payloads againts a JSON schema or HAR object.
+A validator is technically a middleware that is executed after the standard middleware call chain and it's responsible of validating the request/response objects, for instance, you can validate payloads againts a JSON schema or HAR interface.
 
-Validators can be attached to any `theon` entity and in both request/response phases.
+Validators can be attached to any `theon` entity and supports both request/response phases.
 
-You can use a validator to perform a validation of the request object before it's sent over the network in order to verify it has all the required params expected by the server.
-In the other hand, you can validate also the response in order to determine if it's satisfy the expectations in the client side (e.g: validate teh response body, error messages...).
+You can use a validator to perform a validation of the request object before it's sent over the network in order to verify it has all the required params expected by the server, such as query params, headers, payload...
+
+In the other hand, you can validate the response too, in order to determine if it can satisfy a certain requirements in the client side (e.g: response body, error messages, headers...).
 
 ### Phases
 
