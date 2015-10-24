@@ -64,7 +64,7 @@ To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial)
 - Request/response interceptors
 - Request/response validators
 - Bind bodies to custom models easily
-- Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (but it depends on the HTTP adapter used)
+- Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (used HTTP agent must support streams too)
 - Powerful reusability features including hierarchical configuration inheritance.
 - Built-in HTTP context data store to persist data, such as token or session data.
 - Maps HTTP entities to programmatic entities with custom logic.
@@ -109,7 +109,7 @@ I took some inspiration from [Google API client for node.js](https://github.com/
 
 ## Concepts
 
-`theon` introduces the concept of entity, which is basically an abstract object which maps and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents an entity in your API structure, which is usually also mapped into a HTTP API resource or endpoint.
+`theon` introduces the concept of entity, which is basically an abstract object which stores and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents a hierachical entity in your API structure, which is usually mapped into an HTTP resource, subresource or endpoint.
 
 In order to build your API you have to understand and use the concept of entity properly, and know how to use the different built-in entitities provided by `theon`.
 
