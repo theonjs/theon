@@ -489,12 +489,12 @@ Due to the library is young at this time, there are not plugins available, howev
 ## Middleware
 
 `theon` has been designed with strong extensibility capabilities in mind.
-Extensibility in `theon` is mostly achieved via its built-in middleware layer,
+Extensibility is mostly achieved via its built-in middleware layer,
 which allows you to plug in and extend the client features with custom logic.
 
-Middleware layer has a hierarchical design, meaning you can plug in middlewares in parent scopes and them will be called from child scopes. For instance, you can plug in a middleware at client global scope, and then nested one at resource level. Both middleware will be called, from top to bottom in hierarchical order, thus global will come first.
+Middleware layer has a hierarchical design, meaning you can plug in middlewares in parent scopes and them will be called from child scopes. For instance, you can plug in a middleware tasks to both global and resource levels. Then both middleware will be called, from top to bottom in hierarchical order, thus global will come always first.
 
-Middleware layer is behavies like a FIFO queue with control-flow capabilities, meaning you can run asynchrous tasks too.
+Middleware layer behavies like a FIFO queue with control-flow capabilities, where asynchronicity is supported by detault.
 
 It was strongly inspired in the well-known middleware pattern by connect/express.
 
