@@ -127,7 +127,7 @@ The following graph represent the relation between theon entities and a common H
 
 ### Supported entities
 
-#### client
+#### Client
 
 `client` represents the API client root high-level entity.
 Every `theon` instance is a client entity itself, and it's mostly used as parent container for nested entities.
@@ -139,7 +139,7 @@ Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as 
 - Can have `mixins`.
 - Supports middleware and observable hooks.
 
-#### collection
+#### Collection
 
 `collection` represents a set of entities. It was mainly designed to store a bunch of  other `collection` or `resources`, mostly used as sort of isolation entity to divide and compose different parts of your API.
 
@@ -149,7 +149,7 @@ Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as 
 - Cannot perform requests itself.
 - Supports middleware and observable hooks.
 
-#### resource
+#### Resource
 
 `resource` is an entity designed to be attached to a specific HTTP resource, endpoint or HTTP action.
 They're usually embedded as part of collections.
@@ -160,7 +160,7 @@ They're usually embedded as part of collections.
 - Can perform requests.
 - Supports middleware and observable hooks.
 
-#### mixin
+#### Mixin
 
 A `mixin` is a custom user-defined preconfigured task hosting any kind of logic.
 The `mixin` entity is analog to its programmaming terminology, meaning it mostly to extend a component with some specific feature as a sort of plug in.
