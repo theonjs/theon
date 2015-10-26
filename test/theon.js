@@ -5,6 +5,10 @@ const stream = require('stream')
 const theon = require('..')
 
 suite('theon', function () {
+  beforeEach(function () {
+    nock.cleanAll()
+  })
+
   test('api', function () {
     expect(theon).to.be.a('function')
     expect(theon.engine).to.be.an('object')
@@ -111,7 +115,6 @@ suite('theon', function () {
   })
 
   test('context store', function (done) {
-    nock.cleanAll()
     nock('http://localhost')
       .get('/foo')
       .reply(200, { hello: 'world' })
@@ -149,6 +152,48 @@ suite('theon', function () {
       })
   })
 
+  test('promise', function (done) {
+    nock('http://localhost')
+      .get('/foo')
+      .reply(200, { hello: 'world' })
+
+    var spy = sinon.spy()
+    var api = theon('http://localhost')
+      .type('json')
+      .resource('foo')
+      .path('/foo')
+      .render()
+
+    api.foo()
+      .then(function (res) {
+        expect(res.statusCode).to.be.equal(200)
+        done()
+      })
+      .catch(function (err) {
+        expect(err).to.be.null
+        done(err)
+      })
+  })
+
+  test('promise with error', function (done) {
+    nock('http://localhost')
+      .get('/')
+      .reply(400, { hello: 'world' })
+
+    var spy = sinon.spy()
+    var api = theon('http://localhost')
+      .type('json')
+      .resource('foo')
+      .path('/foo')
+      .render()
+
+    api.foo()
+      .catch(function (err) {
+        expect(err.status).to.be.equal(404)
+        done()
+      })
+  })
+
   test('middleware')
 
   test('middleware inheritance')
@@ -156,7 +201,7 @@ suite('theon', function () {
   test('entity middleware')
 
   test('hooks', function (done) {
-    nock.cleanAll()
+
     nock('http://localhost')
       .get('/foo')
       .reply(200, { hello: 'world' })
@@ -226,7 +271,7 @@ suite('theon', function () {
   })
 
   test('hooks inheritance', function (done) {
-    nock.cleanAll()
+
     nock('http://localhost')
       .get('/foo')
       .reply(200, { hello: 'world' })
@@ -257,7 +302,7 @@ suite('theon', function () {
   })
 
   test('hooks by entity', function (done) {
-    nock.cleanAll()
+
     nock('http://localhost')
       .get('/foo')
       .reply(200, { hello: 'world' })
@@ -290,7 +335,7 @@ suite('theon', function () {
   })
 
   test('mixin', function (done) {
-    nock.cleanAll()
+
     nock('http://localhost')
       .get('/foo')
       .reply(200, { hello: 'world' })
@@ -314,7 +359,7 @@ suite('theon', function () {
   })
 
   test('nested urls', function (done) {
-    nock.cleanAll()
+
     nock('http://bar')
       .get('/')
       .reply(200, { hello: 'bar' })

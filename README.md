@@ -64,8 +64,9 @@ To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial)
 - Request/response interceptors
 - Request/response validators
 - Bind bodies to custom models easily
-- Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (but it depends on the HTTP adapter used)
-- Powerful reusability features including hierarchical configuration inheritance.
+- Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (HTTP adapter must support stream too)
+- Supports native promises in modern browsers
+- Powerful reusability capabitilies including hierarchical configuration inheritance.
 - Built-in HTTP context data store to persist data, such as token or session data.
 - Maps HTTP entities to programmatic entities with custom logic.
 - Able to persist HTTP fields shared across all requests, such as headers, cookies...
@@ -1160,9 +1161,23 @@ Similar to `model` feature but operating overwriting the original `body`.
 #### Request#end(cb)
 Alias: `done`
 
-Dispatche the request, sending it over the network.
+Dispatch the request, sending it over the network.
+
+#### Request#then(onFullfilled, onRejected)
+Return: `Promise`
+
+Promise based interface to handle the request resolution, dispatching the request over the network, if necessary.
+
+#### Request#catch(onRejected)
+Return: `Promise`
+
+Promise based interface to handle the request error, dispatching the request over the network, if necessary.
 
 #### Request#pipe(stream)
+
+node.js stream compatible interface to pipe writable streams with the response body.
+
+Note that the used HTTP agent must support streams too, if not, they are ignored.
 
 #### Request#stream(stream)
 Alias: `bodyStream`
