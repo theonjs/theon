@@ -2,7 +2,7 @@
 
 In a nutshell, `theon` is a lightweight and [featured](#features) JavaScript library to create API clients and SDKs in node.js and browsers. It was especially designed to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer.
 
-`theon` provide a convenient abstraction to create rich API clients which interacts with one or multiple HTTP interfaces. It also provides a powerful extensibility capabilities thanks to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
+Provides a convenient abstraction to create rich API clients which interacts with one or multiple HTTP interfaces, including powerful extensibility capabilities thanks to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
 
 It's also HTTP agent agnostic, so you can use [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other via [adapters](#http-adapters).
 
@@ -65,7 +65,7 @@ To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial)
 - Request/response validators
 - Bind bodies to custom models easily
 - Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (HTTP adapter must support stream too)
-- Supports native promises in modern browsers
+- Supports promises (only in modern engines)
 - Powerful reusability capabitilies including hierarchical configuration inheritance.
 - Built-in HTTP context data store to persist data, such as token or session data.
 - Maps HTTP entities to programmatic entities with custom logic.
