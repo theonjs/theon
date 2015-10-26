@@ -110,7 +110,7 @@ I took some inspiration from [Google API client for node.js](https://github.com/
 
 ## Concepts
 
-`theon` introduces the concept of entity, which is basically an abstract object which maps and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents an entity in your API structure, which is usually also mapped into a HTTP API resource or endpoint.
+`theon` introduces the concept of entity, which is basically an abstract object which stores and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents a hierachical entity in your API structure, which is usually mapped into an HTTP resource, subresource or endpoint.
 
 In order to build your API you have to understand and use the concept of entity properly, and know how to use the different built-in entitities provided by `theon`.
 
@@ -128,7 +128,7 @@ The following graph represent the relation between theon entities and a common H
 
 ### Supported entities
 
-#### client
+#### Client
 
 `client` represents the API client root high-level entity.
 Every `theon` instance is a client entity itself, and it's mostly used as parent container for nested entities.
@@ -140,7 +140,7 @@ Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as 
 - Can have `mixins`.
 - Supports middleware and observable hooks.
 
-#### collection
+#### Collection
 
 `collection` represents a set of entities. It was mainly designed to store a bunch of  other `collection` or `resources`, mostly used as sort of isolation entity to divide and compose different parts of your API.
 
@@ -150,7 +150,7 @@ Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as 
 - Cannot perform requests itself.
 - Supports middleware and observable hooks.
 
-#### resource
+#### Resource
 
 `resource` is an entity designed to be attached to a specific HTTP resource, endpoint or HTTP action.
 They're usually embedded as part of collections.
@@ -161,7 +161,7 @@ They're usually embedded as part of collections.
 - Can perform requests.
 - Supports middleware and observable hooks.
 
-#### mixin
+#### Mixin
 
 A `mixin` is a custom user-defined preconfigured task hosting any kind of logic.
 The `mixin` entity is analog to its programmaming terminology, meaning it mostly to extend a component with some specific feature as a sort of plug in.
@@ -490,12 +490,12 @@ Due to the library is young at this time, there are not plugins available, howev
 ## Middleware
 
 `theon` has been designed with strong extensibility capabilities in mind.
-Extensibility in `theon` is mostly achieved via its built-in middleware layer,
+Extensibility is mostly achieved via its built-in middleware layer,
 which allows you to plug in and extend the client features with custom logic.
 
-Middleware layer has a hierarchical design, meaning you can plug in middlewares in parent scopes and them will be called from child scopes. For instance, you can plug in a middleware at client global scope, and then nested one at resource level. Both middleware will be called, from top to bottom in hierarchical order, thus global will come first.
+Middleware layer has a hierarchical design, meaning you can plug in middlewares in parent scopes and them will be called from child scopes. For instance, you can plug in a middleware tasks to both global and resource levels. Then both middleware will be called, from top to bottom in hierarchical order, thus global will come always first.
 
-Middleware layer is behavies like a FIFO queue with control-flow capabilities, meaning you can run asynchrous tasks too.
+Middleware layer behavies like a FIFO queue with control-flow capabilities, where asynchronicity is supported by detault.
 
 It was strongly inspired in the well-known middleware pattern by connect/express.
 
