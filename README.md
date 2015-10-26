@@ -14,14 +14,14 @@ To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial)
 
 - [Features](#features)
 - [Benefits](#benefits)
+- [Installation](#installation)
+- [Environments](#environments)
 - [Motivation](#motivation)
 - [Concepts](#concepts)
   - [Client](#client)
   - [Collection](#collection)
   - [Resource](#resource)
   - [Mixin](#mixin)
-- [Installation](#installation)
-- [Environments](#environments)
 - [Tutorial](#tutorial)
 - [Examples](#examples)
 - [HTTP adapters](#http-adapters)
@@ -94,6 +94,32 @@ To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial)
 - HTTP agent agnostic: pick what do you need based on the environment (`request`, `superagent`, `$.ajax`, `angular.$http` via agents)
 - Ubiquitous: write one API. Run it in any JavaScript environment
 - Easy to test via interceptor/mock middleware
+
+## Installation
+
+Via npm:
+```bash
+npm install theon --save
+```
+
+Via bower:
+```bash
+bower install theon --save
+```
+
+Or loading the script:
+```html
+<script src="//cdn.rawgit.com/h2non/theon/0.1.5/theon.js"></script>
+```
+
+## Environments
+
+Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
+
+![Node.js](https://cdn0.iconfinder.com/data/icons/long-shadow-web-icons/512/nodejs-48.png) | ![Chrome](https://raw.github.com/alrra/browser-logos/master/chrome/chrome_48x48.png) | ![Firefox](https://raw.github.com/alrra/browser-logos/master/firefox/firefox_48x48.png) | ![IE](https://raw.github.com/alrra/browser-logos/master/internet-explorer/internet-explorer_48x48.png) | ![Opera](https://raw.github.com/alrra/browser-logos/master/opera/opera_48x48.png) | ![Safari](https://raw.github.com/alrra/browser-logos/master/safari/safari_48x48.png)
+---  | --- | --- | --- | --- | --- |
++0.10 | +5 | +3.5 | +9 | +12 | +5 |
+
 
 ## Motivation
 
@@ -177,31 +203,6 @@ The `mixin` entity is analog to its programmaming terminology, meaning it mostly
 
 `to do`
 -->
-
-## Installation
-
-Via npm:
-```bash
-npm install theon --save
-```
-
-Via bower:
-```bash
-bower install theon --save
-```
-
-Or loading the script:
-```html
-<script src="//cdn.rawgit.com/h2non/theon/0.1.4/theon.js"></script>
-```
-
-## Environments
-
-Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine
-
-![Node.js](https://cdn0.iconfinder.com/data/icons/long-shadow-web-icons/512/nodejs-48.png) | ![Chrome](https://raw.github.com/alrra/browser-logos/master/chrome/chrome_48x48.png) | ![Firefox](https://raw.github.com/alrra/browser-logos/master/firefox/firefox_48x48.png) | ![IE](https://raw.github.com/alrra/browser-logos/master/internet-explorer/internet-explorer_48x48.png) | ![Opera](https://raw.github.com/alrra/browser-logos/master/opera/opera_48x48.png) | ![Safari](https://raw.github.com/alrra/browser-logos/master/safari/safari_48x48.png)
----  | --- | --- | --- | --- | --- |
-+0.10 | +5 | +3.5 | +9 | +12 | +5 |
 
 ## Tutorial
 
