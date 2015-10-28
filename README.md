@@ -777,11 +777,11 @@ See [examples/validator.js](https://github.com/h2non/theon/tree/master/examples/
 
 ## Interceptors
 
-Interceptors are a very useful feature in `theon` in other to intercept the HTTP traffic flow.
+Interceptors are a useful built-in feature provided in `theon` when you need to intercept some HTTP flow.
 
-It becomes particularly useful for testing in other to mock requests for testing or provide default responses given a certain conditions.
+It becomes particularly useful to mock requests while testing or to provide default responses given a certain conditions.
 
-Technically speaking it's equivalent to a middleware, so you can rely in control flow capatibilities and inspect both request/response objects.
+Technically speaking it's equivalent to a middleware, so you can rely in control flow capatibilities and inspect both request/response objects to determine when the traffic should be intercepted.
 
 ### Phases
 
