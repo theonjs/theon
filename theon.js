@@ -966,6 +966,16 @@ Request.prototype.useEntityResponse = function (middleware) {
   return this
 }
 
+Request.prototype.before = function (middleware) {
+  this.ctx.middleware.use('before', middleware)
+  return this
+}
+
+Request.prototype.after = function (middleware) {
+  this.ctx.middleware.use('after', middleware)
+  return this
+}
+
 Request.prototype.validator =
 Request.prototype.requestValidator = function (middleware) {
   this.ctx.middleware.use('validator request', middleware)
@@ -1393,7 +1403,7 @@ theon.entities   = require('./entities')
  * Current version
  */
 
-theon.VERSION = '0.1.5'
+theon.VERSION = '0.1.6'
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":20,"./response":21,"./store":22}],24:[function(require,module,exports){
 module.exports = {

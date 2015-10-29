@@ -109,7 +109,7 @@ bower install theon --save
 
 Or loading the script:
 ```html
-<script src="//cdn.rawgit.com/h2non/theon/0.1.5/theon.js"></script>
+<script src="//cdn.rawgit.com/h2non/theon/0.1.6/theon.js"></script>
 ```
 
 ## Environments
@@ -629,6 +629,14 @@ Attach a new observer hook to a given phase.
 
 Attach a new observer hook to a given phase in the current entity scope.
 
+#### Request#before(hook)
+
+Attach a new observer hook to the `before` phase.
+
+#### Request#after(hook)
+
+Attach a new observer hook to the `after` phase.
+
 #### Hook notation
 
 `hook` must implement the following TypeScript notation:
@@ -936,22 +944,22 @@ Create a new API builder.
 #### theon.client([ url ])
 Inherits from [`Entity`](#entity)
 
-Create a new `client` entity
+Create a new `client` entity.
 
 #### theon.collection(name)
 Inherits from [`Entity`](#entity)
 
-Create a new `collection` entity
+Create a new `collection` entity.
 
 #### theon.resource(name)
 Inherits from [`Entity`](#entity)
 
-Create a new `resource` entity
+Create a new `resource` entity.
 
 #### theon.mixin(name, fn)
 Inherits from [`Entity`](#entity)
 
-Create a new `mixin` entity
+Create a new `mixin` entity.
 
 #### theon.agents
 
@@ -1113,6 +1121,14 @@ Attach a middleware restricted to the current entity scope.
 #### Request#useEntityResponse(middleware)
 
 Attach a response middleware restricted to the current entity scope.
+
+#### Request#before(middleware)
+
+Attach a middleware as observer hook in the before.
+
+#### Request#after(middleware)
+
+Attach a middleware as observer hook in the after phase.
 
 #### Request#observe(event, hook)
 
