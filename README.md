@@ -56,17 +56,17 @@ To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial)
 ## Features
 
 - Simple, fluent and declarative API
-- Modular pluggable design with poweful composition features
+- Modular pluggable design with poweful composition capabilities
 - Hierarchical middleware layer (inspired in [connect](https://github.com/senchalabs/connect) middleware)
 - Nested configurations with powerful inheritance
-- Domain specific and fluent API generation (inspired in [superagent](https://github.com/visionmedia/superagent))
-- Powerful observable hooks at any phase of the HTTP flow live cycle
+- Domain specific and fluent API generation (inspired by [superagent](https://github.com/visionmedia/superagent))
+- Observable hooks at any phase of the HTTP flow live cycle
 - Request/response interceptors
 - Request/response validators
 - Bind bodies to custom models easily
-- Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (HTTP adapter must support stream too)
+- Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (HTTP adapter must support streams too)
 - Supports promises (only in modern engines)
-- Powerful reusability capabitilies including hierarchical configuration inheritance.
+- Powerful HTTP fields reusability supporting hierarchical inheritance.
 - Built-in HTTP context data store to persist data, such as token or session data.
 - Maps HTTP entities to programmatic entities with custom logic.
 - Able to persist HTTP fields shared across all requests, such as headers, cookies...
