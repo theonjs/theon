@@ -1,4 +1,4 @@
-# theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
+# theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![Codacy Badge](https://api.codacy.com/project/badge/grade/a612f7996c864d47915a0d268d7e720a)](https://www.codacy.com/app/tomas/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
 In a nutshell, `theon` is a lightweight and [featured](#features) JavaScript library to create API clients and SDKs in node.js and browsers. It was especially designed to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer.
 
