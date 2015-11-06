@@ -211,10 +211,10 @@ Let's imagine we want to create a programmatic API client to interact with a rem
 We have the following requirements:
 
 - The HTTP API only uses JSON as interchange format.
-- We have to pass a header to define the API version
-- Resource resources are protected and requests must be autenticated
+- We have to pass a header to define the API version we want to use.
+- Certain resources are protected and we must to pass an authorization token.
 
-And we have the following HTTP interface:
+We have the following HTTP interface:
 
 - POST /api/auth/login
 - POST /api/auth/signup
@@ -223,7 +223,7 @@ And we have the following HTTP interface:
 - POST /api/users/:id - `auth required`
 - DELETE /api/users/:id - `auth required`
 
-Firstly, as API developers, we're going to create and configure our client through `theon`:
+Firstly, as API developers, we're going to create and configure our base client using `theon`:
 
 ```js
 var theon = require('theon')
@@ -324,7 +324,7 @@ api.auth
   })
 ```
 
-Now our client is authenticated, so we can try to fetching the user:
+Now our client is authenticated, so we can try fetching the user:
 ```js
 api.users
   .get()
@@ -336,7 +336,7 @@ api.users
   })
 ```
 
-Also, we can perform a users search:
+Also, we can perform a user search:
 ```js
 api.users
   .find()
@@ -346,7 +346,7 @@ api.users
   })
 ```
 
-Finally, we want to delete the user:
+Then we want to delete the user:
 ```js
 api.users
   .delete()
@@ -356,7 +356,7 @@ api.users
   })
 ```
 
-Finally, to summarize, as you have seen, now our new API client provides a programmatic binding layer to HTTP API resources, so we can draw the following relation map:
+Finally, to summarize, now our new API client provides a programmatic binding layer to the HTTP API resources, so we can draw the following relation map:
 
 - POST /api/auth/login => `api.auth.login()`
 - POST /api/auth/signup => `api.auth.login()`
