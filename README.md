@@ -65,7 +65,7 @@ To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial)
 - Request/response validators
 - Bind bodies to custom models easily
 - Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (HTTP adapter must support streams too)
-- Supports promises (only in modern engines)
+- Supports [promises](https://github.com/h2non/theon/blob/master/examples/promise.js) (only in modern engines)
 - Powerful HTTP fields reusability supporting hierarchical inheritance.
 - Built-in HTTP context data store to persist data, such as token or session data.
 - Maps HTTP entities to programmatic entities with custom logic.
