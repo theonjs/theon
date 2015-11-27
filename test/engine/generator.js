@@ -17,7 +17,7 @@ suite('generator', function () {
     var src = {
       entities: [
         new EntityStub('foo'),
-        new EntityStub('bar'),
+        new EntityStub('bar')
       ]
     }
 
@@ -39,7 +39,7 @@ suite('generator', function () {
     var src = {
       entities: [
         new EntityStub('foo'),
-        new EntityStub('bar'),
+        new EntityStub('bar')
       ]
     }
 
@@ -59,7 +59,7 @@ suite('generator', function () {
     var src = {
       entities: [
         new EntityStub('foo'),
-        new EntityStub('foo'),
+        new EntityStub('foo')
       ]
     }
 

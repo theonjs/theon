@@ -4,10 +4,10 @@ const model = require('../../lib/middleware').model
 suite('model', function () {
   test('bind model', function () {
     function bindModel (body, req, res) {
-      return { get: function () { return body }}
+      return { get: function () { return body } }
     }
 
-    var res = { body: { hello: 'world' }}
+    var res = { body: { hello: 'world' } }
     model(bindModel)(null, res, assert)
 
     function assert (err) {

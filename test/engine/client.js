@@ -3,7 +3,7 @@ const Request = require('../../lib/request')
 const Client = require('../../lib/engine').Client
 
 suite('client', function () {
-  var stub = { ctx: { agent: fakeAgent }}
+  var stub = { ctx: { agent: fakeAgent } }
 
   function fakeAgent (req, res, cb) {
     res.statusCode = 200
@@ -23,7 +23,8 @@ suite('client', function () {
   })
 
   test('newRequest', function (done) {
-    var cli = new Client(new Request)
+    var request = new Request()
+    var cli = new Client(request)
     var req = cli.newRequest()
     req.ctx.agent = stub.ctx.agent
     req.end(assert)

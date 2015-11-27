@@ -9,7 +9,7 @@ suite('map', function () {
       })
     }
 
-    var res = { body: { hello: 'world' }}
+    var res = { body: { hello: 'world' } }
     map(mapper)(null, res, assert)
 
     function assert (err) {
