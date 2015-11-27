@@ -48,10 +48,12 @@ exports.set = function (agent) {
 }
 
 exports.add = function (name, agent) {
-  if (typeof name !== 'string')
+  if (typeof name !== 'string') {
     throw new TypeError('first argument must be a string')
-  if (typeof agent !== 'function')
+  }
+  if (typeof agent !== 'function') {
     throw new TypeError('agent must be a function')
+  }
 
   agents[name] = agent
 }
@@ -417,7 +419,6 @@ function noop () {}
 },{"./response":21,"./utils":28}],8:[function(require,module,exports){
 var Request = require('../request')
 var Response = require('../response')
-var Dispatcher = require('../dispatcher')
 
 module.exports = Client
 
@@ -432,7 +433,7 @@ Client.prototype.doRequest = function (ctx, cb) {
 }
 
 Client.prototype.newRequest = function (client) {
-  var req = new Request
+  var req = new Request()
   req.useParent(client || this._client)
   return req
 }
@@ -444,7 +445,7 @@ Client.prototype.newRequest = function (client) {
   }
 })
 
-},{"../dispatcher":7,"../request":20,"../response":21}],9:[function(require,module,exports){
+},{"../request":20,"../response":21}],9:[function(require,module,exports){
 var Client = require('./client')
 var has = require('../utils').has
 
@@ -548,7 +549,6 @@ Collection.prototype.entity = 'collection'
 },{"./entity":13}],13:[function(require,module,exports){
 var Request = require('../request')
 var engine = require('../engine')
-var Context = require('../context')
 var extend = require('../utils').extend
 
 module.exports = Entity
@@ -578,22 +578,22 @@ Entity.prototype.collection = function (collection) {
 }
 
 Entity.prototype.action =
-  Entity.prototype.resource = function (resource) {
-    if (!(resource instanceof Entity.Resource)) {
-      resource = new Entity.Resource(resource)
-    }
+Entity.prototype.resource = function (resource) {
+  if (!(resource instanceof Entity.Resource)) {
+    resource = new Entity.Resource(resource)
+  }
 
-    return this.addEntity(resource)
+  return this.addEntity(resource)
 }
 
 Entity.prototype.mixin =
-  Entity.prototype.helper = function (name, mixin) {
-    if (!(name instanceof Entity.Mixin)) {
-      mixin = new Entity.Mixin(name, mixin)
-    }
+Entity.prototype.helper = function (name, mixin) {
+  if (!(name instanceof Entity.Mixin)) {
+    mixin = new Entity.Mixin(name, mixin)
+  }
 
-    this.addEntity(mixin)
-    return this
+  this.addEntity(mixin)
+  return this
 }
 
 Entity.prototype.addEntity = function (entity) {
@@ -622,10 +622,8 @@ Entity.prototype.meta = function (meta) {
 }
 
 Entity.prototype.extend = function (prop, value) {
-  if (typeof prop === 'string')
-    this.proto[prop] = value
-  else if (prop === Object(prop))
-    extend(this.proto, prop)
+  if (typeof prop === 'string') this.proto[prop] = value
+  else if (prop === Object(prop)) extend(this.proto, prop)
   return this
 }
 
@@ -644,7 +642,7 @@ function invalidEntity (entity) {
   return !entity || typeof entity.renderEntity !== 'function'
 }
 
-},{"../context":6,"../engine":10,"../request":20,"../utils":28}],14:[function(require,module,exports){
+},{"../engine":10,"../request":20,"../utils":28}],14:[function(require,module,exports){
 module.exports = {
   Mixin: require('./mixin'),
   Entity: require('./entity'),
@@ -659,8 +657,9 @@ var Entity = require('./entity')
 module.exports = Entity.Mixin = Mixin
 
 function Mixin (name, fn) {
-  if (typeof fn !== 'function')
+  if (typeof fn !== 'function') {
     throw new TypeError('mixin must be a function')
+  }
 
   this.fn = fn
   this.name = name
@@ -704,19 +703,15 @@ Resource.prototype.renderEntity = function () {
     .render()
 
   function resource (opts, cb) {
-    var req = new Request
+    var req = new Request()
     req.useParent(self)
 
-    if (typeof opts === 'object')
-      req.options(opts)
+    if (typeof opts === 'object') req.options(opts)
+    if (typeof opts === 'function') cb = opts
 
-    if (typeof opts === 'function')
-      cb = opts
-
-    if (typeof cb === 'function')
-      return req.end(cb)
-
-    return req
+    return typeof cb === 'function'
+      ? req.end(cb)
+      : req
   }
 }
 
@@ -742,8 +737,9 @@ module.exports = function map (mapper) {
 
 },{}],19:[function(require,module,exports){
 module.exports = function bindModel (model) {
-  if (typeof model !== 'function')
+  if (typeof model !== 'function') {
     throw new TypeError('model must be a function')
+  }
 
   return function (req, res, next) {
     var body = res.body
@@ -1421,15 +1417,13 @@ module.exports = function clone (y) {
 }
 
 },{}],26:[function(require,module,exports){
-var clone = require('./clone')
-
 module.exports = function extend (x, y) {
   x = x || {}
   for (var k in y) x[k] = y[k]
   return x
 }
 
-},{"./clone":25}],27:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports = function has (o, name) {
   return !!o && Object.prototype.hasOwnProperty.call(o, name)
 }
