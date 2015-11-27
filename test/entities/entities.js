@@ -73,7 +73,7 @@ suite('entities', function () {
 
   test('mixin', function () {
     var o = new entities.Mixin('test', mixin)
-    function mixin() {}
+    function mixin () {}
 
     expect(o)
       .to.be.instanceof(entities.Mixin)

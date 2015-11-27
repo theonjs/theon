@@ -16,7 +16,7 @@ suite('response', function () {
   })
 
   test('setBody', function () {
-    var body = {foo:'bar'}
+    var body = {foo: 'bar'}
     var res = new Response()
     res.setBody(body)
     expect(res.body).to.be.equal(body)
@@ -33,11 +33,11 @@ suite('response', function () {
     var headers = { Foo: 'bar' }
     var res = new Response
     res.setHeaders(headers)
-    expect(res.headers).to.be.deep.equal({foo:'bar'})
+    expect(res.headers).to.be.deep.equal({foo: 'bar'})
   })
 
   test('get', function () {
-    var body = {Foo:'bar'}
+    var body = {Foo: 'bar'}
     var res = new Response()
     res.setHeaders(body)
     expect(res.get('foo')).to.be.equal('bar')

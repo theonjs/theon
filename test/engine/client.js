@@ -5,7 +5,7 @@ const Client = require('../../lib/engine').Client
 suite('client', function () {
   var stub = { ctx: { agent: fakeAgent }}
 
-  function fakeAgent(req, res, cb) {
+  function fakeAgent (req, res, cb) {
     res.statusCode = 200
     cb(null, res)
   }
@@ -14,7 +14,7 @@ suite('client', function () {
     var cli = new Client(stub)
     cli.doRequest({ method: 'GET' }, assert)
 
-    function assert(err, res) {
+    function assert (err, res) {
       expect(err).to.be.null
       expect(res.statusCode).to.be.equal(200)
       expect(res.req.method).to.be.equal('GET')
@@ -28,7 +28,7 @@ suite('client', function () {
     req.ctx.agent = stub.ctx.agent
     req.end(assert)
 
-    function assert(err, res) {
+    function assert (err, res) {
       expect(err).to.be.null
       expect(res.statusCode).to.be.equal(200)
       expect(res.req.method).to.be.equal('GET')
@@ -45,7 +45,7 @@ suite('client', function () {
       cli[method]({ url: 'http://foo' }, assert(method))
     })
 
-    function assert(method) {
+    function assert (method) {
       return function (err, res) {
         count += 1
         expect(err).to.be.null

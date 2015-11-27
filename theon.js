@@ -11,7 +11,7 @@ module.exports = function (req, res, done) {
   })
 }
 
-function adapter(res, _res) {
+function adapter (res, _res) {
   // Expose the agent-specific response
   res.setOriginalResponse(_res)
 
@@ -95,12 +95,12 @@ module.exports = function (req, res, cb) {
     ? req.stream.pipe(request(opts, handler))
     : request(opts, handler)
 
-  function handler(err, _res, body) {
+  function handler (err, _res, body) {
     cb(err, adapter(res, _res, body))
   }
 }
 
-function adapter(res, _res, body) {
+function adapter (res, _res, body) {
   if (!_res) return res
 
   // Expose the agent-specific response
@@ -125,7 +125,7 @@ var utils = require('./utils')
 
 module.exports = Context
 
-function Context(ctx) {
+function Context (ctx) {
   this.body =
   this.stream =
   this.method =
@@ -208,7 +208,7 @@ Context.prototype.buildPath = function () {
   return Context.buildPath(this)
 }
 
-Context.buildPath = function buildPath(ctx) {
+Context.buildPath = function buildPath (ctx) {
   var base = ''
 
   if (ctx.parent) {
@@ -216,13 +216,13 @@ Context.buildPath = function buildPath(ctx) {
   }
 
   var opts = ctx.opts
-  var head = opts.basePath || ''
-  var tail = opts.path || ''
+  var head = opts.basePath || ''
+  var tail = opts.path || ''
 
   return base + head + tail
 }
 
-function mergeHeaders() {
+function mergeHeaders () {
   return utils.normalize(utils.merge.apply(null, arguments))
 }
 
@@ -232,7 +232,7 @@ var Response = require('./response')
 
 module.exports = Dispatcher
 
-function Dispatcher(req) {
+function Dispatcher (req) {
   this.req = req
 }
 
@@ -243,19 +243,7 @@ Dispatcher.prototype.run = function (cb) {
   var req = this.req.raw()
   var res = new Response(req)
 
-  var phases = [
-    function before(next) {
-      this.before(req, res, next)
-    },
-    function dial(req, res, next) {
-      this.dial(req, res, next)
-    },
-    function after(req, res, next) {
-      this.after(req, res, next)
-    }
-  ]
-
-  function done(err, req, res) {
+  function done (err, req, res) {
     var client = this.req
 
     if (err === 'intercept') err = null
@@ -271,21 +259,31 @@ Dispatcher.prototype.run = function (cb) {
 
     // Dispatch the error hook
     ctx.middleware.run('error', req, res, function (_err, _res) {
-      cb(_err || err, _res || res, client)
+      cb(_err || err, _res || res, client)
     })
   }
 
-  utils.series(phases, done, this)
+  utils.series([
+    function before (next) {
+      this.before(req, res, next)
+    },
+    function dial (req, res, next) {
+      this.dial(req, res, next)
+    },
+    function after (req, res, next) {
+      this.after(req, res, next)
+    }
+  ], done, this)
 
   return this.req
 }
 
 Dispatcher.prototype.before = function (req, res, next) {
   utils.series([
-    function before(next) {
+    function before (next) {
       this.runHook('before', req, res, next)
     },
-    function request(req, res, next) {
+    function request (req, res, next) {
       this.runPhase('request', req, res, next)
     }
   ], next, this)
@@ -293,17 +291,17 @@ Dispatcher.prototype.before = function (req, res, next) {
 
 Dispatcher.prototype.after = function (req, res, next) {
   utils.series([
-    function response(next) {
+    function response (next) {
       this.runPhase('response', req, res, next)
     },
-    function after(req, res, next) {
+    function after (req, res, next) {
       this.runHook('after', req, res, next)
     }
   ], next, this)
 }
 
 Dispatcher.prototype.dial = function (req, res, next) {
-  var url = req.opts.rootUrl || ''
+  var url = req.opts.rootUrl || ''
   var path = req.ctx.buildPath()
   var fullPath = utils.pathParams(path, req.params)
 
@@ -315,11 +313,11 @@ Dispatcher.prototype.dial = function (req, res, next) {
   req.url = url + fullPath
 
   utils.series([
-    function before(next) {
+    function before (next) {
       this.runMiddleware('before dial', req, res, next)
     },
     this.dialer,
-    function after(req, res, next) {
+    function after (req, res, next) {
       this.runMiddleware('after dial', req, res, next)
     }
   ], next, this)
@@ -333,7 +331,7 @@ Dispatcher.prototype.dialer = function (req, res, next) {
 
   // Handle writable stream pipes
   if (res.orig && res.orig.pipe) {
-    this.req.pipes.forEach(function (stream) {
+    (req.pipes || this.req.pipes || []).forEach(function (stream) {
       res.orig.pipe(stream)
     })
   }
@@ -341,18 +339,18 @@ Dispatcher.prototype.dialer = function (req, res, next) {
   // Dispatch the dialing observer
   this.runMiddleware('dialing', req, res, function (err) {
     if (err && res.orig && typeof res.orig.abort === 'function') {
-      nextFn(new Error('Request aborted: ' + (err.message || err)))
-      res.orig.abort()
+      nextFn(new Error('Request aborted: ' + (err.message || err)))
+      try { res.orig.abort() } catch (e) {}
     }
   })
 }
 
 Dispatcher.prototype.runHook = function (event, req, res, next) {
   utils.series([
-    function global(next) {
+    function global (next) {
       this.runMiddleware(event, req, res, next)
     },
-    function entity(req, res, next) {
+    function entity (req, res, next) {
       this.runEntity(event, req, res, next)
     }
   ], next, this)
@@ -360,16 +358,16 @@ Dispatcher.prototype.runHook = function (event, req, res, next) {
 
 Dispatcher.prototype.runPhase = function (phase, req, res, next) {
   utils.series([
-    function before(next) {
+    function before (next) {
       this.runHook('before ' + phase, req, res, next)
     },
-    function middleware(req, res, next) {
+    function middleware (req, res, next) {
       this.runStack('middleware', phase, req, res, next)
     },
-    function validate(req, res, next) {
+    function validate (req, res, next) {
       this.runStack('validator', phase, req, res, next)
     },
-    function after(req, res, next) {
+    function after (req, res, next) {
       this.runHook('after ' + phase, req, res, next)
     }
   ], next, this)
@@ -379,16 +377,16 @@ Dispatcher.prototype.runStack = function (stack, phase, req, res, next) {
   var event = stack + ' ' + phase
 
   utils.series([
-    function before(next) {
+    function before (next) {
       this.runHook('before ' + event, req, res, next)
     },
-    function run(req, res, next) {
+    function run (req, res, next) {
       this.runMiddleware(event, req, res, next)
     },
-    function runEntity(req, res, next) {
+    function runEntity (req, res, next) {
       this.runEntity(event, req, res, next)
     },
-    function after(req, res, next) {
+    function after (req, res, next) {
       this.runHook('after ' + event, req, res, next)
     },
   ], next, this)
@@ -408,13 +406,13 @@ Dispatcher.prototype.runMiddleware = function (event, req, res, next) {
   req.ctx.middleware.run(event, req, res, forward(req, res, next))
 }
 
-function forward(req, res, next) {
+function forward (req, res, next) {
   return function (err, _res) {
     next(err, req, _res || res)
   }
 }
 
-function noop() {}
+function noop () {}
 
 },{"./response":21,"./utils":28}],8:[function(require,module,exports){
 var Request = require('../request')
@@ -423,19 +421,19 @@ var Dispatcher = require('../dispatcher')
 
 module.exports = Client
 
-function Client(client) {
+function Client (client) {
   this._client = client
 }
 
 Client.prototype.doRequest = function (ctx, cb) {
-  ctx = ctx || {}
+  ctx = ctx || {}
   var res = new Response(ctx)
   return this._client.ctx.agent(ctx, res, cb)
 }
 
 Client.prototype.newRequest = function (client) {
   var req = new Request
-  req.useParent(client || this._client)
+  req.useParent(client || this._client)
   return req
 }
 
@@ -452,7 +450,7 @@ var has = require('../utils').has
 
 module.exports = Generator
 
-function Generator(src) {
+function Generator (src) {
   this.src = src
   this.target = null
 }
@@ -499,7 +497,7 @@ Generator.prototype.renderProto = function () {
   }, this)
 }
 
-Generator.prototype.define =  function (name, value) {
+Generator.prototype.define = function (name, value) {
   if (has(this.target, name)) throw nameConflict(name)
 
   Object.defineProperty(this.target, name, {
@@ -510,7 +508,7 @@ Generator.prototype.define =  function (name, value) {
   })
 }
 
-function nameConflict(name) {
+function nameConflict (name) {
   return new Error('Name conflict: "' + name + '" property already exists')
 }
 
@@ -521,11 +519,11 @@ module.exports = {
 }
 
 },{"./client":8,"./generator":9}],11:[function(require,module,exports){
-var Entity =  require('./entity')
+var Entity = require('./entity')
 
 module.exports = Client
 
-function Client(url) {
+function Client (url) {
   Entity.call(this)
   if (url) this.url(url)
 }
@@ -535,11 +533,11 @@ Client.prototype = Object.create(Entity.prototype)
 Client.prototype.entity = 'client'
 
 },{"./entity":13}],12:[function(require,module,exports){
-var Entity =  require('./entity')
+var Entity = require('./entity')
 
 module.exports = Entity.Collection = Collection
 
-function Collection(name) {
+function Collection (name) {
   Entity.call(this, name)
 }
 
@@ -555,7 +553,7 @@ var extend = require('../utils').extend
 
 module.exports = Entity
 
-function Entity(name) {
+function Entity (name) {
   Request.call(this)
   this.name = name
   this.aliases = []
@@ -580,22 +578,22 @@ Entity.prototype.collection = function (collection) {
 }
 
 Entity.prototype.action =
-Entity.prototype.resource = function (resource) {
-  if (!(resource instanceof Entity.Resource)) {
-    resource = new Entity.Resource(resource)
-  }
+  Entity.prototype.resource = function (resource) {
+    if (!(resource instanceof Entity.Resource)) {
+      resource = new Entity.Resource(resource)
+    }
 
-  return this.addEntity(resource)
+    return this.addEntity(resource)
 }
 
 Entity.prototype.mixin =
-Entity.prototype.helper = function (name, mixin) {
-  if (!(name instanceof Entity.Mixin)) {
-    mixin = new Entity.Mixin(name, mixin)
-  }
+  Entity.prototype.helper = function (name, mixin) {
+    if (!(name instanceof Entity.Mixin)) {
+      mixin = new Entity.Mixin(name, mixin)
+    }
 
-  this.addEntity(mixin)
-  return this
+    this.addEntity(mixin)
+    return this
 }
 
 Entity.prototype.addEntity = function (entity) {
@@ -639,10 +637,10 @@ Entity.prototype.render = function (client) {
 }
 
 Entity.prototype.renderEntity = function (client) {
-  return new engine.Generator(client || this).render()
+  return new engine.Generator(client || this).render()
 }
 
-function invalidEntity(entity) {
+function invalidEntity (entity) {
   return !entity || typeof entity.renderEntity !== 'function'
 }
 
@@ -656,11 +654,11 @@ module.exports = {
 }
 
 },{"./client":11,"./collection":12,"./entity":13,"./mixin":15,"./resource":16}],15:[function(require,module,exports){
-var Entity =  require('./entity')
+var Entity = require('./entity')
 
 module.exports = Entity.Mixin = Mixin
 
-function Mixin(name, fn) {
+function Mixin (name, fn) {
   if (typeof fn !== 'function')
     throw new TypeError('mixin must be a function')
 
@@ -678,19 +676,19 @@ Mixin.prototype.useParent = function (ctx) {
 Mixin.prototype.renderEntity = function () {
   var fn = this.fn
   return function () {
-    var ctx = this ? this._client || this : this
+    var ctx = this ? this._client || this : this
     return fn.apply(ctx, arguments)
   }
 }
 
 },{"./entity":13}],16:[function(require,module,exports){
-var Entity =  require('./entity')
+var Entity = require('./entity')
 var Request = require('../request')
 var Generator = require('../engine').Generator
 
 module.exports = Entity.Resource = Resource
 
-function Resource(name) {
+function Resource (name) {
   Entity.call(this, name)
 }
 
@@ -705,7 +703,7 @@ Resource.prototype.renderEntity = function () {
     .bind(resource)
     .render()
 
-  function resource(opts, cb) {
+  function resource (opts, cb) {
     var req = new Request
     req.useParent(self)
 
@@ -729,7 +727,7 @@ module.exports = {
 }
 
 },{"./map":18,"./model":19}],18:[function(require,module,exports){
-module.exports = function map(mapper) {
+module.exports = function map (mapper) {
   return function (req, res, next) {
     var body = res.body
     if (!body) return next()
@@ -743,7 +741,7 @@ module.exports = function map(mapper) {
 }
 
 },{}],19:[function(require,module,exports){
-module.exports = function bindModel(model) {
+module.exports = function bindModel (model) {
   if (typeof model !== 'function')
     throw new TypeError('model must be a function')
 
@@ -766,7 +764,7 @@ var hasPromise = typeof Promise === 'function'
 
 module.exports = Request
 
-function Request(ctx) {
+function Request (ctx) {
   this.pipes = []
   this.parent = null
   this.dispatcher = null
@@ -861,9 +859,9 @@ Request.prototype.persistQuery = function (query) {
 }
 
 Request.prototype.set =
-Request.prototype.header = function (name, value) {
-  this.ctx.headers[utils.lower(name)] = value
-  return this
+  Request.prototype.header = function (name, value) {
+    this.ctx.headers[utils.lower(name)] = value
+    return this
 }
 
 Request.prototype.unset = function (name) {
@@ -901,13 +899,13 @@ Request.prototype.format = function (type) {
 Request.prototype.type =
 Request.prototype.mimeType = function (value, header) {
   var ctx = this.ctx
-  var type = types[value] || value
+  var type = types[value] || value
 
   if (~type.indexOf('json')) {
     ctx.agentOpts.json = true
   }
 
-  ctx.headers[header || 'content-type'] = type
+  ctx.headers[header || 'content-type'] = type
   return this
 }
 
@@ -1096,7 +1094,7 @@ Request.prototype.dispatch = function (cb) {
 
   var dispatcher = this.dispatcher = new Dispatcher(this)
 
-  // Push into the event loop to force asynchronicity
+  // Push task into the event loop to force asynchronicity
   setTimeout(function () { dispatcher.run(cb) }, 0)
 
   return this
@@ -1158,7 +1156,7 @@ Request.prototype.clone = function () {
 
 Request.prototype.newRequest = function (ctx) {
   var req = new Request
-  req.useParent(ctx || this)
+  req.useParent(ctx || this)
   return req
 }
 
@@ -1193,7 +1191,7 @@ Request.accessors.entityHierarchy = function () {
   return name
 }
 
-function defineAccessors(ctx) {
+function defineAccessors (ctx) {
   Object.keys(Request.accessors).forEach(function (key) {
     Object.defineProperty(ctx, key, {
       enumerable: true,
@@ -1204,16 +1202,16 @@ function defineAccessors(ctx) {
   })
 }
 
-function throwPromiseError() {
+function throwPromiseError () {
   throw new Error('Native promises are not supported. Use callback instead via: .end(cb)')
 }
 
-function noop() {}
+function noop () {}
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./middleware":17,"./response":21,"./types":24,"./utils":28}],21:[function(require,module,exports){
 module.exports = Response
 
-function Response(req) {
+function Response (req) {
   this.req = req
   this.store = req ? req.store : null
   this.client = req ? req.client : null
@@ -1313,7 +1311,7 @@ Response.prototype.toError = function () {
   return err
 }
 
-function params(str) {
+function params (str) {
   return str.split(/ *; */).reduce(function (obj, str) {
     var parts = str.split(/ *= */)
     var key = parts.shift()
@@ -1323,14 +1321,14 @@ function params(str) {
   }, {})
 }
 
-function type(str) {
+function type (str) {
   return str.split(/ *; */).shift()
 }
 
 },{}],22:[function(require,module,exports){
 module.exports = Store
 
-function Store(parent) {
+function Store (parent) {
   this.parent = parent
   this.map = Object.create(null)
 }
@@ -1372,7 +1370,7 @@ module.exports = theon
  * API factory
  */
 
-function theon(url) {
+function theon (url) {
   return new theon.entities.Client(url)
 }
 
@@ -1380,14 +1378,14 @@ function theon(url) {
  * Export modules
  */
 
-theon.Request    = require('./request')
-theon.Response   = require('./response')
-theon.Context    = require('./context')
-theon.Store      = require('./store')
+theon.Request = require('./request')
+theon.Response = require('./response')
+theon.Context = require('./context')
+theon.Store = require('./store')
 theon.Dispatcher = require('./dispatcher')
-theon.agents     = require('./agents')
-theon.engine     = require('./engine')
-theon.entities   = require('./entities')
+theon.agents = require('./agents')
+theon.engine = require('./engine')
+theon.entities = require('./entities')
 
 /**
  * Entities factory
@@ -1416,7 +1414,7 @@ module.exports = {
 }
 
 },{}],25:[function(require,module,exports){
-module.exports = function clone(y) {
+module.exports = function clone (y) {
   var x = {}
   for (var k in y) x[k] = y[k]
   return x
@@ -1425,17 +1423,15 @@ module.exports = function clone(y) {
 },{}],26:[function(require,module,exports){
 var clone = require('./clone')
 
-module.exports = function extend(x, y) {
+module.exports = function extend (x, y) {
   x = x || {}
   for (var k in y) x[k] = y[k]
   return x
 }
 
 },{"./clone":25}],27:[function(require,module,exports){
-var hasOwn = Object.prototype.hasOwnProperty
-
-module.exports = function has(o, name) {
-  return !!o && hasOwn.call(o, name)
+module.exports = function has (o, name) {
+  return !!o && Object.prototype.hasOwnProperty.call(o, name)
 }
 
 },{}],28:[function(require,module,exports){
@@ -1452,7 +1448,7 @@ module.exports = {
 }
 
 },{"./clone":25,"./extend":26,"./has":27,"./lower":29,"./merge":30,"./normalize":31,"./once":32,"./path-params":33,"./series":34}],29:[function(require,module,exports){
-module.exports = function lower(str) {
+module.exports = function lower (str) {
   return typeof str === 'string'
     ? str.toLowerCase()
     : ''
@@ -1463,7 +1459,7 @@ var clone = require('./clone')
 var extend = require('./extend')
 var slicer = Array.prototype.slice
 
-module.exports = function merge(x, y) {
+module.exports = function merge (x, y) {
   var args = slicer.call(arguments, 1)
   x = clone(x)
 
@@ -1475,7 +1471,7 @@ module.exports = function merge(x, y) {
 }
 
 },{"./clone":25,"./extend":26}],31:[function(require,module,exports){
-module.exports = function normalize(o) {
+module.exports = function normalize (o) {
   var buf = {}
   Object.keys(o || {}).forEach(function (name) {
     buf[name.toLowerCase()] = o[name]
@@ -1484,7 +1480,7 @@ module.exports = function normalize(o) {
 }
 
 },{}],32:[function(require,module,exports){
-module.exports = function once(fn) {
+module.exports = function once (fn) {
   var called = false
   return function () {
     if (called) return
@@ -1529,11 +1525,11 @@ module.exports = function (path, params) {
 var once = require('./once')
 var slicer = Array.prototype.slice
 
-module.exports = function series(arr, cb, ctx) {
+module.exports = function series (arr, cb, ctx) {
   var stack = arr.slice()
   cb = cb || function () {}
 
-  function next(err) {
+  function next (err) {
     if (err) return cb.apply(ctx, arguments)
 
     var fn = stack.shift()

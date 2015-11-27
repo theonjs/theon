@@ -1,7 +1,7 @@
 var theon = require('..')
 var request = require('request')
 
-function requestAdapter(req, res, cb) {
+function requestAdapter (req, res, cb) {
   var opts = {
     url: req.url,
     qs: req.query,
@@ -29,13 +29,13 @@ function requestAdapter(req, res, cb) {
     ? req.stream.pipe(request(opts, handler))
     : request(opts, handler)
 
-  function handler(err, _res, body) {
+  function handler (err, _res, body) {
     cb(err, adapter(res, _res, body))
   }
 }
 
 // We map fields to theon.Response interface for full compatibility
-function adapter(res, _res, body) {
+function adapter (res, _res, body) {
   if (!_res) return res
 
   // Expose the agent-specific response

@@ -32,16 +32,16 @@ suite('request', function () {
   test('params', function () {
     var req = new Request
     req.param('foo', 'bar')
-    expect(req.ctx.params).to.be.deep.equal({foo:'bar'})
+    expect(req.ctx.params).to.be.deep.equal({foo: 'bar'})
 
-    req.params({bar:'foo'})
+    req.params({bar: 'foo'})
     expect(req.ctx.params).to.be.deep.equal({
       foo: 'bar',
       bar: 'foo'
     })
 
     req.unsetParam('foo')
-    expect(req.ctx.params).to.be.deep.equal({bar:'foo'})
+    expect(req.ctx.params).to.be.deep.equal({bar: 'foo'})
 
     req.setParams({})
     expect(req.ctx.params).to.be.deep.equal({})
@@ -50,9 +50,9 @@ suite('request', function () {
   test('persistent params', function () {
     var req = new Request
     req.persistParam('foo', 'bar')
-    expect(req.ctx.persistent.params).to.be.deep.equal({foo:'bar'})
+    expect(req.ctx.persistent.params).to.be.deep.equal({foo: 'bar'})
 
-    req.persistParams({bar:'foo'})
+    req.persistParams({bar: 'foo'})
     expect(req.ctx.persistent.params).to.be.deep.equal({
       foo: 'bar',
       bar: 'foo'
@@ -62,16 +62,16 @@ suite('request', function () {
   test('query', function () {
     var req = new Request
     req.queryParam('foo', 'bar')
-    expect(req.ctx.query).to.be.deep.equal({foo:'bar'})
+    expect(req.ctx.query).to.be.deep.equal({foo: 'bar'})
 
-    req.query({bar:'foo'})
+    req.query({bar: 'foo'})
     expect(req.ctx.query).to.be.deep.equal({
       foo: 'bar',
       bar: 'foo'
     })
 
     req.unsetQuery('foo')
-    expect(req.ctx.query).to.be.deep.equal({bar:'foo'})
+    expect(req.ctx.query).to.be.deep.equal({bar: 'foo'})
 
     req.setQuery({})
     expect(req.ctx.query).to.be.deep.equal({})
@@ -80,9 +80,9 @@ suite('request', function () {
   test('persistent query', function () {
     var req = new Request
     req.persistQueryParam('foo', 'bar')
-    expect(req.ctx.persistent.query).to.be.deep.equal({foo:'bar'})
+    expect(req.ctx.persistent.query).to.be.deep.equal({foo: 'bar'})
 
-    req.persistQuery({bar:'foo'})
+    req.persistQuery({bar: 'foo'})
     expect(req.ctx.persistent.query).to.be.deep.equal({
       foo: 'bar',
       bar: 'foo'

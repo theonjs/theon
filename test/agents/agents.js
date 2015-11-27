@@ -2,7 +2,7 @@ const expect = require('chai').expect
 const agents = require('../../lib/agents')
 
 suite('agents', function () {
-  function agentStub() {}
+  function agentStub () {}
 
   test('set', function () {
     var defaults = agents.defaults()

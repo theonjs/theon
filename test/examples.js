@@ -22,7 +22,7 @@ suite('examples', function () {
 
     series(tests, done)
 
-    function testExample(file, next) {
+    function testExample (file, next) {
       if (~ignore.indexOf(file)) return next()
 
       var examplePath = path.join(examplesDir, file)

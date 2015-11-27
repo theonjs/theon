@@ -50,7 +50,7 @@ api.auth
     protectedRequest()
   })
 
-function protectedRequest() {
+function protectedRequest () {
   api
     .protected()
     .end(function (err, res) {

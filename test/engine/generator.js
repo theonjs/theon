@@ -3,8 +3,7 @@ const Client = require('../../lib/engine').Client
 const Generator = require('../../lib/engine').Generator
 
 suite('generator', function () {
-
-  function EntityStub(name) {
+  function EntityStub (name) {
     return {
       name: name,
       aliases: [ name + name ],
@@ -67,7 +66,7 @@ suite('generator', function () {
     expect(function () {
       new Generator(src).render()
     })
-    .to.throw(Error)
-    .to.match(/name conflict/i)
+      .to.throw(Error)
+      .to.match(/name conflict/i)
   })
 })

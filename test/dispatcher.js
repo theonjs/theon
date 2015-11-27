@@ -6,7 +6,7 @@ suite('dispatcher', function () {
   test('run', function (done) {
     var spy = sinon.spy()
 
-    function agentStub(req, res, next) {
+    function agentStub (req, res, next) {
       res.setStatus(200)
       next(null, res)
     }

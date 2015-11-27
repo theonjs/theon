@@ -201,7 +201,6 @@ suite('theon', function () {
   test('entity middleware')
 
   test('hooks', function (done) {
-
     nock('http://localhost')
       .get('/foo')
       .reply(200, { hello: 'world' })
@@ -262,7 +261,7 @@ suite('theon', function () {
         done()
       })
 
-    function track(event) {
+    function track (event) {
       return function (req, res, next) {
         spy(event, req, res)
         next()
@@ -271,7 +270,6 @@ suite('theon', function () {
   })
 
   test('hooks inheritance', function (done) {
-
     nock('http://localhost')
       .get('/foo')
       .reply(200, { hello: 'world' })
@@ -295,14 +293,13 @@ suite('theon', function () {
         done()
       })
 
-    function track(req, res, next) {
+    function track (req, res, next) {
       spy(req, res)
       next()
     }
   })
 
   test('hooks by entity', function (done) {
-
     nock('http://localhost')
       .get('/foo')
       .reply(200, { hello: 'world' })
@@ -328,14 +325,13 @@ suite('theon', function () {
         done()
       })
 
-    function track(req, res, next) {
+    function track (req, res, next) {
       spy(req, res)
       next()
     }
   })
 
   test('mixin', function (done) {
-
     nock('http://localhost')
       .get('/foo')
       .reply(200, { hello: 'world' })
@@ -347,7 +343,7 @@ suite('theon', function () {
       .mixin('mixin', mixin)
       .render()
 
-    function mixin(url) {
+    function mixin (url) {
       expect(this.name).to.be.equal('foo')
       expect(this.root).to.be.an('object')
       this.root.url(url)
@@ -359,7 +355,6 @@ suite('theon', function () {
   })
 
   test('nested urls', function (done) {
-
     nock('http://bar')
       .get('/')
       .reply(200, { hello: 'bar' })
@@ -458,7 +453,7 @@ suite('theon', function () {
     var opts = {}
     expect(cli.users.create.validate(opts)).to.be.equal(opts)
 
-    function testModel(body, req, res) {
+    function testModel (body, req, res) {
       return {
         get: function (name) {
           return body[0][name]

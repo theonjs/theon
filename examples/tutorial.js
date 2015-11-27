@@ -104,7 +104,7 @@ api.auth
     searchUsers()
   })
 
-function searchUsers() {
+function searchUsers () {
   api.users
     .find()
     .end(function (err, res) {
@@ -113,10 +113,10 @@ function searchUsers() {
     })
 }
 
-function retrieveUser() {
+function retrieveUser () {
   api.users
     .get()
-     // important: we have to pass the path param
+    // important: we have to pass the path param
     .param('id', 1)
     // Note the don't have to explicitely pass any authentication credentials
     .end(function (err, res) {
@@ -125,7 +125,7 @@ function retrieveUser() {
     })
 }
 
-function deleteUser() {
+function deleteUser () {
   api.users
     .delete()
     .param('id', 1)

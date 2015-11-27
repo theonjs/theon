@@ -21,7 +21,6 @@ var users = client
   // Define the "id" path param
   .path('/:id')
 
-
 // Render the API client
 var api = users.render()
 
