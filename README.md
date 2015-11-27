@@ -1,6 +1,6 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![Codacy Badge](https://api.codacy.com/project/badge/grade/a612f7996c864d47915a0d268d7e720a)](https://www.codacy.com/app/tomas/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon)
 
-In a nutshell, `theon` is a lightweight and [featured](#features) JavaScript library to create API clients and SDKs in node.js and browsers. It was especially designed to build domain-specific, extensible, expressive and fluent programmatic bindings to any HTTP layer.
+In a nutshell, `theon` is a lightweight and [featured](#features) JavaScript library to create rich API clients and SDKs in node.js and browsers. It was mostly designed to build domain-specific and fluent programmatic bindings to any HTTP layer with strong extensibility capabilities via its built-in middleware layer.
 
 Provides a convenient abstraction to create rich API clients which interacts with one or multiple HTTP interfaces, including powerful extensibility capabilities thanks to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
 
@@ -60,7 +60,8 @@ Note that `theon` is still young. Some work needs to be done, mostly in terms of
 - Hierarchical middleware layer (inspired in [connect](https://github.com/senchalabs/connect) middleware)
 - Nested configurations with powerful inheritance (based on radix tree)
 - Domain specific and fluent API generation (inspired by [superagent](https://github.com/visionmedia/superagent))
-- Observable hooks at any phase of the HTTP flow live cycle
+- Observable hooks at any phase of the HTTP flow live cycle. 
+- Perfectly fitted to be used with behavior-driven patterns based on observables.
 - Request/response interceptors
 - Request/response validators
 - Bind bodies to custom models easily
