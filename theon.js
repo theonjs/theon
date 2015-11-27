@@ -333,18 +333,18 @@ Dispatcher.prototype.dialer = function (req, res, next) {
 
   // Handle writable stream pipes
   if (res.orig && res.orig.pipe) {
-    (req.pipes || this.req.pipes || []).forEach(function (stream) {
-      res.orig.pipe(stream)
-    })
+    (req.pipes || this.req.pipes || []).forEach(res.orig.pipe.bind(res.orig))
   }
 
   // Dispatch the dialing observer
-  this.runMiddleware('dialing', req, res, function (err) {
+  this.runMiddleware('dialing', req, res, onDealing)
+
+  function onDealing (err) {
     if (err && res.orig && typeof res.orig.abort === 'function') {
       nextFn(new Error('Request aborted: ' + (err.message || err)))
       try { res.orig.abort() } catch (e) {}
     }
-  })
+  }
 }
 
 Dispatcher.prototype.runHook = function (event, req, res, next) {
