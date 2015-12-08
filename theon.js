@@ -6,6 +6,7 @@ module.exports = {
 },{"./lil":2}],2:[function(require,module,exports){
 module.exports = function (req, res, done) {
   var client = require('lil-http')
+
   return client(req, function (err, _res) {
     done(err, adapter(res, _res))
   })
@@ -75,11 +76,13 @@ module.exports = function (req, res, cb) {
   var opts = {
     url: req.url,
     qs: req.query,
-    body: req.body,
     headers: req.headers,
     method: req.method,
     useQuerystring: true
   }
+
+  // If body exists, pass it in options
+  if (req.body) opts.body = req.body
 
   // Set JSON format
   opts.json = req.opts.format === 'json'
@@ -248,6 +251,7 @@ Dispatcher.prototype.run = function (cb) {
   function done (err, req, res) {
     var client = this.req
 
+    // If request was intercepted, ignore the error
     if (err === 'intercept') err = null
 
     // Set request context, if not present
@@ -307,9 +311,8 @@ Dispatcher.prototype.dial = function (req, res, next) {
   var path = req.ctx.buildPath()
   var fullPath = utils.pathParams(path, req.params)
 
-  if (fullPath instanceof Error) {
-    return next(fullPath)
-  }
+  // If returned an error, fail with it
+  if (fullPath instanceof Error) return next(fullPath)
 
   // Compose the full URL
   req.url = url + fullPath
@@ -333,7 +336,7 @@ Dispatcher.prototype.dialer = function (req, res, next) {
 
   // Handle writable stream pipes
   if (res.orig && res.orig.pipe) {
-    (req.pipes || this.req.pipes || []).forEach(res.orig.pipe.bind(res.orig))
+    (req.pipes || this.req.pipes || []).forEach(res.orig.pipe, res.orig)
   }
 
   // Dispatch the dialing observer
@@ -706,7 +709,7 @@ Resource.prototype.renderEntity = function () {
     var req = new Request()
     req.useParent(self)
 
-    if (typeof opts === 'object') req.options(opts)
+    if (opts === Object(opts)) req.options(opts)
     if (typeof opts === 'function') cb = opts
 
     return typeof cb === 'function'
@@ -1096,6 +1099,15 @@ Request.prototype.dispatch = function (cb) {
   return this
 }
 
+Request.prototype.handle =
+Request.prototype.response = function (fn) {
+  this.useResponse(function (req, res, next) {
+    fn(res, req)
+    next()
+  })
+  return this
+}
+
 Request.prototype.end =
 Request.prototype.done = function (cb) {
   return this.dispatch(cb)
@@ -1243,9 +1255,9 @@ Response.prototype.get = function (name) {
 }
 
 Response.prototype.setHeaders = function (headers) {
-  for (var key in headers) {
+  Object.keys(headers).forEach(function (key) {
     this.headers[key.toLowerCase()] = headers[key]
-  }
+  }, this)
 
   var ct = this.headers['content-type']
   if (ct) this.setType(ct)
@@ -1360,44 +1372,129 @@ Store.prototype.has = function (key) {
 }
 
 },{}],23:[function(require,module,exports){
-module.exports = theon
+module.exports = Theon
 
 /**
- * API factory
+ * Creates a new Theon API client
+ *
+ * @param {String} url
+ * @return {Client}
+ * @class Theon
  */
 
-function theon (url) {
-  return new theon.entities.Client(url)
+function Theon (url) {
+  return new Theon.entities.Client(url)
 }
 
 /**
- * Export modules
+ * Export HTTP request abstraction
+ * @property {Request} Request
+ * @static
  */
 
-theon.Request = require('./request')
-theon.Response = require('./response')
-theon.Context = require('./context')
-theon.Store = require('./store')
-theon.Dispatcher = require('./dispatcher')
-theon.agents = require('./agents')
-theon.engine = require('./engine')
-theon.entities = require('./entities')
+Theon.Request = require('./request')
 
 /**
- * Entities factory
+ * Export HTTP response abstraction
+ * @property {Response} Response
+ * @static
+ */
+
+Theon.Response = require('./response')
+
+/**
+ * Export context module
+ * @property {Context} Context
+ * @static
+ */
+
+Theon.Context = require('./context')
+
+/**
+ * Export store module
+ * @property {Store} Store
+ * @static
+ */
+
+Theon.Store = require('./store')
+
+/**
+ * Export traffic dispatcher module
+ * @property {Dispatcher} Dispatcher
+ * @static
+ */
+
+Theon.Dispatcher = require('./dispatcher')
+
+/**
+ * Export HTTP agents module
+ * @property {Object} agents
+ * @static
+ */
+
+Theon.agents = require('./agents')
+
+/**
+ * Export engine modules
+ * @property {Object} engine
+ * @static
+ */
+
+Theon.engine = require('./engine')
+
+/**
+ * Export built-in entities constructors
+ * @property {Object} agents
+ * @static
+ */
+
+Theon.entities = require('./entities')
+
+/**
+ * Creates a new client entity
+ * @param {String} url
+ * @method client
+ * @return {Client}
+ * @static
+ */
+
+/**
+ * Creates a new resource entity
+ * @param {String} name
+ * @method resource
+ * @return {Resource}
+ * @static
+ */
+
+/**
+ * Creates a new collection entity
+ * @param {String} name
+ * @method collection
+ * @return {Collection}
+ * @static
+ */
+
+/**
+ * Creates a new mixin entity
+ * @param {String} url
+ * @method mixin
+ * @return {Mixin}
+ * @static
  */
 
 ;['Client', 'Resource', 'Collection', 'Mixin'].forEach(function (name) {
-  theon[name.toLowerCase()] = function (arg, arg2) {
-    return new theon.entities[name](arg, arg2)
+  Theon[name.toLowerCase()] = function (arg, arg2) {
+    return new Theon.entities[name](arg, arg2)
   }
 })
 
 /**
- * Current version
+ * Current library version
+ * @property {String} VERSION
+ * @static
  */
 
-theon.VERSION = '0.1.6'
+Theon.VERSION = '0.1.7'
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":20,"./response":21,"./store":22}],24:[function(require,module,exports){
 module.exports = {
