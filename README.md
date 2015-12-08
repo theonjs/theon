@@ -1181,6 +1181,11 @@ Alias: `handle`
 
 Attach a function to handle the response object in case that the request success.
 
+Function arguments are:
+
+- **theon.Response**
+- **theon.Request**
+
 #### Request#end(cb)
 Alias: `done`
 
