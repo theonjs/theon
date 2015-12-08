@@ -1,6 +1,6 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![Codacy Badge](https://api.codacy.com/project/badge/grade/a612f7996c864d47915a0d268d7e720a)](https://www.codacy.com/app/tomas/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
 
-A lightweight, dependency-free, [featured](#features) and declarative JavaScript library to create rich API clients and SDKs in node.js and browsers. It was mostly designed to build domain-specific and fluent programmatic bindings to any HTTP layer with convenient extensibility features.
+Lightweight, dependency-free, [featured](#features) and declarative JavaScript library to create rich API clients and SDKs in node.js and browsers. It was mostly designed to build domain-specific and fluent programmatic bindings to any HTTP layer with convenient extensibility features.
 
 It provides a convenient abstraction and declarative interface to create rich API clients which interacts with one or multiple HTTP interfaces, providing powerful extensibility capabilities thanks to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
 
@@ -108,7 +108,7 @@ bower install theon --save
 
 Or loading the script:
 ```html
-<script src="//cdn.rawgit.com/h2non/theon/0.1.6/theon.js"></script>
+<script src="//cdn.rawgit.com/h2non/theon/0.1.7/theon.js"></script>
 ```
 
 ## Environments
@@ -1175,6 +1175,11 @@ Similar to `model` feature but operating overwriting the original `body`.
 #### Request#persistOptions(opts)
 
 #### Request#useParent(parent)
+
+#### Request#response(fn)
+Alias: `handle`
+
+Attach a function to handle the response object in case that the request success.
 
 #### Request#end(cb)
 Alias: `done`
