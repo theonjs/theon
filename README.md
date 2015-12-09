@@ -1112,6 +1112,11 @@ Alias: `body`
 
 #### Request#auth(user, password)
 
+#### Request#plugin(plugin)
+Alias: `usePlugin`
+
+#### Request#getPlugin(pluginName|pluginFn)
+
 #### Request#use(middleware)
 Alias: `useRequest`
 
