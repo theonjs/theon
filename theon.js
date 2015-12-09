@@ -796,7 +796,8 @@ Request.prototype.param = function (name, value) {
   return this
 }
 
-Request.prototype.params = function (params) {
+Request.prototype.params = function (params, value) {
+  if (params && value) return this.param(params, value)
   utils.extend(this.ctx.params, params)
   return this
 }
@@ -813,7 +814,8 @@ Request.prototype.persistParam = function (name, value) {
   return this.persistField('params', name, value)
 }
 
-Request.prototype.persistParams = function (params) {
+Request.prototype.persistParams = function (params, value) {
+  if (params && value) return this.persistParam(params, value)
   utils.extend(this.ctx.persistent.params, params)
   return this
 }
@@ -853,15 +855,17 @@ Request.prototype.persistQueryParam = function (name, value) {
   return this.persistField('query', name, value)
 }
 
-Request.prototype.persistQuery = function (query) {
+Request.prototype.persistQuery =
+Request.prototype.persistQueryParams = function (query, value) {
+  if (query && value) return this.persistentQueryParam(query, value)
   utils.extend(this.ctx.persistent.query, query)
   return this
 }
 
 Request.prototype.set =
-  Request.prototype.header = function (name, value) {
-    this.ctx.headers[utils.lower(name)] = value
-    return this
+Request.prototype.header = function (name, value) {
+  this.ctx.headers[utils.lower(name)] = value
+  return this
 }
 
 Request.prototype.unset = function (name) {
@@ -869,7 +873,8 @@ Request.prototype.unset = function (name) {
   return this
 }
 
-Request.prototype.headers = function (headers) {
+Request.prototype.headers = function (headers, value) {
+  if (headers && value) return this.set(headers, value)
   utils.extend(this.ctx.persistent.headers, utils.normalize(headers))
   return this
 }
@@ -886,7 +891,8 @@ Request.prototype.persistHeader = function (name, value) {
   return this
 }
 
-Request.prototype.persistHeaders = function (headers) {
+Request.prototype.persistHeaders = function (headers, value) {
+  if (headers && value) return this.persistHeader(headers, value)
   utils.extend(this.ctx.persistent.headers, headers)
   return this
 }
