@@ -765,6 +765,7 @@ module.exports = Request
 
 function Request (ctx) {
   this.pipes = []
+  this.plugins = []
   this.parent = null
   this.dispatcher = null
   this.ctx = new Context(ctx)
@@ -944,6 +945,34 @@ Request.prototype.map =
 Request.prototype.bodyMap = function (mapper) {
   this.ctx.middleware.use('after response', middleware.map(mapper))
   return this
+}
+
+Request.prototype.plugin =
+Request.prototype.usePlugin = function (plugin) {
+  if (typeof plugin !== 'function') {
+    throw new TypeError('plugin must be a function')
+  }
+
+  var instance = plugin(this)
+  this.plugins.push({ fn: plugin, instance: instance })
+
+  return this
+}
+
+Request.prototype.getPlugin = function (search) {
+  for (var i = 0, l = this.plugins.length; i < l; i += 1) {
+    var plugin = this.plugins[i]
+    if (match(plugin, search)) {
+      return plugin.instance || plugin
+    }
+  }
+
+  function match (plugin, search) {
+    return search === plugin.fn ||
+      search === plugin.instance ||
+      search === plugin.fn.$name ||
+      search === plugin.fn.name
+  }
 }
 
 Request.prototype.use =
@@ -1501,7 +1530,7 @@ Theon.entities = require('./entities')
  * @static
  */
 
-Theon.VERSION = '0.1.8'
+Theon.VERSION = '0.1.9'
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":20,"./response":21,"./store":22}],24:[function(require,module,exports){
 module.exports = {
