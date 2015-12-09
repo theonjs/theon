@@ -1501,7 +1501,7 @@ Theon.entities = require('./entities')
  * @static
  */
 
-Theon.VERSION = '0.1.7'
+Theon.VERSION = '0.1.8'
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":20,"./response":21,"./store":22}],24:[function(require,module,exports){
 module.exports = {

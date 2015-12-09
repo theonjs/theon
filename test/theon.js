@@ -3,6 +3,7 @@ const sinon = require('sinon')
 const expect = require('chai').expect
 const stream = require('stream')
 const theon = require('..')
+const pkg = require('../package.json')
 
 suite('theon', function () {
   beforeEach(function () {
@@ -19,7 +20,10 @@ suite('theon', function () {
     expect(theon.entities.Client).to.be.a('function')
     expect(theon.entities.Resource).to.be.a('function')
     expect(theon.entities.Collection).to.be.a('function')
-    expect(theon.VERSION).to.be.a('string')
+  })
+
+  test('version', function () {
+    expect(theon.VERSION).to.be.equal(pkg.version)
   })
 
   test('root parent', function () {
