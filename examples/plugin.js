@@ -14,11 +14,11 @@ nock('http://my.api.com')
 function plugin (opts) {
   var enabled = opts.enable
 
-  return (client) => {
+  return function (client) {
     console.log('Registering plugin...')
 
     // Plugin logic goes here...
-    client.use((req, res, next) => {
+    client.use(function (req, res, next) {
       if (!enabled) return next()
       console.log('Outgoing request to:', req.opts.rootUrl)
       next()
