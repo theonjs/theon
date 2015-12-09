@@ -1079,6 +1079,9 @@ HTTP method to use. Default to `GET`.
 
 #### Request#unsetQuery(name)
 
+#### Request#persistQueryParams(query)
+Alias: `persistQuery`
+
 #### Request#persistQueryParam(name, value)
 
 #### Request#set(name, value)

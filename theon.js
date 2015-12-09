@@ -828,7 +828,8 @@ Request.prototype.setParams = function (params) {
   return this
 }
 
-Request.prototype.query = function (query) {
+Request.prototype.query = function (query, value) {
+  if (query && value) return this.queryParam(query, value)
   utils.extend(this.ctx.query, query)
   return this
 }
