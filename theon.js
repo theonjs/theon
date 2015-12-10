@@ -427,6 +427,7 @@ module.exports = Client
 
 function Client (client) {
   this._client = client
+  this._client.api = this
 }
 
 Client.prototype.doRequest = function (ctx, cb) {
@@ -441,7 +442,60 @@ Client.prototype.newRequest = function (client) {
   return req
 }
 
-;['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'TRACE', 'OPTIONS'].forEach(function (method) {
+// Delegate API methods to client entity methods
+var methods = [
+  'plugin',
+  'usePlugin',
+  'getPlugin',
+  'use',
+  'useRequest',
+  'useEntity',
+  'useResponse',
+  'useEntityResponse',
+  'observe',
+  'observeEntity',
+  'before',
+  'after',
+  'validator',
+  'requestValidator',
+  'entityValidator',
+  'entityRequestValidator',
+  'responseValidator',
+  'entityResponseValidator',
+  'interceptor',
+  'entityInterceptor',
+  'evaluator',
+  'entityEvaluator',
+  'validate',
+  'agent',
+  'agentOpts',
+  'persistAgentOpts',
+  'options',
+  'persistOptions'
+]
+
+methods.forEach(function (method) {
+  Client.prototype[method] = function () {
+    var ctx = this._client[method].apply(this._client, arguments)
+    return (ctx instanceof this._client)
+      ? this
+      : ctx
+  }
+})
+
+// Deletegate HTTP verbs as API sugar
+var verbs = [
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+  'HEAD',
+  'TRACE',
+  'OPTIONS'
+]
+
+verbs.forEach(function (method) {
   Client.prototype[method] = function (opts, cb) {
     opts.method = method
     return this.doRequest(opts, cb)
@@ -1530,7 +1584,7 @@ Theon.entities = require('./entities')
  * @static
  */
 
-Theon.VERSION = '0.1.9'
+Theon.VERSION = '0.1.10'
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":20,"./response":21,"./store":22}],24:[function(require,module,exports){
 module.exports = {

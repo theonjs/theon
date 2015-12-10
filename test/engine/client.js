@@ -56,4 +56,13 @@ suite('client', function () {
       }
     }
   })
+
+  test('delegate api methods', function () {
+    var cli = new Client(stub)
+    var methods = ['use', 'plugin', 'observe', 'useResponse']
+
+    methods.forEach(function (method) {
+      expect(cli[method]).to.be.a('function')
+    })
+  })
 })
