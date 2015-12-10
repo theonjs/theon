@@ -477,7 +477,7 @@ var methods = [
 methods.forEach(function (method) {
   Client.prototype[method] = function () {
     var ctx = this._client[method].apply(this._client, arguments)
-    return (ctx instanceof this._client)
+    return ctx === this._client
       ? this
       : ctx
   }
@@ -1584,7 +1584,7 @@ Theon.entities = require('./entities')
  * @static
  */
 
-Theon.VERSION = '0.1.10'
+Theon.VERSION = '0.1.11'
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":20,"./response":21,"./store":22}],24:[function(require,module,exports){
 module.exports = {
