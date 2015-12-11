@@ -482,10 +482,16 @@ theon.agents.set(requestAdapter)
 
 ## Plugins
 
-Due to the library is young at this time, there are not plugins available, however I would like to write a couple of them in a near future. Here's is wish list:
+`theon` allows you to attach plugins to any HTTP high-level entity. Plugins are useful to encapsulate common logic through a clean and simple interface in `theon` based clients.
+
+You can see an example [here](https://github.com/h2non/theon/blob/master/examples/plugin.js).
+
+### Third-party plugins
+
+The library is still young at this time and there are not plugins available, however there're plans to to write a couple of them in a future. Here's is wish list:
 
 - **consul** - Server discovery using Consul.
-- **retry** - Provide retry a policy in your API clients.
+- **retry** - Provide a simple retry a policy in your API clients.
 - **JSONSchema** - Validate incoming and outgoing bodies againts a JSON schema.
 - **APIDocs** - Generate Swagger/Apiary docs reading the resource metadata annotations.
 
