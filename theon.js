@@ -255,7 +255,7 @@ Dispatcher.prototype.run = function (cb) {
     if (err === 'intercept') err = null
 
     // Set request context, if not present
-    if (!res.req) res.req = req
+    if (res && !res.req) res.req = req
 
     // Resolve the callback
     if (!err) return cb(null, res, client)
@@ -1572,7 +1572,7 @@ Theon.entities = require('./entities')
  * @static
  */
 
-;['Client', 'Resource', 'Collection', 'Mixin'].forEach(function (name) {
+Object.keys(Theon.entities).forEach(function (name) {
   Theon[name.toLowerCase()] = function (arg, arg2) {
     return new Theon.entities[name](arg, arg2)
   }
@@ -1584,7 +1584,7 @@ Theon.entities = require('./entities')
  * @static
  */
 
-Theon.VERSION = '0.1.11'
+Theon.VERSION = '0.1.12'
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":20,"./response":21,"./store":22}],24:[function(require,module,exports){
 module.exports = {
