@@ -1,9 +1,9 @@
 const expect = require('chai').expect
-const Request = require('../lib/request')
+const Request = require('../../lib/http/request')
 
 suite('request', function () {
   test('instance', function () {
-    var req = new Request
+    var req = new Request()
     expect(req.parent).to.be.null
     expect(req.dispatcher).to.be.null
     expect(req.pipes).to.be.an('array')
@@ -12,7 +12,7 @@ suite('request', function () {
   })
 
   test('path', function () {
-    var req = new Request
+    var req = new Request()
     req
       .url('http://foo')
       .basePath('/foo')
@@ -24,13 +24,13 @@ suite('request', function () {
   })
 
   test('method', function () {
-    var req = new Request
+    var req = new Request()
     req.method('GET')
     expect(req.ctx.method).to.be.equal('GET')
   })
 
   test('params', function () {
-    var req = new Request
+    var req = new Request()
     req.param('foo', 'bar')
     expect(req.ctx.params).to.be.deep.equal({foo: 'bar'})
 
@@ -48,7 +48,7 @@ suite('request', function () {
   })
 
   test('persistent params', function () {
-    var req = new Request
+    var req = new Request()
     req.persistParam('foo', 'bar')
     expect(req.ctx.persistent.params).to.be.deep.equal({foo: 'bar'})
 
@@ -60,7 +60,7 @@ suite('request', function () {
   })
 
   test('query', function () {
-    var req = new Request
+    var req = new Request()
     req.queryParam('foo', 'bar')
     expect(req.ctx.query).to.be.deep.equal({foo: 'bar'})
 
@@ -78,7 +78,7 @@ suite('request', function () {
   })
 
   test('persistent query', function () {
-    var req = new Request
+    var req = new Request()
     req.persistQueryParam('foo', 'bar')
     expect(req.ctx.persistent.query).to.be.deep.equal({foo: 'bar'})
 

@@ -6,7 +6,7 @@ suite('context', function () {
   var props = ['query', 'opts', 'params', 'headers', 'cookies', 'persistent', 'agentOpts']
 
   test('instance', function () {
-    var ctx = new Context
+    var ctx = new Context()
     expect(ctx.agent).to.be.a('function')
 
     emptyProps.forEach(function (key) {
@@ -23,7 +23,7 @@ suite('context', function () {
   })
 
   test('raw', function () {
-    var ctx = new Context
+    var ctx = new Context()
     var raw = ctx.raw()
 
     expect(raw.method).to.be.equal('GET')
@@ -33,7 +33,7 @@ suite('context', function () {
   })
 
   test('parent inheritance', function () {
-    var parent = new Context
+    var parent = new Context()
     parent.method = 'POST'
     parent.headers = { foo: 'bar' }
 
@@ -49,7 +49,7 @@ suite('context', function () {
   })
 
   test('clone', function () {
-    var parent = new Context
+    var parent = new Context()
     parent.method = 'POST'
     parent.headers = { foo: 'bar' }
 
@@ -70,7 +70,7 @@ suite('context', function () {
   })
 
   test('buildPath', function () {
-    var parent = new Context
+    var parent = new Context()
     parent.opts.basePath = '/foo'
 
     var ctx = new Context(parent)

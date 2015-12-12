@@ -1,9 +1,9 @@
 const expect = require('chai').expect
-const Response = require('../lib/response')
+const Response = require('../../lib/http/response')
 
 suite('response', function () {
   test('instance', function () {
-    var res = new Response
+    var res = new Response()
 
     expect(res.body).to.be.null
     expect(res.headers).to.be.deep.equal({})
@@ -16,7 +16,7 @@ suite('response', function () {
   })
 
   test('setBody', function () {
-    var body = {foo: 'bar'}
+    var body = { foo: 'bar' }
     var res = new Response()
     res.setBody(body)
     expect(res.body).to.be.equal(body)
@@ -31,7 +31,7 @@ suite('response', function () {
 
   test('setHeaders', function () {
     var headers = { Foo: 'bar' }
-    var res = new Response
+    var res = new Response()
     res.setHeaders(headers)
     expect(res.headers).to.be.deep.equal({foo: 'bar'})
   })
@@ -44,7 +44,7 @@ suite('response', function () {
   })
 
   test('setType', function () {
-    var res = new Response
+    var res = new Response()
     res.setType('application/json; encoding=utf8')
     expect(res.type).to.be.equal('application/json')
     expect(res.typeParams).to.be.deep.equal({encoding: 'utf8'})
@@ -78,7 +78,7 @@ suite('response', function () {
   })
 
   test('setStatusText', function () {
-    var res = new Response
+    var res = new Response()
     res.setStatusText('OK')
     expect(res.statusText).to.be.equal('OK')
   })

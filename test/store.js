@@ -3,7 +3,7 @@ const Store = require('../lib/store')
 
 suite('store', function () {
   test('set', function () {
-    var store = new Store
+    var store = new Store()
 
     store.set('foo', 'bar')
     expect(store.map.foo).to.be.equal('bar')
@@ -20,7 +20,7 @@ suite('store', function () {
   })
 
   test('get', function () {
-    var store = new Store
+    var store = new Store()
 
     store.set('foo', 'bar')
     expect(store.get('foo')).to.be.equal('bar')
@@ -35,7 +35,7 @@ suite('store', function () {
   })
 
   test('remove', function () {
-    var store = new Store
+    var store = new Store()
 
     store.set('foo', 'foo')
     expect(store.get('foo')).to.be.equal('foo')
@@ -45,8 +45,8 @@ suite('store', function () {
   })
 
   test('has', function () {
-    var store = new Store
-    var parent = new Store
+    var store = new Store()
+    var parent = new Store()
     store.useParent(parent)
 
     store.set('foo', 'foo')
@@ -60,9 +60,9 @@ suite('store', function () {
   })
 
   test('useParent', function () {
-    var store = new Store
-    var parent = new Store
-    var topParent = new Store
+    var store = new Store()
+    var parent = new Store()
+    var topParent = new Store()
 
     parent.useParent(topParent)
     store.useParent(parent)

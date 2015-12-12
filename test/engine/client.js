@@ -1,5 +1,5 @@
 const expect = require('chai').expect
-const Request = require('../../lib/request')
+const Request = require('../../lib/http/request')
 const Client = require('../../lib/engine').Client
 
 suite('client', function () {

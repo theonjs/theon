@@ -55,7 +55,6 @@ suite('theon', function () {
     expect(publicApi.foo.bar).to.have.property('boo').to.be.a('function')
   })
 
-
   test('cancellable request', function (done) {
     nock('http://localhost')
       .get('/boo')
@@ -81,7 +80,7 @@ suite('theon', function () {
 
   test('writable stream', function (done) {
     var spy = sinon.spy()
-    var writable = new stream.Writable
+    var writable = new stream.Writable()
     writable._write = function (chunk, encoding, next) {
       spy(JSON.parse(chunk.toString()))
       next()
@@ -99,14 +98,14 @@ suite('theon', function () {
     client.foo()
       .pipe(writable)
       .end(function (err, res) {
+        expect(err).to.be.null
         expect(spy.args[0][0]).to.be.deep.equal({ hello: 'world' })
         done()
       })
   })
 
   test('readable stream', function (done) {
-    var spy = sinon.spy()
-    var readable = new stream.Readable
+    var readable = new stream.Readable()
     readable._read = function (chunk, encoding, next) {
       readable.push('{"hello":"world"}')
       readable.push(null)
@@ -176,7 +175,6 @@ suite('theon', function () {
       .get('/foo')
       .reply(200, { hello: 'world' })
 
-    var spy = sinon.spy()
     var api = theon('http://localhost')
       .type('json')
       .resource('foo')
@@ -199,7 +197,6 @@ suite('theon', function () {
       .get('/')
       .reply(400, { hello: 'world' })
 
-    var spy = sinon.spy()
     var api = theon('http://localhost')
       .type('json')
       .resource('foo')
@@ -353,7 +350,6 @@ suite('theon', function () {
       .get('/foo')
       .reply(200, { hello: 'world' })
 
-    var spy = sinon.spy()
     var client = theon('http://localhost')
       .type('json')
       .resource('foo')
@@ -452,7 +448,7 @@ suite('theon', function () {
         next()
       })
 
-    var resource = collection
+    collection
       .resource('get')
       .alias('find')
       .path('/:id')

@@ -1,7 +1,6 @@
 const path = require('path')
 const fs = require('fs')
 const series = require('../lib/utils').series
-const expect = require('chai').expect
 const spawn = require('child_process').spawn
 
 const rootDir = path.join(__dirname, '..')
@@ -33,10 +32,10 @@ suite('examples', function () {
       })
 
       child.on('close', function (code) {
-        if (code !== null && code > 0)
-          next(new Error('Process exited for file ' + file + ' with code: ' + code))
-        else
-          next()
+        if (code !== null && code > 0) {
+          return next(new Error('Process exited for file ' + file + ' with code: ' + code))
+        }
+        next()
       })
 
       setTimeout(function () {

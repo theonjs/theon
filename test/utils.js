@@ -4,16 +4,16 @@ const utils = require('../lib/utils')
 
 suite('utils', function () {
   test('extend', function () {
-    var o = {x: true}
-    var x = utils.extend(o, {y: true})
+    var o = { x: true }
+    var x = utils.extend(o, { y: true })
     expect(o).to.be.equal(x)
     expect(o.x).to.be.true
     expect(o.y).to.be.true
   })
 
   test('merge', function () {
-    var o = {x: true}
-    var x = utils.merge(o, {y: true})
+    var o = { x: true }
+    var x = utils.merge(o, { y: true })
     expect(o).to.not.be.equal(x)
     expect(o.x).to.be.true
     expect(o.y).to.be.undefined
@@ -22,14 +22,14 @@ suite('utils', function () {
   })
 
   test('clone', function () {
-    var o = {x: true}
+    var o = { x: true }
     var x = utils.clone(o)
     expect(o).to.not.be.equal(x)
     expect(o.x).to.be.true
   })
 
   test('has', function () {
-    var o = {x: true}
+    var o = { x: true }
     expect(utils.has(o, 'x')).to.be.true
     expect(utils.has(o, 'y')).to.be.false
     expect(utils.has(o, 'toString')).to.be.false
@@ -38,10 +38,9 @@ suite('utils', function () {
   })
 
   test('normalize', function () {
-    var o = {'Foo': true}
-    expect(utils.normalize({Foo: true})).to.be.deep.equal({foo: true})
-    expect(utils.normalize({FOO: true})).to.be.deep.equal({foo: true})
-    expect(utils.normalize({foo: true})).to.be.deep.equal({foo: true})
+    expect(utils.normalize({ Foo: true })).to.be.deep.equal({ foo: true })
+    expect(utils.normalize({ FOO: true })).to.be.deep.equal({ foo: true })
+    expect(utils.normalize({ foo: true })).to.be.deep.equal({ foo: true })
   })
 
   test('lower', function () {
