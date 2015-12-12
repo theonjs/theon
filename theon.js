@@ -1645,6 +1645,7 @@ module.exports = {
 },{}],26:[function(require,module,exports){
 module.exports = function clone (y) {
   var x = {}
+  if (Object(y) !== y) return x
   for (var k in y) x[k] = y[k]
   return x
 }
@@ -1652,6 +1653,7 @@ module.exports = function clone (y) {
 },{}],27:[function(require,module,exports){
 module.exports = function extend (x, y) {
   x = x || {}
+  if (Object(y) !== y) return x
   for (var k in y) x[k] = y[k]
   return x
 }
