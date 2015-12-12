@@ -153,7 +153,7 @@ The following graph represent the relation between theon entities and a common H
      ↓             ↓             ↓           ↓
   [client] + [collection] + [resource] + [resource]
      ↓             ↓             ↓           ↓
-  [mixin]?      [mixin]?     [mixin]?     [mixin]?
+  [mixin]?      [mixin]?      [mixin]?    [mixin]?
 ```
 
 ### Supported entities
@@ -165,7 +165,7 @@ Every `theon` instance is a client entity itself, and it's mostly used as parent
 
 Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as headers, at client entity level. That means all the configuration attached at client level will be inherited in child entities.
 
-- Can inherit from other `entity`, usually another `client`.
+- Can inherit behavior from other `entity`, usually another `client`.
 - Can host `collections` and `resources`.
 - Can have `mixins`.
 - Supports middleware and observable hooks.
@@ -174,7 +174,7 @@ Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as 
 
 `collection` represents a set of entities. It was mainly designed to store a bunch of  other `collection` or `resources`, mostly used as sort of isolation entity to divide and compose different parts of your API.
 
-- Can inherit from other `entity`, usually a `client`.
+- Can inherit behavior from other `entity`, usually a `client`.
 - Can host other `collections` or `resources`.
 - Can have `mixins`.
 - Cannot perform requests itself.
@@ -185,7 +185,7 @@ Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as 
 `resource` is an entity designed to be attached to a specific HTTP resource, endpoint or HTTP action.
 They're usually embedded as part of collections.
 
-- Can inherit from other `entity`, usually a `collection`.
+- Can inherit behavior from other `entity`, usually a `collection`.
 - Can host `collections`, `resource`.
 - Can have `mixins`.
 - Can perform requests.
@@ -193,14 +193,17 @@ They're usually embedded as part of collections.
 
 #### Mixin
 
-A `mixin` is a custom user-defined preconfigured task hosting any kind of logic.
+A `mixin` is a custom user defined function hosting any kind of logic and supporting a free arguments input.
+
 The `mixin` entity is analog to its programmaming terminology, meaning it mostly to extend a component with some specific feature as a sort of plug in.
 
-- Can inherit from other entities, usually a `resource`.
+[Mixin example](https://github.com/h2non/theon/blob/master/examples/mixin.js).
+
+- Can inherit behavior from any other entity.
 - Cannot host other entities.
 - Cannot have other `mixins`.
-- Can perform requests (either by native implementation or inheriting the client).
-- Do not support middleware or hooks.
+- Can perform requests (either by native implementation or inheriting the client from parent entities).
+- Supports middleware and observable hooks.
 
 ## Tutorial
 

@@ -12,6 +12,7 @@ nock('http://my.api.com')
   }])
 
 var users = client
+  .type('json')
   .basePath('/api')
   .collection('users')
   .basePath('/users')
@@ -22,6 +23,16 @@ var users = client
     req.path('/:id')
     req.param('id', 1)
     req.end(cb)
+  })
+  // You can also plug in middleware to the mixin scope
+  .use(function (req, res, next) {
+    console.log('URL:', req.opts.rootUrl)
+    next()
+  })
+  // Map body response for the current mixin function
+  .map(function (body, next) {
+    body = body.shift()
+    next(null, body)
   })
 
 // Render the API

@@ -357,8 +357,10 @@ suite('theon', function () {
       .render()
 
     function mixin (url) {
-      expect(this.name).to.be.equal('foo')
+      expect(this.name).to.be.equal('mixin')
       expect(this.root).to.be.an('object')
+      expect(this.parent).to.be.an('object')
+      expect(this.parent.name).to.be.equal('foo')
       this.root.url(url)
       expect(this.root.ctx.opts.rootUrl).to.be.equal('http://foo')
       done()
