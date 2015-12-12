@@ -8,6 +8,8 @@ It's also HTTP agent agnostic, so you can use [superagent](https://github.com/vi
 
 To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
+Note: `theon` is still beta.
+
 ## Contents
 
 - [Features](#features)
