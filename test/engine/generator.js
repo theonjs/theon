@@ -67,6 +67,6 @@ suite('generator', function () {
       new Generator(src).render()
     })
       .to.throw(Error)
-      .to.match(/name conflict/i)
+      .to.match(/Naming conflict/i)
   })
 })
