@@ -248,23 +248,26 @@ Dispatcher.prototype.run = function (cb) {
   var req = this.req.raw()
   var res = new Response(req)
 
-  function done (err, req, res) {
+  function done (err, _req, res) {
+    _req = _req || req
+
+    // Cache client instance
     var client = this.req
 
     // If request was intercepted, ignore the error
     if (err === 'intercept') err = null
 
     // Set request context, if not present
-    if (res && !res.req) res.req = req
+    if (res && !res.req) res.req = _req
 
     // Resolve the callback
     if (!err) return cb(null, res, client)
 
-    // Expose the error
-    req.error = err
+    // Expose the error in the request
+    _req.error = err
 
     // Dispatch the error hook
-    ctx.middleware.run('error', req, res, function (_err, _res) {
+    ctx.middleware.run('error', _req, res, function (_err, _res) {
       cb(_err || err, _res || res, client)
     })
   }
@@ -1584,7 +1587,7 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.12'
+Theon.VERSION = '0.1.13'
 
 },{"./agents":3,"./context":6,"./dispatcher":7,"./engine":10,"./entities":14,"./request":20,"./response":21,"./store":22}],24:[function(require,module,exports){
 module.exports = {
