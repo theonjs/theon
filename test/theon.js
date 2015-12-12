@@ -41,6 +41,21 @@ suite('theon', function () {
       .to.be.equal('http://localhost')
   })
 
+  test('expose public engine client DSL', function () {
+    var client = theon('http://localhost')
+      .collection('foo')
+      .resource('bar')
+      .resource('boo')
+
+    var api = client.render()
+    var publicApi = api.foo.bar.boo().api
+
+    expect(publicApi).to.have.property('foo').to.be.an('object')
+    expect(publicApi.foo).to.have.property('bar').to.be.a('function')
+    expect(publicApi.foo.bar).to.have.property('boo').to.be.a('function')
+  })
+
+
   test('cancellable request', function (done) {
     nock('http://localhost')
       .get('/boo')
@@ -201,8 +216,6 @@ suite('theon', function () {
   test('middleware')
 
   test('middleware inheritance')
-
-  test('entity middleware')
 
   test('hooks', function (done) {
     nock('http://localhost')

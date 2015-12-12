@@ -1,14 +1,15 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Code Climate](https://codeclimate.com/github/h2non/theon/badges/gpa.svg)](https://codeclimate.com/github/h2non/theon) [![Codacy Badge](https://api.codacy.com/project/badge/grade/a612f7996c864d47915a0d268d7e720a)](https://www.codacy.com/app/tomas/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
 
-Lightweight, dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to create rich, domain-specific and fluent programmatic API clients and SDKs in node.js and browsers which interacts with one or multiple HTTP layers.
+Lightweight, dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to create rich, domain-specific and fluent programmatic API clients and SDKs in node.js and browsers.
 
-It provides a convenient abstraction and declarative interface to create rich API clients which interacts with one or multiple HTTP interfaces, providing powerful extensibility capabilities thanks to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
+It provides a convenient abstraction, declarative and semantic interface to create rich API clients which interacts with one or multiple HTTP layers.
+It provides powerful extensibility capabilities thanks to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
 
-It's also HTTP agent agnostic, so you can use [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other via [adapters](#http-adapters).
+It's also HTTP agent agnostic, so you can use `theon` with [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other agent via [adapters](#http-adapters).
 
 To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
-Note: `theon` is still beta.
+Note: `theon` is still beta and public API might vary in the future.
 
 ## Contents
 
@@ -200,12 +201,6 @@ The `mixin` entity is analog to its programmaming terminology, meaning it mostly
 - Cannot have other `mixins`.
 - Can perform requests (either by native implementation or inheriting the client).
 - Do not support middleware or hooks.
-
-<!--
-## Extensibility and composition
-
-`to do`
--->
 
 ## Tutorial
 
@@ -1051,6 +1046,12 @@ Reference to the parent root node, in case that it has a parent node.
 
 Internally, it walks across all the parent nodes recursively until find the latest.
 
+#### Request#api = `engine.Client`
+
+Reference to the root public API client DSL generated via: `.render()`.
+
+Useful to make public calls from nested/child entities to parent entities via the public generated DSL.
+
 #### Request#url(url)
 
 Define the base URL of the server.
@@ -1310,6 +1311,12 @@ It's passed to the middleware and validator call chain.
 #### RawContext#root = `Request`
 
 Reference to the parent root `Request` instance.
+
+#### RawContext#api = `engine.Client`
+
+Reference to the root public API client DSL generated via: `.render()`.
+
+Useful to make public calls from nested/child entities to parent entities via the public generated DSL.
 
 #### RawContext#client = `Request`
 
