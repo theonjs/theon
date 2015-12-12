@@ -67,5 +67,8 @@ suite('utils', function () {
     expect(utils.pathParams('/:missing', {}))
       .to.be.instanceof(Error)
       .to.match(/missing path param: missing/i)
+    expect(utils.pathParams('/:id', { id: null }))
+      .to.be.instanceof(Error)
+      .to.match(/missing path param: id/i)
   })
 })

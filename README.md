@@ -574,7 +574,9 @@ client
 var api = client.render()
 
 api.users.get()
-  .param('id', '123')
+  .param('id', function (ctx, req) {
+    return ctx.root.store('currentUserId')
+  })
   .end(function (err, res) {
     console.log('Response:', res.status)
     console.log('Body:', res.body)
@@ -1069,6 +1071,17 @@ Define a URL base path value.
 HTTP method to use. Default to `GET`.
 
 #### Request#param(name, value)
+
+Defines a path param.
+
+`value` argument can be a `string`, `number` or a `function` supporting the following interface:
+
+```js
+function getParam (
+  ctx. theon.Content,
+  req: theon.RawContext,
+) String|Number
+```
 
 #### Request#params(params)
 

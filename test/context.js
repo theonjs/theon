@@ -80,4 +80,27 @@ suite('context', function () {
     var path = ctx.buildPath()
     expect(path).to.be.equal('/foo/bar')
   })
+
+  test('renderParams', function () {
+    var ctx = new Context()
+
+    var params = {
+      id: 123,
+      name: function (_ctx, req) {
+        expect(_ctx).to.be.equal(ctx)
+        expect(req).to.be.equal(reqStub)
+        return req.params.id + req.params.id
+      }
+    }
+
+    var reqStub = {
+      params: params
+    }
+
+    var pasedParams = ctx.renderParams(reqStub)
+    expect(pasedParams).to.be.deep.equal({
+      id: 123,
+      name: 246
+    })
+  })
 })
