@@ -64,6 +64,8 @@ suite('utils', function () {
       .to.be.equal('/path/123')
     expect(utils.pathParams('/:id/:name', { id: '123', name: 'foo' }))
       .to.be.equal('/123/foo')
+    expect(utils.pathParams('/foo/:id/:name/:id', { id: '123', name: 'foo' }))
+      .to.be.equal('/foo/123/foo/123')
     expect(utils.pathParams('/:missing', {}))
       .to.be.instanceof(Error)
       .to.match(/missing path param: missing/i)
