@@ -823,7 +823,6 @@ Entity.prototype.collection = function (collection) {
   if (!(collection instanceof Entity.Collection)) {
     collection = new Entity.Collection(collection)
   }
-
   return this.addEntity(collection)
 }
 
@@ -832,7 +831,6 @@ Entity.prototype.resource = function (resource) {
   if (!(resource instanceof Entity.Resource)) {
     resource = new Entity.Resource(resource)
   }
-
   return this.addEntity(resource)
 }
 
@@ -841,9 +839,7 @@ Entity.prototype.helper = function (name, mixin) {
   if (!(name instanceof Entity.Mixin)) {
     mixin = new Entity.Mixin(name, mixin)
   }
-
-  this.addEntity(mixin)
-  return this
+  return this.addEntity(mixin)
 }
 
 Entity.prototype.addEntity = function (entity) {
@@ -911,23 +907,27 @@ function Mixin (name, fn) {
     throw new TypeError('mixin must be a function')
   }
 
+  Entity.call(this, name)
   this.fn = fn
-  this.name = name
-  this.ctx = null
 }
+
+Mixin.prototype = Object.create(Entity.prototype)
 
 Mixin.prototype.entity = 'mixin'
 
-Mixin.prototype.useParent = function (ctx) {
-  this.ctx = ctx
+Mixin.prototype.renderEntity = function () {
+  var self = this
+  return function () {
+    return self.fn.apply(self, arguments)
+  }
 }
 
-Mixin.prototype.renderEntity = function () {
-  var fn = this.fn
-  return function () {
-    var ctx = this ? this._client || this : this
-    return fn.apply(ctx, arguments)
-  }
+Mixin.prototype.mixin =
+Mixin.prototype.helper =
+Mixin.prototype.action =
+Mixin.prototype.resource =
+Mixin.prototype.collection = function () {
+  throw new Error('not implemented')
 }
 
 },{"./entity":14}],17:[function(require,module,exports){
