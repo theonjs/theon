@@ -140,7 +140,7 @@ I took some inspiration from [Google API client for node.js](https://github.com/
 
 `theon` introduces the concept of entity, which is basically an abstract object which stores and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents a hierachical entity in your API structure, which is usually mapped into an HTTP resource, subresource or endpoint.
 
-Entities in `theon`z represents a [radix tree](https://en.wikipedia.org/wiki/Radix_tree) structure, providing a associative implicit linking and feature inheritance across hierarchical entities.
+Entities hierarchy in `theon` are analog to a [radix tree](https://en.wikipedia.org/wiki/Radix_tree) structure, providing a associative implicit linking and feature inheritance across hierarchical entities.
 
 In order to build your API you have to understand and use the concept of entity properly, and know how to use the different built-in entitities provided by `theon`.
 
