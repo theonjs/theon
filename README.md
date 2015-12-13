@@ -1020,6 +1020,26 @@ Attach a mixin to the current entity.
 
 Attach a custom subentity.
 
+#### Entity#getEntity(name, [ type ])
+
+Retrieves a child entity looking by name.
+
+#### Entity#getCollection(name)
+
+Retrieves a child collection entity looking by name.
+
+#### Entity#getResource(name)
+
+Retrieves a child resource entity looking by name.
+
+#### Entity#getMixin(name)
+
+Retrieves a child mixin entity looking by name.
+
+#### Entity#getClient(name)
+
+Retrieves a child client entity looking by name.
+
 #### Entity#extend(name, value)
 
 Extend the entity with a custom property and value.

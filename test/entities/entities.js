@@ -90,4 +90,34 @@ suite('entities', function () {
       .to.have.property('renderEntity')
       .to.be.a('function')
   })
+
+  test('getEntity', function () {
+    var cli = new entities.Client('test')
+    cli.collection('foo').resource('foo')
+    cli.resource('bar')
+
+    expect(cli.getEntity('foo')).to.be.instanceof(entities.Collection)
+    expect(cli.getEntity('foo').name).to.be.equal('foo')
+
+    expect(cli.getEntity('bar')).to.be.instanceof(entities.Resource)
+    expect(cli.getEntity('bar').name).to.be.equal('bar')
+
+    expect(cli.getEntity('foo').getEntity('foo')).to.be.instanceof(entities.Resource)
+    expect(cli.getEntity('foo').getEntity('foo').name).to.be.equal('foo')
+  })
+
+  test('getEntity by type', function () {
+    var cli = new entities.Client('test')
+    cli.collection('foo').resource('foo')
+    cli.resource('foo')
+
+    expect(cli.getCollection('foo')).to.be.instanceof(entities.Collection)
+    expect(cli.getEntity('foo').name).to.be.equal('foo')
+
+    expect(cli.getResource('foo')).to.be.instanceof(entities.Resource)
+    expect(cli.getResource('foo').name).to.be.equal('foo')
+
+    expect(cli.getCollection('foo').getResource('foo')).to.be.instanceof(entities.Resource)
+    expect(cli.getCollection('foo').getResource('foo').name).to.be.equal('foo')
+  })
 })
