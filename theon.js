@@ -1814,7 +1814,14 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.15'
+Theon.VERSION = '0.1.16'
+
+/**
+ * Force to define a max stack trace
+ * @ignore
+ */
+
+Error.stackTraceLimit = 10
 
 },{"./agents":3,"./base":6,"./context":7,"./dispatcher":8,"./engine":11,"./entities":15,"./http/request":18,"./http/response":19,"./store":23}],25:[function(require,module,exports){
 module.exports = {

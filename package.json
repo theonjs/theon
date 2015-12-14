@@ -1,6 +1,6 @@
 {
   "name": "theon",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "A library to build domain-specific, extensible and expressive HTTP API clients easily in node.js and browsers",
   "repository": "h2non/theon",
   "author": "Tomas Aparicio",
