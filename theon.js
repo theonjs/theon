@@ -27,7 +27,7 @@ function adapter (res, _res) {
   return res
 }
 
-},{"lil-http":37}],3:[function(require,module,exports){
+},{"lil-http":38}],3:[function(require,module,exports){
 var isBrowser = typeof window !== 'undefined'
 
 var agents = exports.agents = isBrowser
@@ -122,7 +122,7 @@ function adapter (res, _res, body) {
   return res
 }
 
-},{"../../utils":29,"request":36}],6:[function(require,module,exports){
+},{"../../utils":30,"request":37}],6:[function(require,module,exports){
 var utils = require('./utils')
 var agents = require('./agents')
 var Context = require('./context')
@@ -144,8 +144,32 @@ module.exports = Base
  */
 
 function Base (ctx) {
+  this.parent = null
+  this.publicClient = null
   this.plugins = []
   this.ctx = new Context(ctx)
+  Base.defineAccessors(this)
+}
+
+Base.prototype.useParent = function (parent) {
+  if (!(parent instanceof Base)) {
+    throw new TypeError('Parent context is invalid')
+  }
+
+  this.parent = parent
+  this.ctx.useParent(parent.ctx)
+
+  return this
+}
+
+Base.prototype.options = function (opts) {
+  utils.extend(this.ctx.opts, opts)
+  return this
+}
+
+Base.prototype.persistOptions = function (opts) {
+  this.ctx.persistent.opts = opts
+  return this
 }
 
 Base.prototype.use =
@@ -308,8 +332,71 @@ Base.prototype.persistAgentOpts = function (opts) {
   return this
 }
 
+Base.prototype.getStore = function () {
+  return this.ctx.store
+}
 
-},{"./agents":3,"./context":7,"./dispatcher":8,"./http/response":19,"./middleware":20,"./utils":29}],7:[function(require,module,exports){
+Base.prototype.getRoot = function () {
+  return this.parent
+    ? this.parent.root
+    : this
+}
+
+Base.prototype.getApi = function () {
+  return this.parent
+    ? this.parent.api
+    : this.publicClient
+}
+
+Base.prototype.getEntityHierarchy = function () {
+  var name = ''
+
+  if (this.parent) {
+    var parent = this.parent.entityHierarchy
+    name = parent ? parent + ' ' : name
+  }
+
+  if (this.entity) {
+    name += this.entity + ' ' + (this.name || '*')
+  }
+
+  return name
+}
+
+/**
+ * Define property accessors.
+ * @property {Array} accessors
+ * @static
+ */
+
+Base.accessors = [
+  'api',
+  'root',
+  'store',
+  'entityHierarchy'
+]
+
+/**
+ * Define property accessors to the given Base instance.
+ * @param {Entity} base
+ * @param {Object} target
+ * @method defineAccessors
+ * @static
+ */
+
+Base.defineAccessors = function (base, target) {
+  Base.accessors.forEach(function (key) {
+    var method = 'get' + utils.capitalize(key)
+    Object.defineProperty(target || base, key, {
+      enumerable: true,
+      configurable: false,
+      get: function () { return base[method]() },
+      set: function () { throw new Error('Cannot overwrite protected property') }
+    })
+  })
+}
+
+},{"./agents":3,"./context":7,"./dispatcher":8,"./http/response":19,"./middleware":20,"./utils":30}],7:[function(require,module,exports){
 var Middleware = require('midware-pool')
 var agents = require('./agents')
 var Store = require('./store')
@@ -443,7 +530,7 @@ function mergeHeaders () {
   return utils.normalize(utils.merge.apply(null, arguments))
 }
 
-},{"./agents":3,"./store":23,"./utils":29,"midware-pool":38}],8:[function(require,module,exports){
+},{"./agents":3,"./store":23,"./utils":30,"midware-pool":39}],8:[function(require,module,exports){
 var utils = require('./utils')
 var Response = require('./http/response')
 
@@ -645,7 +732,8 @@ function forward (req, res, next) {
 
 function noop () {}
 
-},{"./http/response":19,"./utils":29}],9:[function(require,module,exports){
+},{"./http/response":19,"./utils":30}],9:[function(require,module,exports){
+var Base = require('../base')
 var Request = require('../http/request')
 var Response = require('../http/response')
 
@@ -664,6 +752,7 @@ module.exports = Client
 function Client (client) {
   this._client = client
   this._client.publicClient = this
+  Base.defineAccessors(this._client, this)
 }
 
 Client.prototype.doRequest = function (ctx, cb) {
@@ -678,39 +767,8 @@ Client.prototype.newRequest = function (client) {
   return req
 }
 
-// Delegate API methods to client entity methods
-var methods = [
-  'plugin',
-  'usePlugin',
-  'getPlugin',
-  'use',
-  'useRequest',
-  'useEntity',
-  'useResponse',
-  'useEntityResponse',
-  'observe',
-  'observeEntity',
-  'before',
-  'after',
-  'validator',
-  'requestValidator',
-  'entityValidator',
-  'entityRequestValidator',
-  'responseValidator',
-  'entityResponseValidator',
-  'interceptor',
-  'entityInterceptor',
-  'evaluator',
-  'entityEvaluator',
-  'validate',
-  'agent',
-  'agentOpts',
-  'persistAgentOpts',
-  'options',
-  'persistOptions'
-]
-
-methods.forEach(function (method) {
+// Delegate base generic methods to the Client base prototype
+Object.keys(Base.prototype).forEach(function (method) {
   Client.prototype[method] = function () {
     var ctx = this._client[method].apply(this._client, arguments)
     return ctx === this._client
@@ -738,7 +796,7 @@ verbs.forEach(function (method) {
   }
 })
 
-},{"../http/request":18,"../http/response":19}],10:[function(require,module,exports){
+},{"../base":6,"../http/request":18,"../http/response":19}],10:[function(require,module,exports){
 var Client = require('./client')
 var has = require('../utils').has
 
@@ -815,7 +873,7 @@ function nameConflict (name) {
   return new Error('Naming conflict: "' + name + '" property is already used')
 }
 
-},{"../utils":29,"./client":9}],11:[function(require,module,exports){
+},{"../utils":30,"./client":9}],11:[function(require,module,exports){
 module.exports = {
   Client: require('./client'),
   Generator: require('./generator')
@@ -1004,7 +1062,7 @@ function invalidEntity (entity) {
   return !entity || typeof entity.renderEntity !== 'function'
 }
 
-},{"../engine":11,"../http/request":18,"../utils":29}],15:[function(require,module,exports){
+},{"../engine":11,"../http/request":18,"../utils":30}],15:[function(require,module,exports){
 module.exports = {
   Mixin: require('./mixin'),
   Entity: require('./entity'),
@@ -1138,9 +1196,7 @@ module.exports = Request
 function Request (ctx) {
   Base.call(this, ctx)
   this.pipes = []
-  this.parent = null
   this.dispatcher = null
-  defineAccessors(this)
 }
 
 Request.prototype = Object.create(Base.prototype)
@@ -1314,31 +1370,11 @@ Request.prototype.auth = function (user, password) {
   return this
 }
 
-Request.prototype.options = function (opts) {
-  utils.extend(this.ctx.opts, opts)
-  return this
-}
-
-Request.prototype.persistOptions = function (opts) {
-  this.ctx.persistent.opts = opts
-  return this
-}
-
-Request.prototype.useParent = function (parent) {
-  if (!(parent instanceof Request)) {
-    throw new TypeError('Parent context is not a valid')
-  }
-
-  this.parent = parent
-  this.ctx.useParent(parent.ctx)
-
-  return this
-}
-
 Request.prototype.dispatch = function (cb) {
   // If already dispatched, just ignore it
   if (this.dispatcher) return this
 
+  // Create and assign the HTTP dispatcher
   var dispatcher = this.dispatcher = new Dispatcher(this)
 
   // Push task into the event loop to force asynchronicity
@@ -1362,7 +1398,7 @@ Request.prototype.done = function (cb) {
 }
 
 Request.prototype.then = function (success, error) {
-  if (!hasPromise) throwPromiseError()
+  if (!hasPromise) return throwPromiseError()
   if (this.promise) return this.promise.then(success, error)
 
   var self = this
@@ -1417,61 +1453,13 @@ Request.prototype.newRequest = function (ctx) {
   return req
 }
 
-/**
- * Request getter accessors
- */
-
-Request.accessors = Object.create(null)
-
-Request.accessors.store = function () {
-  return this.ctx.store
-}
-
-Request.accessors.root = function () {
-  return this.parent
-    ? this.parent.root
-    : this
-}
-
-Request.accessors.api = function () {
-  return this.parent
-    ? this.parent.api
-    : this.publicClient
-}
-
-Request.accessors.entityHierarchy = function () {
-  var name = ''
-
-  if (this.parent) {
-    var parent = this.parent.entityHierarchy
-    name = parent ? parent + ' ' : name
-  }
-
-  if (this.entity) {
-    name += this.entity + ' ' + (this.name || '*')
-  }
-
-  return name
-}
-
-function defineAccessors (ctx) {
-  Object.keys(Request.accessors).forEach(function (key) {
-    Object.defineProperty(ctx, key, {
-      enumerable: true,
-      configurable: false,
-      get: Request.accessors[key],
-      set: function () { throw new Error('Cannot overwrite property') }
-    })
-  })
-}
-
 function throwPromiseError () {
   throw new Error('Native promises are not supported. Use callback instead via: .end(cb)')
 }
 
 function noop () {}
 
-},{"../base":6,"../dispatcher":8,"../types":25,"../utils":29}],19:[function(require,module,exports){
+},{"../base":6,"../dispatcher":8,"../types":25,"../utils":30}],19:[function(require,module,exports){
 module.exports = Response
 
 /**
@@ -1814,7 +1802,7 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.16'
+Theon.VERSION = '0.1.17'
 
 /**
  * Force to define a max stack trace
@@ -1834,6 +1822,11 @@ module.exports = {
 }
 
 },{}],26:[function(require,module,exports){
+module.exports = function capitalize (str) {
+  return str.slice(0, 1).toUpperCase() + str.slice(1)
+}
+
+},{}],27:[function(require,module,exports){
 module.exports = function clone (y) {
   var x = {}
   if (Object(y) !== y) return x
@@ -1841,7 +1834,7 @@ module.exports = function clone (y) {
   return x
 }
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports = function extend (x, y) {
   x = x || {}
   if (Object(y) !== y) return x
@@ -1849,12 +1842,12 @@ module.exports = function extend (x, y) {
   return x
 }
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = function has (o, name) {
   return !!o && Object.prototype.hasOwnProperty.call(o, name)
 }
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 module.exports = {
   has: require('./has'),
   once: require('./once'),
@@ -1864,17 +1857,18 @@ module.exports = {
   series: require('./series'),
   extend: require('./extend'),
   normalize: require('./normalize'),
+  capitalize: require('./capitalize'),
   pathParams: require('./path-params')
 }
 
-},{"./clone":26,"./extend":27,"./has":28,"./lower":30,"./merge":31,"./normalize":32,"./once":33,"./path-params":34,"./series":35}],30:[function(require,module,exports){
+},{"./capitalize":26,"./clone":27,"./extend":28,"./has":29,"./lower":31,"./merge":32,"./normalize":33,"./once":34,"./path-params":35,"./series":36}],31:[function(require,module,exports){
 module.exports = function lower (str) {
   return typeof str === 'string'
     ? str.toLowerCase()
     : ''
 }
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 var clone = require('./clone')
 var extend = require('./extend')
 var slicer = Array.prototype.slice
@@ -1890,7 +1884,7 @@ module.exports = function merge (x, y) {
   return x
 }
 
-},{"./clone":26,"./extend":27}],32:[function(require,module,exports){
+},{"./clone":27,"./extend":28}],33:[function(require,module,exports){
 module.exports = function normalize (o) {
   var buf = {}
   Object.keys(o || {}).forEach(function (name) {
@@ -1899,7 +1893,7 @@ module.exports = function normalize (o) {
   return buf
 }
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports = function once (fn) {
   var called = false
   return function () {
@@ -1909,7 +1903,7 @@ module.exports = function once (fn) {
   }
 }
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 // Originally taken from pillarjs/path-to-regexp package:
 // https://github.com/pillarjs/path-to-regexp
 var PATH_REGEXP = new RegExp([
@@ -2001,7 +1995,7 @@ function parse (str) {
   return tokens
 }
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 var once = require('./once')
 var slicer = Array.prototype.slice
 
@@ -2022,9 +2016,9 @@ module.exports = function series (arr, cb, ctx) {
   next()
 }
 
-},{"./once":33}],36:[function(require,module,exports){
+},{"./once":34}],37:[function(require,module,exports){
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /*! lil-http - v0.1.16 - MIT License - https://github.com/lil-js/http */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -2329,7 +2323,7 @@ module.exports = function series (arr, cb, ctx) {
   return exports.http = http
 }))
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 var midware = require('midware')
 var MiddlewarePool = require('./pool')
 
@@ -2342,7 +2336,7 @@ function pool(parent) {
 pool.Pool = 
 pool.MiddlewarePool = MiddlewarePool
 pool.midware = midware
-},{"./pool":39,"midware":40}],39:[function(require,module,exports){
+},{"./pool":40,"midware":41}],40:[function(require,module,exports){
 var midware = require('midware')
 
 module.exports = MiddlewarePool
@@ -2431,7 +2425,7 @@ function toArr(args, index) {
   return [].slice.call(args, index || 0)
 }
 
-},{"midware":40}],40:[function(require,module,exports){
+},{"midware":41}],41:[function(require,module,exports){
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define(['exports'], factory)
