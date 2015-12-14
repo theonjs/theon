@@ -19,9 +19,10 @@ var users = client
   .mixin('get', function (id) {
     // Create a new request which inherits from
     // the current collection scope to make a custom request
-    this.path('/:id')
-    this.param('id', 1)
-    return this
+    var req = this // or even use: this.newRequest()
+    req.path('/:id')
+    req.param('id', 1)
+    return req
   })
   // You can also plug in middleware to the mixin scope
   .use(function (req, res, next) {
