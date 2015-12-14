@@ -43,6 +43,11 @@ suite('utils', function () {
     expect(utils.normalize({ foo: true })).to.be.deep.equal({ foo: true })
   })
 
+  test('capitalize', function () {
+    expect(utils.capitalize('abc')).to.be.equal('Abc')
+    expect(utils.capitalize('ABC')).to.be.equal('ABC')
+  })
+
   test('lower', function () {
     expect(utils.lower('FoO')).to.be.equal('foo')
     expect(utils.lower(null)).to.be.equal('')

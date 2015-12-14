@@ -995,6 +995,18 @@ All the HTTP traffic will be handled by this agent.
 
 Register a new HTTP agent adapter by name.
 
+#### theon.Request([ ctx ])
+
+Creates a new HTTP request instance based on the given context
+
+#### theon.Response(req)
+
+Creates a new HTTP response instance for the given request.
+
+#### theon.Store([ parent ])
+
+Creates a new data store instance, optionally inheriting from a parent store.
+
 ### Entity
 Inherits from [`Request`](#request)
 
@@ -1050,7 +1062,7 @@ Similar to mixins, but simpler.
 Attach metadata to the current entity.
 Mostly useful for annotations, flagging and documentation purposes.
 
-#### Entity#render([ entity ])
+#### Entity#render([ entity ]) => ClientEngine
 
 Render all the entities, from current to root entity.
 
@@ -1070,6 +1082,14 @@ Reference to the parent `Request`, in case that it has a parent node.
 Reference to the parent root node, in case that it has a parent node.
 
 Internally, it walks across all the parent nodes recursively until find the latest.
+
+#### Request#store = `Store`
+
+Reference to the current request `Store` instance.
+
+#### Request#ctx = `Context`
+
+Reference to the current request `Context` instance.
 
 #### Request#api = `engine.Client`
 
