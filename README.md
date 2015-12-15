@@ -18,7 +18,7 @@ Note: `theon` is still beta and public API might vary in the future.
 - [Installation](#installation)
 - [Environments](#environments)
 - [Motivation](#motivation)
-- [Concepts](#concepts)
+- [Entities](#entities)
   - [Client](#client)
   - [Collection](#collection)
   - [Resource](#resource)
@@ -136,7 +136,7 @@ Additionally, it provides a rich set of features to make you programmatic layer 
 
 I took some inspiration from [Google API client for node.js](https://github.com/google/google-api-nodejs-client) and in the way they are building a huge programmatic API layer, but you can probably do it even better with `theon`.
 
-## Concepts
+## Entities
 
 `theon` introduces the concept of entity, which is basically an abstract object which stores and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents a hierachical entity in your API structure, which is usually mapped into an HTTP resource, subresource or endpoint.
 
