@@ -302,7 +302,7 @@ Base.prototype.model = function (model) {
 
 Base.prototype.map =
 Base.prototype.bodyMap = function (mapper) {
-  this.ctx.middleware.use('after response', middleware.map(mapper))
+  this.useResponse(middleware.map(mapper))
   return this
 }
 
@@ -1802,7 +1802,7 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.17'
+Theon.VERSION = '0.1.18'
 
 /**
  * Force to define a max stack trace
