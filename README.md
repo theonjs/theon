@@ -5,7 +5,7 @@ Lightweight, dependency-free, [featured](#features), [pluggable](#middleware) an
 Provides a convenient abstraction, declarative and semantic interface to create rich API clients which interacts with one or multiple HTTP layers.
 It was designed to be extremely extensible via to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
 
-It's also HTTP agent agnostic, so you can use `theon` with [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other agent via [adapters](#http-adapters).
+It's also HTTP agent agnostic, so you can use `theon` with [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [fetch](https://fetch.spec.whatwg.org), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other agent via [adapters](#http-adapters).
 
 To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
