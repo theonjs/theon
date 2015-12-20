@@ -151,6 +151,13 @@ function Base (ctx) {
   Base.defineAccessors(this)
 }
 
+/**
+ * Attach a parent object to the current instance.
+ * @param {Base} parent
+ * @method useParent
+ * @return {this}
+ */
+
 Base.prototype.useParent = function (parent) {
   if (!(parent instanceof Base)) {
     throw new TypeError('Parent context is invalid')
@@ -162,21 +169,57 @@ Base.prototype.useParent = function (parent) {
   return this
 }
 
+/**
+ * Extend options object.
+ * @param {Object} opts
+ * @method options
+ * @return {this}
+ */
+
 Base.prototype.options = function (opts) {
   utils.extend(this.ctx.opts, opts)
   return this
 }
+
+/**
+ * Force to persist given options.
+ * They won't be overwritten.
+ *
+ * @param {Object} opts
+ * @method persistOptions
+ * @return {this}
+ */
 
 Base.prototype.persistOptions = function (opts) {
   this.ctx.persistent.opts = opts
   return this
 }
 
+/**
+ * Attach a middleware function to the incoming request phase.
+ *
+ * @param {Function} middleware
+ * @method use
+ * @alias useRequest
+ * @return {this}
+ */
+
 Base.prototype.use =
 Base.prototype.useRequest = function (middleware) {
   this.ctx.middleware.use('middleware request', middleware)
   return this
 }
+
+/**
+ * Attach a middleware function to the request phase, limited
+ * to the current entity phase, meaning other entities
+ * won't trigger this middleware.
+ *
+ * @param {Function} middleware
+ * @method useEntity
+ * @alias useEntityRequest
+ * @return {this}
+ */
 
 Base.prototype.useEntity =
 Base.prototype.useEntityRequest = function (middleware) {
@@ -185,10 +228,28 @@ Base.prototype.useEntityRequest = function (middleware) {
   return this
 }
 
+/**
+ * Attach a middleware function to the response phase.
+ *
+ * @param {Function} middleware
+ * @method useResponse
+ * @return {this}
+ */
+
 Base.prototype.useResponse = function (middleware) {
   this.ctx.middleware.use('middleware response', middleware)
   return this
 }
+
+/**
+ * Attach a middleware function to the response phase, limited
+ * to the current entity phase, meaning other entities
+ * won't trigger this middleware.
+ *
+ * @param {Function} middleware
+ * @method useEntityResponse
+ * @return {this}
+ */
 
 Base.prototype.useEntityResponse = function (middleware) {
   var phase = 'middleware response ' + this.entityHierarchy
@@ -196,21 +257,56 @@ Base.prototype.useEntityResponse = function (middleware) {
   return this
 }
 
+/**
+ * Attach an observer middleware function to the before request phase.
+ *
+ * @param {Function} middleware
+ * @method before
+ * @return {this}
+ */
+
 Base.prototype.before = function (middleware) {
   this.ctx.middleware.use('before', middleware)
   return this
 }
+
+/**
+ * Attach an observer middleware function to the after request phase.
+ *
+ * @param {Function} middleware
+ * @method after
+ * @return {this}
+ */
 
 Base.prototype.after = function (middleware) {
   this.ctx.middleware.use('after', middleware)
   return this
 }
 
+/**
+ * Attach a request validator middleware function.
+ *
+ * @param {Function} middleware
+ * @method validator
+ * @alias requestValidator
+ * @return {this}
+ */
+
 Base.prototype.validator =
 Base.prototype.requestValidator = function (middleware) {
   this.ctx.middleware.use('validator request', middleware)
   return this
 }
+
+/**
+ * Attach an entity specific validator middleware
+ * function to the request phase.
+ *
+ * @param {Function} middleware
+ * @method entityValidator
+ * @alias entityRequestValidator
+ * @return {this}
+ */
 
 Base.prototype.entityValidator =
 Base.prototype.entityRequestValidator = function (middleware) {
@@ -219,10 +315,27 @@ Base.prototype.entityRequestValidator = function (middleware) {
   return this
 }
 
+/**
+ * Attach a response validator middleware function to the request phase.
+ *
+ * @param {Function} middleware
+ * @method responseValidator
+ * @return {this}
+ */
+
 Base.prototype.responseValidator = function (middleware) {
   this.ctx.middleware.use('validator response', middleware)
   return this
 }
+
+/**
+ * Attach an entity specific validator middleware
+ * function to the request phase.
+ *
+ * @param {Function} middleware
+ * @method entityResponseValidator
+ * @return {this}
+ */
 
 Base.prototype.entityResponseValidator = function (middleware) {
   var phase = 'validator response ' + this.entityHierarchy
@@ -230,25 +343,71 @@ Base.prototype.entityResponseValidator = function (middleware) {
   return this
 }
 
+/**
+ * Attach a request interceptor middleware function
+ * that will be executed before network dialing phase.
+ *
+ * @param {Function} interceptor
+ * @method interceptor
+ * @return {this}
+ */
+
 Base.prototype.interceptor = function (interceptor) {
   this.ctx.middleware.use('before dial', interceptor)
   return this
 }
+
+/**
+ * Attach a request interceptor middleware function limited
+ * to the scope of the current entity.
+ *
+ * @param {Function} interceptor
+ * @method entityInterceptor
+ * @return {this}
+ */
 
 Base.prototype.entityInterceptor = function (interceptor) {
   this.ctx.middleware.use('before dial ' + this.entityHierarchy, interceptor)
   return this
 }
 
+/**
+ * Attach a request evaluator strategy in order to detemine
+ * if the current request was failed or not.
+ *
+ * @param {Function} evaluator
+ * @method evaluator
+ * @return {this}
+ */
+
 Base.prototype.evaluator = function (evaluator) {
   this.ctx.middleware.use('before response', evaluator)
   return this
 }
 
+/**
+ * Attach a request evaluator strategy in order to detemine
+ * if the current request was failed or not limited to the
+ * scope of the current entity.
+ *
+ * @param {Function} evaluator
+ * @method entityEvaluator
+ * @return {this}
+ */
+
 Base.prototype.entityEvaluator = function (evaluator) {
   this.ctx.middleware.use('before response' + this.entityHierarchy, evaluator)
   return this
 }
+
+/**
+ * Test if the given request params are valid or not, executing the
+ * evaluator pool. Callback will be resolved with error or boolean.
+ *
+ * @param {Function} cb
+ * @method validate
+ * @return {this}
+ */
 
 Base.prototype.validate = function (cb) {
   var req = this.raw()
@@ -258,15 +417,43 @@ Base.prototype.validate = function (cb) {
   return this
 }
 
+/**
+ * Attach a new observer middleware hook to a custom phase.
+ *
+ * @param {String} phase
+ * @param {Function} hook
+ * @method observe
+ * @return {this}
+ */
+
 Base.prototype.observe = function (phase, hook) {
   this.ctx.middleware.use(phase, hook)
   return this
 }
 
+/**
+ * Attach a new observer middleware hook to a custom phase
+ * limited to the scope of the current entity.
+ *
+ * @param {String} phase
+ * @param {Function} hook
+ * @method observeEntity
+ * @return {this}
+ */
+
 Base.prototype.observeEntity = function (phase, hook) {
   this.ctx.middleware.use(phase + ' ' + this.entityHierarchy, hook)
   return this
 }
+
+/**
+ * Attach a new plugin.
+ *
+ * @param {Function} plugin
+ * @method plugin
+ * @alias usePlugin
+ * @return {this}
+ */
 
 Base.prototype.plugin =
 Base.prototype.usePlugin = function (plugin) {
@@ -279,6 +466,14 @@ Base.prototype.usePlugin = function (plugin) {
 
   return this
 }
+
+/**
+ * Retrieve a plugin searching by name or function reference.
+ *
+ * @param {String|Function} search
+ * @method getPlugin
+ * @return {Function}
+ */
 
 Base.prototype.getPlugin = function (search) {
   return this.plugins.reduce(function (match, plugin) {
@@ -295,10 +490,27 @@ Base.prototype.getPlugin = function (search) {
   }
 }
 
+/**
+ * Bind body to a given model.
+ *
+ * @param {Function} model
+ * @method model
+ * @return {this}
+ */
+
 Base.prototype.model = function (model) {
   this.useResponse(middleware.model(model))
   return this
 }
+
+/**
+ * Bind a function to map/modify/transform response body.
+ *
+ * @param {Function} mapper
+ * @method map
+ * @alias bodyMap
+ * @return {this}
+ */
 
 Base.prototype.map =
 Base.prototype.bodyMap = function (mapper) {
@@ -306,7 +518,17 @@ Base.prototype.bodyMap = function (mapper) {
   return this
 }
 
-Base.prototype.agent = function (agent) {
+/**
+ * Set the HTTP agent adapter to be used for network dialing.
+ *
+ * @param {String|Function} agent
+ * @method agent
+ * @alias useAgent
+ * @return {this}
+ */
+
+Base.prototype.agent =
+Base.prototype.useAgent = function (agent) {
   if (typeof agent === 'string') {
     agent = agents.get(agent)
   }
@@ -317,24 +539,62 @@ Base.prototype.agent = function (agent) {
   return this
 }
 
+/**
+ * Extend the HTTP agent specific options to be used when calling the adapter.
+ *
+ * @param {Object} opts
+ * @method agentOpts
+ * @return {this}
+ */
+
 Base.prototype.agentOpts = function (opts) {
   utils.extend(this.ctx.agentOpts, opts)
   return this
 }
+
+/**
+ * Set the HTTP agent specific options to be used when calling the adapter.
+ *
+ * @param {Object} opts
+ * @method setAgentOpts
+ * @return {this}
+ */
 
 Base.prototype.setAgentOpts = function (opts) {
   this.ctx.agentOpts = opts
   return this
 }
 
+/**
+ * Set persistent HTTP agent specific options.
+ *
+ * @param {Object} opts
+ * @method persistAgentOpts
+ * @return {this}
+ */
+
 Base.prototype.persistAgentOpts = function (opts) {
   this.ctx.persistent.agentOpts = opts
   return this
 }
 
+/**
+ * Retrieve the current context store instance.
+ *
+ * @method getStore
+ * @return {Store}
+ */
+
 Base.prototype.getStore = function () {
   return this.ctx.store
 }
+
+/**
+ * Retrieve the root parent entity.
+ *
+ * @method getRoot
+ * @return {Entity}
+ */
 
 Base.prototype.getRoot = function () {
   return this.parent
@@ -342,11 +602,26 @@ Base.prototype.getRoot = function () {
     : this
 }
 
+/**
+ * Retrieve the public API engine client.
+ *
+ * @method getApi
+ * @return {EngineClient}
+ */
+
 Base.prototype.getApi = function () {
   return this.parent
     ? this.parent.api
     : this.publicClient
 }
+
+/**
+ * Retrieve the entity hierarchy based on the parent entities.
+ * This method is mostly used internally to trigger entity specific hooks.
+ *
+ * @method getEntityHierarchy
+ * @return {String}
+ */
 
 Base.prototype.getEntityHierarchy = function () {
   var name = ''
@@ -408,8 +683,8 @@ module.exports = Context
  * Context provides a hierarhical domain specific interface
  * used by each HTTP transaction configure and store HTTP data and middleware.
  *
- * Context provides a consistent interface for both internal use
- * and end API consumers.
+ * Context provides a consistent interface for internal use and
+ * middleware/plugin developers.
  *
  * @param {Context} ctx - Optional parent context.
  * @constructor
@@ -438,6 +713,13 @@ function Context (ctx) {
   if (ctx) this.useParent(ctx)
 }
 
+/**
+ * Stores protected instance properties.
+ *
+ * @property {Array} fields
+ * @static
+ */
+
 Context.fields = [
   'opts',
   'headers',
@@ -446,6 +728,14 @@ Context.fields = [
   'cookies',
   'agentOpts'
 ]
+
+/**
+ * Attaches a new entity as parent entity.
+ *
+ * @param {Context} parent
+ * @method useParent
+ * @return {this}
+ */
 
 Context.prototype.useParent = function (parent) {
   this.parent = parent
@@ -457,8 +747,15 @@ Context.prototype.useParent = function (parent) {
   return this
 }
 
+/**
+ * Returns the current context data as raw object.
+ *
+ * @method raw
+ * @return {Object}
+ */
+
 Context.prototype.raw = function () {
-  var data = this.mergeParams()
+  var data = this.merge()
   data.agent = this.agent
 
   // Expose needed members
@@ -471,7 +768,14 @@ Context.prototype.raw = function () {
   return data
 }
 
-Context.prototype.mergeParams = function () {
+/**
+ * Merges current context and parent context data.
+ *
+ * @method merge
+ * @return {Object}
+ */
+
+Context.prototype.merge = function () {
   var data = {}
   var parent = this.parent ? this.parent.raw() : {}
 
@@ -490,6 +794,13 @@ Context.prototype.mergeParams = function () {
   return data
 }
 
+/**
+ * Merge current context and parent path params.
+ *
+ * @method renderParams
+ * @return {Object}
+ */
+
 Context.prototype.renderParams = function (req) {
   var params = req.params = req.params || {}
   var ctx = this
@@ -503,14 +814,35 @@ Context.prototype.renderParams = function (req) {
   return params
 }
 
+/**
+ * Creates another context inheriting data from the current instance.
+ *
+ * @method clone
+ * @return {Context}
+ */
+
 Context.prototype.clone = function () {
   var ctx = new Context()
   return ctx.useParent(this)
 }
 
+/**
+ * Builds the current path.
+ *
+ * @method buildPath
+ * @return {String}
+ */
+
 Context.prototype.buildPath = function () {
   return Context.buildPath(this)
 }
+
+/**
+ * Build URL path.
+ *
+ * @method buildPath
+ * @static
+ */
 
 Context.buildPath = function buildPath (ctx) {
   var base = ''
@@ -549,6 +881,14 @@ module.exports = Dispatcher
 function Dispatcher (req) {
   this.req = req
 }
+
+/**
+ * Trigger the dispatcher process for the current request.
+ *
+ * @param {Function} cb
+ * @return {Request}
+ * @method run
+ */
 
 Dispatcher.prototype.run = function (cb) {
   cb = cb || noop
@@ -596,6 +936,15 @@ Dispatcher.prototype.run = function (cb) {
   return this.req
 }
 
+/**
+ * Trigger the before phase.
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ * @method before
+ */
+
 Dispatcher.prototype.before = function (req, res, next) {
   utils.series([
     function before (next) {
@@ -607,6 +956,15 @@ Dispatcher.prototype.before = function (req, res, next) {
   ], next, this)
 }
 
+/**
+ * Trigger the after phase.
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ * @method after
+ */
+
 Dispatcher.prototype.after = function (req, res, next) {
   utils.series([
     function response (next) {
@@ -617,6 +975,15 @@ Dispatcher.prototype.after = function (req, res, next) {
     }
   ], next, this)
 }
+
+/**
+ * Trigger the network dialing phase.
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ * @method dial
+ */
 
 Dispatcher.prototype.dial = function (req, res, next) {
   var url = req.opts.rootUrl || ''
@@ -634,14 +1001,25 @@ Dispatcher.prototype.dial = function (req, res, next) {
     function before (next) {
       this.runMiddleware('before dial', req, res, next)
     },
-    this.dialer,
+    function (req, res, next) {
+      this.doDial(req, res, next)
+    },
     function after (req, res, next) {
       this.runMiddleware('after dial', req, res, next)
     }
   ], next, this)
 }
 
-Dispatcher.prototype.dialer = function (req, res, next) {
+/**
+ * Performs HTTP network dialing.
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ * @method doDial
+ */
+
+Dispatcher.prototype.doDial = function (req, res, next) {
   var nextFn = utils.once(forward(req, res, next))
 
   // Call the HTTP agent adapter
@@ -663,6 +1041,16 @@ Dispatcher.prototype.dialer = function (req, res, next) {
   }
 }
 
+/**
+ * Runs a custom hook by event name.
+ *
+ * @param {String} event
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ * @method runHook
+ */
+
 Dispatcher.prototype.runHook = function (event, req, res, next) {
   utils.series([
     function global (next) {
@@ -673,6 +1061,16 @@ Dispatcher.prototype.runHook = function (event, req, res, next) {
     }
   ], next, this)
 }
+
+/**
+ * Runs a custom hook phase by name.
+ *
+ * @param {String} phase
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ * @method runPhase
+ */
 
 Dispatcher.prototype.runPhase = function (phase, req, res, next) {
   utils.series([
@@ -690,6 +1088,17 @@ Dispatcher.prototype.runPhase = function (phase, req, res, next) {
     }
   ], next, this)
 }
+
+/**
+ * Runs a custom middleware stack by name.
+ *
+ * @param {String} stack
+ * @param {String} phase
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ * @method runStack
+ */
 
 Dispatcher.prototype.runStack = function (stack, phase, req, res, next) {
   var event = stack + ' ' + phase
@@ -710,6 +1119,16 @@ Dispatcher.prototype.runStack = function (stack, phase, req, res, next) {
   ], next, this)
 }
 
+/**
+ * Runs a middleware stack by entity name.
+ *
+ * @param {String} event
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ * @method runEntity
+ */
+
 Dispatcher.prototype.runEntity = function (event, req, res, next) {
   if (!req.client) return next(null, req, res)
 
@@ -719,6 +1138,16 @@ Dispatcher.prototype.runEntity = function (event, req, res, next) {
   var phase = event + ' ' + hierarchy
   this.runMiddleware(phase, req, res, next)
 }
+
+/**
+ * Runs a context middleware stack by name.
+ *
+ * @param {String} event
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ * @method runMiddleware
+ */
 
 Dispatcher.prototype.runMiddleware = function (event, req, res, next) {
   req.ctx.middleware.run(event, req, res, forward(req, res, next))
@@ -1640,9 +2069,25 @@ function Store (store) {
   this.map = Object.create(null)
 }
 
+/**
+ * Get value looking by key in parent stores.
+ *
+ * @param {String} key
+ * @return {Mixed}
+ * @method getParent
+ */
+
 Store.prototype.getParent = function (key) {
   if (this.parent) return this.parent.get(key)
 }
+
+/**
+ * Get value looking by key in current and parent stores.
+ *
+ * @param {String} key
+ * @return {Mixed}
+ * @method get
+ */
 
 Store.prototype.get = function (key) {
   var value = this.map[key]
@@ -1650,21 +2095,61 @@ Store.prototype.get = function (key) {
   return this.getParent(key)
 }
 
+/**
+ * Set a value by key in current store.
+ *
+ * @param {String} key
+ * @param {Mixed} value
+ * @return {Mixed}
+ * @method set
+ */
+
 Store.prototype.set = function (key, value) {
   if (key) this.map[key] = value
 }
+
+/**
+ * Set a value by key in the parent store.
+ *
+ * @param {String} key
+ * @param {Mixed} value
+ * @return {Mixed}
+ * @method setParent
+ */
 
 Store.prototype.setParent = function (key, value) {
   if (this.parent) this.parent.set(key, value)
 }
 
+/**
+ * Attaches a new parent store.
+ *
+ * @param {Store} parent
+ * @method useParent
+ */
+
 Store.prototype.useParent = function (parent) {
   this.parent = parent
 }
 
+/**
+ * Removes a key and value in the current store.
+ *
+ * @param {String} key
+ * @method remove
+ */
+
 Store.prototype.remove = function (key) {
   this.map[key] = undefined
 }
+
+/**
+ * Checks if the given key exists in current and parent stores.
+ *
+ * @param {String} key
+ * @return {Boolean}
+ * @method has
+ */
 
 Store.prototype.has = function (key) {
   return this.get(key) !== undefined
@@ -1791,8 +2276,8 @@ Theon.entities = require('./entities')
  */
 
 Object.keys(Theon.entities).forEach(function (name) {
-  Theon[name.toLowerCase()] = function (arg, arg2) {
-    return new Theon.entities[name](arg, arg2)
+  Theon[name.toLowerCase()] = function (x, y) {
+    return new Theon.entities[name](x, y)
   }
 })
 
