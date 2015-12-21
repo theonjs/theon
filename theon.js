@@ -27,7 +27,7 @@ function adapter (res, _res) {
   return res
 }
 
-},{"lil-http":38}],3:[function(require,module,exports){
+},{"lil-http":37}],3:[function(require,module,exports){
 var isBrowser = typeof window !== 'undefined'
 
 var agents = exports.agents = isBrowser
@@ -122,7 +122,7 @@ function adapter (res, _res, body) {
   return res
 }
 
-},{"../../utils":30,"request":37}],6:[function(require,module,exports){
+},{"../../utils":30,"request":36}],6:[function(require,module,exports){
 var utils = require('./utils')
 var agents = require('./agents')
 var Context = require('./context')
@@ -862,7 +862,8 @@ function mergeHeaders () {
   return utils.normalize(utils.merge.apply(null, arguments))
 }
 
-},{"./agents":3,"./store":23,"./utils":30,"midware-pool":39}],8:[function(require,module,exports){
+},{"./agents":3,"./store":23,"./utils":30,"midware-pool":38}],8:[function(require,module,exports){
+var pathParams = require('path-params')
 var utils = require('./utils')
 var Response = require('./http/response')
 
@@ -989,7 +990,7 @@ Dispatcher.prototype.dial = function (req, res, next) {
   var url = req.opts.rootUrl || ''
   var path = req.ctx.buildPath()
   var params = req.ctx.renderParams(req)
-  var fullPath = utils.pathParams(path, params)
+  var fullPath = pathParams(path, params)
 
   // If returned an error, fail with it
   if (fullPath instanceof Error) return next(fullPath)
@@ -1161,7 +1162,7 @@ function forward (req, res, next) {
 
 function noop () {}
 
-},{"./http/response":19,"./utils":30}],9:[function(require,module,exports){
+},{"./http/response":19,"./utils":30,"path-params":41}],9:[function(require,module,exports){
 var Base = require('../base')
 var Request = require('../http/request')
 var Response = require('../http/response')
@@ -2248,6 +2249,7 @@ Theon.entities = require('./entities')
  * @param {String} url
  * @method client
  * @return {Client}
+ * @memberof {Theon}
  * @static
  */
 
@@ -2256,6 +2258,7 @@ Theon.entities = require('./entities')
  * @param {String} name
  * @method resource
  * @return {Resource}
+ * @memberof {Theon}
  * @static
  */
 
@@ -2264,6 +2267,7 @@ Theon.entities = require('./entities')
  * @param {String} name
  * @method collection
  * @return {Collection}
+ * @memberof {Theon}
  * @static
  */
 
@@ -2272,6 +2276,7 @@ Theon.entities = require('./entities')
  * @param {String} url
  * @method mixin
  * @return {Mixin}
+ * @memberof {Theon}
  * @static
  */
 
@@ -2342,11 +2347,10 @@ module.exports = {
   series: require('./series'),
   extend: require('./extend'),
   normalize: require('./normalize'),
-  capitalize: require('./capitalize'),
-  pathParams: require('./path-params')
+  capitalize: require('./capitalize')
 }
 
-},{"./capitalize":26,"./clone":27,"./extend":28,"./has":29,"./lower":31,"./merge":32,"./normalize":33,"./once":34,"./path-params":35,"./series":36}],31:[function(require,module,exports){
+},{"./capitalize":26,"./clone":27,"./extend":28,"./has":29,"./lower":31,"./merge":32,"./normalize":33,"./once":34,"./series":35}],31:[function(require,module,exports){
 module.exports = function lower (str) {
   return typeof str === 'string'
     ? str.toLowerCase()
@@ -2389,98 +2393,6 @@ module.exports = function once (fn) {
 }
 
 },{}],35:[function(require,module,exports){
-// Originally taken from pillarjs/path-to-regexp package:
-// https://github.com/pillarjs/path-to-regexp
-var PATH_REGEXP = new RegExp([
-  // Match escaped characters that would otherwise appear in future matches.
-  // This allows the user to escape special characters that won't transform.
-  '(\\\\.)',
-  // Match Express-style parameters and un-named parameters with a prefix
-  // and optional suffixes. Matches appear as:
-  //
-  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?", undefined]
-  // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined, undefined]
-  // "/*"            => ["/", undefined, undefined, undefined, undefined, "*"]
-  '([\\/.])?(?:(?:\\:(\\w+)(?:\\(((?:\\\\.|[^()])+)\\))?|\\(((?:\\\\.|[^()])+)\\))([+*?])?|(\\*))'
-].join('|'), 'g')
-
-module.exports = function (path, params) {
-  return parse(path).reduce(function (path, token) {
-    if (path instanceof Error) return path
-    if (typeof token === 'string') return path
-
-    var value = params[token.name]
-    if (value == null) {
-      return new Error('Missing path param: ' + token.name)
-    }
-
-    var type = typeof value
-    if (type !== 'string' && type !== 'number') {
-      return new Error('Invalid type for path param: ' + token.name + ' = ' + type)
-    }
-
-    var replace = new RegExp(':' + token.name, 'g')
-    return path.replace(replace, value)
-  }, path)
-}
-
-function parse (str) {
-  var tokens = []
-  var key = 0
-  var index = 0
-  var path = ''
-  var res
-
-  while ((res = PATH_REGEXP.exec(str)) != null) {
-    var m = res[0]
-    var escaped = res[1]
-    var offset = res.index
-    path += str.slice(index, offset)
-    index = offset + m.length
-
-    // Ignore already escaped sequences.
-    if (escaped) {
-      path += escaped[1]
-      continue
-    }
-
-    // Push the current path onto the tokens.
-    if (path) {
-      tokens.push(path)
-      path = ''
-    }
-
-    var prefix = res[2]
-    var name = res[3]
-    var suffix = res[6]
-
-    var repeat = suffix === '+' || suffix === '*'
-    var optional = suffix === '?' || suffix === '*'
-    var delimiter = prefix || '/'
-
-    tokens.push({
-      name: name || key++,
-      prefix: prefix || '',
-      delimiter: delimiter,
-      optional: optional,
-      repeat: repeat
-    })
-  }
-
-  // Match any characters still remaining.
-  if (index < str.length) {
-    path += str.substr(index)
-  }
-
-  // If the path exists, push it onto the end.
-  if (path) {
-    tokens.push(path)
-  }
-
-  return tokens
-}
-
-},{}],36:[function(require,module,exports){
 var once = require('./once')
 var slicer = Array.prototype.slice
 
@@ -2501,9 +2413,9 @@ module.exports = function series (arr, cb, ctx) {
   next()
 }
 
-},{"./once":34}],37:[function(require,module,exports){
+},{"./once":34}],36:[function(require,module,exports){
 
-},{}],38:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 /*! lil-http - v0.1.16 - MIT License - https://github.com/lil-js/http */
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -2808,7 +2720,7 @@ module.exports = function series (arr, cb, ctx) {
   return exports.http = http
 }))
 
-},{}],39:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 var midware = require('midware')
 var MiddlewarePool = require('./pool')
 
@@ -2821,7 +2733,7 @@ function pool(parent) {
 pool.Pool = 
 pool.MiddlewarePool = MiddlewarePool
 pool.midware = midware
-},{"./pool":40,"midware":41}],40:[function(require,module,exports){
+},{"./pool":39,"midware":40}],39:[function(require,module,exports){
 var midware = require('midware')
 
 module.exports = MiddlewarePool
@@ -2910,7 +2822,7 @@ function toArr(args, index) {
   return [].slice.call(args, index || 0)
 }
 
-},{"midware":41}],41:[function(require,module,exports){
+},{"midware":40}],40:[function(require,module,exports){
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define(['exports'], factory)
@@ -2999,6 +2911,115 @@ function toArr(args, index) {
   
   midware.VERSION = '0.1.7'
   exports.midware = midware
+}))
+
+},{}],41:[function(require,module,exports){
+/*! path-params - MIT License - https://github.com/h2non/path-params */
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define(['exports'], factory)
+  } else if (typeof exports === 'object') {
+    factory(exports)
+    if (typeof module === 'object' && module !== null) {
+      module.exports = exports = exports.pathParams
+    }
+  } else {
+    factory(root)
+  }
+}(this, function (exports) {
+  'use strict'
+
+  // Originally taken from pillarjs/path-to-regexp package:
+  var PATH_REGEXP = new RegExp([
+    // Match escaped characters that would otherwise appear in future matches.
+    // This allows the user to escape special characters that won't transform.
+    '(\\\\.)',
+    // Match Express-style parameters and un-named parameters with a prefix
+    // and optional suffixes. Matches appear as:
+    //
+    // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?", undefined]
+    // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined, undefined]
+    // "/*"            => ["/", undefined, undefined, undefined, undefined, "*"]
+    '([\\/.])?(?:(?:\\:(\\w+)(?:\\(((?:\\\\.|[^()])+)\\))?|\\(((?:\\\\.|[^()])+)\\))([+*?])?|(\\*))'
+  ].join('|'), 'g')
+
+  function pathParams (path, params) {
+    return parse(path).reduce(function (path, token) {
+      if (path instanceof Error) return path
+      if (typeof token === 'string') return path
+
+      var value = params[token.name]
+      if (value == null) {
+        return new Error('Missing path param: ' + token.name)
+      }
+
+      var type = typeof value
+      if (type !== 'string' && type !== 'number') {
+        return new Error('Invalid type for path param: ' + token.name + ' = ' + type)
+      }
+
+      var replace = new RegExp(':' + token.name, 'g')
+      return path.replace(replace, value)
+    }, path)
+  }
+
+  function parse (str) {
+    var tokens = []
+    var key = 0
+    var index = 0
+    var path = ''
+    var res
+
+    while ((res = PATH_REGEXP.exec(str)) != null) {
+      var m = res[0]
+      var escaped = res[1]
+      var offset = res.index
+      path += str.slice(index, offset)
+      index = offset + m.length
+
+      // Ignore already escaped sequences.
+      if (escaped) {
+        path += escaped[1]
+        continue
+      }
+
+      // Push the current path onto the tokens.
+      if (path) {
+        tokens.push(path)
+        path = ''
+      }
+
+      var prefix = res[2]
+      var name = res[3]
+      var suffix = res[6]
+
+      var repeat = suffix === '+' || suffix === '*'
+      var optional = suffix === '?' || suffix === '*'
+      var delimiter = prefix || '/'
+
+      tokens.push({
+        name: name || key++,
+        prefix: prefix || '',
+        delimiter: delimiter,
+        optional: optional,
+        repeat: repeat
+      })
+    }
+
+    // Match any characters still remaining.
+    if (index < str.length) {
+      path += str.substr(index)
+    }
+
+    // If the path exists, push it onto the end.
+    if (path) {
+      tokens.push(path)
+    }
+
+    return tokens
+  }
+
+  exports.pathParams = pathParams
 }))
 
 },{}]},{},[24])(24)
