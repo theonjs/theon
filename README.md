@@ -7,7 +7,7 @@ It was designed to be extremely extensible via to its built-in hierarchical [mid
 
 It's also HTTP agent agnostic, so you can use `theon` with [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [fetch](https://fetch.spec.whatwg.org), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other agent via [adapters](#http-adapters).
 
-To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
+To get started, take a look to [core concepts](#entities), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
 Note: `theon` is still beta. Feel free to report any issues or features requests.
 
