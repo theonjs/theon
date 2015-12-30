@@ -1,13 +1,12 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Codacy Badge](https://api.codacy.com/project/badge/grade/a612f7996c864d47915a0d268d7e720a)](https://www.codacy.com/app/tomas/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com) [![jsdoc-reference](https://img.shields.io/badge/jsdoc-reference-blue.svg)](http://jsdocs.herokuapp.com/github.com/h2non/theon)
 
-Lightweight, dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to create rich, domain-specific and fluent programmatic API clients and SDKs in node.js and browsers.
+Lightweight, dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to create rich, domain-specific and fluent programmatic API clients and SDKs in node.js and browsers which interacts with one or multiple HTTP layers.
 
-Provides a convenient abstraction, declarative and semantic interface to create rich API clients which interacts with one or multiple HTTP layers.
 It was designed to be extremely extensible via to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
 
 It's also HTTP agent agnostic, so you can use `theon` with [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [fetch](https://fetch.spec.whatwg.org), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other agent via [adapters](#http-adapters).
 
-To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
+To get started, take a look to [core concepts](#entities), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
 `theon` is currently used in both node.js and browser production applications.
 Feel free to report any issues or feature requests.
