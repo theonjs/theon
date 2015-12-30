@@ -8,7 +8,7 @@ module.exports = function (req, res, done) {
   var client = require('lil-http')
 
   return client(req, function (err, _res) {
-    done(err, adapter(res, _res))
+    done(err, adapter(res, err || _res))
   })
 }
 
@@ -2734,10 +2734,12 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.20'
+Theon.VERSION = '0.1.21'
 
 /**
  * Force to define a max stack trace
+ * @memberof Error
+ * @static
  * @ignore
  */
 

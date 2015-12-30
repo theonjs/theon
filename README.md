@@ -9,7 +9,8 @@ It's also HTTP agent agnostic, so you can use `theon` with [superagent](https://
 
 To get started, take a look to [core concepts](#concepts), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
-Note: `theon` is still beta. Feel free to report any issues or features requests.
+`theon` is currently used in both node.js and browser production applications.
+Feel free to report any issues or feature requests.
 
 ## Contents
 

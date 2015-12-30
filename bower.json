@@ -1,6 +1,6 @@
 {
   "name": "theon",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "A library to build domain-specific, extensible and expressive HTTP API clients",
   "license": "MIT",
   "repository": "h2non/theon",
