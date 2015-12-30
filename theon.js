@@ -2745,7 +2745,7 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.22'
+Theon.VERSION = '0.1.23'
 
 /**
  * Force to define a max stack trace
@@ -2871,8 +2871,8 @@ module.exports = function series (arr, cb, ctx) {
 },{"./once":34}],36:[function(require,module,exports){
 
 },{}],37:[function(require,module,exports){
-/*! lil-http - v0.1.16 - MIT License - https://github.com/lil-js/http */
-(function (root, factory) {
+/*! lil-http - v0.1.17 - MIT License - https://github.com/lil-js/http */
+;(function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define(['exports'], factory)
   } else if (typeof exports === 'object') {
@@ -2886,7 +2886,7 @@ module.exports = function series (arr, cb, ctx) {
 }(this, function (exports) {
   'use strict'
 
-  var VERSION = '0.1.16'
+  var VERSION = '0.1.17'
   var toStr = Object.prototype.toString
   var slicer = Array.prototype.slice
   var hasOwn = Object.prototype.hasOwnProperty
@@ -2907,11 +2907,11 @@ module.exports = function series (arr, cb, ctx) {
     responseType: 'text'
   }
 
-  function isObj(o) {
+  function isObj (o) {
     return o && toStr.call(o) === '[object Object]' || false
   }
 
-  function assign(target) {
+  function assign (target) {
     var i, l, x, cur, args = slicer.call(arguments).slice(1)
     for (i = 0, l = args.length; i < l; i += 1) {
       cur = args[i]
@@ -2920,7 +2920,7 @@ module.exports = function series (arr, cb, ctx) {
     return target
   }
 
-  function once(fn) {
+  function once (fn) {
     var called = false
     return function () {
       if (called === false) {
@@ -2930,16 +2930,35 @@ module.exports = function series (arr, cb, ctx) {
     }
   }
 
-  function setHeaders(xhr, headers) {
-    if (isObj(headers)) {
-      headers['Content-Type'] = headers['Content-Type'] || http.defaultContent
-      for (var field in headers) if (hasOwn.call(headers, field)) {
-        xhr.setRequestHeader(field, headers[field])
+  function setHeaders (xhr, headers) {
+    if (!isObj(headers)) return
+
+    // Set default content type
+    headers['Content-Type'] = headers['Content-Type'] ||
+      headers['content-type'] ||
+      http.defaultContent
+
+    var buf = Object.keys(headers).reduce(function (buf, field) {
+      var lowerField = field.toLowerCase()
+
+      // Remove duplicated headers
+      if (lowerField !== field) {
+        if (hasOwn.call(headers, lowerField)) {
+          delete headers[lowerField]
+          delete buf[lowerField]
+        }
       }
-    }
+
+      buf[field] = headers[field]
+      return buf
+    }, {})
+
+    Object.keys(buf).forEach(function (field) {
+      xhr.setRequestHeader(field, buf[field])
+    })
   }
 
-  function getHeaders(xhr) {
+  function getHeaders (xhr) {
     var headers = {}, rawHeaders = xhr.getAllResponseHeaders().trim().split('\n')
     rawHeaders.forEach(function (header) {
       var split = header.trim().split(':')
@@ -2950,11 +2969,11 @@ module.exports = function series (arr, cb, ctx) {
     return headers
   }
 
-  function isJSONResponse(xhr) {
+  function isJSONResponse (xhr) {
     return jsonMimeRegex.test(xhr.getResponseHeader('Content-Type'))
   }
 
-  function encodeParams(params) {
+  function encodeParams (params) {
     return Object.getOwnPropertyNames(params).filter(function (name) {
       return params[name] !== undefined
     }).map(function (name) {
@@ -2963,7 +2982,7 @@ module.exports = function series (arr, cb, ctx) {
     }).join('&').replace(/%20/g, '+')
   }
 
-  function parseData(xhr) {
+  function parseData (xhr) {
     var data = null
     if (xhr.responseType === 'text') {
       data = xhr.responseText
@@ -2974,11 +2993,11 @@ module.exports = function series (arr, cb, ctx) {
     return data
   }
 
-  function getStatus(status) {
+  function getStatus (status) {
     return status === 1223 ? 204 : status // IE9 fix
   }
 
-  function buildResponse(xhr) {
+  function buildResponse (xhr) {
     var response = {
       xhr: xhr,
       status: getStatus(xhr.status),
@@ -2993,29 +3012,29 @@ module.exports = function series (arr, cb, ctx) {
     return response
   }
 
-  function buildErrorResponse(xhr, error) {
+  function buildErrorResponse (xhr, error) {
     var response = buildResponse(xhr)
     response.error = error
     if (error.stack) response.stack = error.stack
     return response
   }
 
-  function cleanReferences(xhr) {
+  function cleanReferences (xhr) {
     xhr.onreadystatechange = xhr.onerror = xhr.ontimeout = null
   }
 
-  function isValidResponseStatus(xhr) {
+  function isValidResponseStatus (xhr) {
     var status = getStatus(xhr.status)
     return status >= 200 && status < 300 || status === 304
   }
 
-  function onError(xhr, cb) {
+  function onError (xhr, cb) {
     return once(function (err) {
       cb(buildErrorResponse(xhr, err), null)
     })
   }
 
-  function onLoad(config, xhr, cb) {
+  function onLoad (config, xhr, cb) {
     return function (ev) {
       if (xhr.readyState === 4) {
         cleanReferences(xhr)
@@ -3028,12 +3047,12 @@ module.exports = function series (arr, cb, ctx) {
     }
   }
 
-  function isCrossOrigin(url) {
+  function isCrossOrigin (url) {
     var match = url.match(originRegex)
     return match && match[1] === origin
   }
 
-  function getURL(config) {
+  function getURL (config) {
     var url = config.url
     if (isObj(config.params)) {
       url += (url.indexOf('?') === -1 ? '?' : '&') + encodeParams(config.params)
@@ -3041,7 +3060,7 @@ module.exports = function series (arr, cb, ctx) {
     return url
   }
 
-  function XHRFactory(url) {
+  function XHRFactory (url) {
     if (hasDomainRequest && isCrossOrigin(url)) {
       return new XDomainRequest()
     } else {
@@ -3049,10 +3068,14 @@ module.exports = function series (arr, cb, ctx) {
     }
   }
 
-  function createClient(config) {
+  function createClient (config) {
     var method = (config.method || 'GET').toUpperCase()
     var auth = config.auth
     var url = getURL(config)
+
+    if (!url || typeof url !== 'string') {
+      throw new TypeError('Missing required request URL')
+    }
 
     var xhr = XHRFactory(url)
     if (auth) {
@@ -3067,7 +3090,7 @@ module.exports = function series (arr, cb, ctx) {
     return xhr
   }
 
-  function updateProgress(xhr, cb) {
+  function updateProgress (xhr, cb) {
     return function (ev) {
       if (ev.lengthComputable) {
         cb(ev, ev.loaded / ev.total)
@@ -3077,13 +3100,13 @@ module.exports = function series (arr, cb, ctx) {
     }
   }
 
-  function hasContentTypeHeader(config) {
+  function hasContentTypeHeader (config) {
     return config && isObj(config.headers)
-      && (config.headers['content-type'] || config.headers['Content-Type'])
-      || false
+    && (config.headers['content-type'] || config.headers['Content-Type'])
+    || false
   }
 
-  function buildPayload(xhr, config) {
+  function buildPayload (xhr, config) {
     var data = config.data
     if (isObj(config.data) || Array.isArray(config.data)) {
       if (hasContentTypeHeader(config) === false) {
@@ -3094,14 +3117,14 @@ module.exports = function series (arr, cb, ctx) {
     return data
   }
 
-  function timeoutResolver(cb, timeoutId) {
+  function timeoutResolver (cb, timeoutId) {
     return function () {
       clearTimeout(timeoutId)
       cb.apply(null, arguments)
     }
   }
 
-  function request(config, cb, progress) {
+  function request (config, cb, progress) {
     var xhr = createClient(config)
     var data = buildPayload(xhr, config)
     var errorHandler = onError(xhr, cb)
@@ -3109,7 +3132,7 @@ module.exports = function series (arr, cb, ctx) {
     if (hasBind) {
       xhr.ontimeout = errorHandler
     } else {
-      var timeoutId = setTimeout(function abort() {
+      var timeoutId = setTimeout(function abort () {
         if (xhr.readyState !== 4) {
           xhr.abort()
         }
@@ -3133,7 +3156,7 @@ module.exports = function series (arr, cb, ctx) {
     return { xhr: xhr, config: config }
   }
 
-  function requestFactory(method) {
+  function requestFactory (method) {
     return function (url, options, cb, progress) {
       var i, l, cur = null
       var config = assign({}, defaults, { method: method })
@@ -3158,7 +3181,7 @@ module.exports = function series (arr, cb, ctx) {
     }
   }
 
-  function http(config, data, cb, progress) {
+  function http (config, data, cb, progress) {
     return requestFactory('GET').apply(null, arguments)
   }
 
