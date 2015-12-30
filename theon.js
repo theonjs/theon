@@ -7,7 +7,18 @@ module.exports = {
 module.exports = function (req, res, done) {
   var client = require('lil-http')
 
-  return client(req, function (err, _res) {
+  var opts = {
+    url: req.url,
+    method: req.method,
+    auth: req.opts.auth,
+    params: req.query,
+    headers: req.headers,
+    timeout: +req.opts.timeout || +req.agentOpts.timeout,
+    withCredentials: req.agentOpts.withCredentials,
+    data: req.body
+  }
+
+  return client(opts, function (err, _res) {
     done(err, adapter(res, err || _res))
   })
 }
@@ -2734,7 +2745,7 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.21'
+Theon.VERSION = '0.1.22'
 
 /**
  * Force to define a max stack trace
