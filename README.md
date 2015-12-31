@@ -387,10 +387,13 @@ In other to be more pragmatic, `theon` provides by default two HTTP adapters for
 #### Node.js
 
 - [request](https://github.com/request/request) `default` - Popular and featured HTTP client
+- [superagent](https://github.com/theonjs/theon-superagent-adapter) - superagent HTTP adapter.
+- [resilient](https://github.com/theonjs/theon-resilient-adapter) - [resilient.js](https://github.com/resilient-http/resilient.js) HTTP adapter.
 
 #### Browsers
 
-- [lil-http](https://github.com/lil-js/http) `default` - Lightweight XHR wrapper for browsers
+- [lil-http](https://github.com/lil-js/http) `default` - Lightweight XHR wrapper for browsers.
+- [angular](https://github.com/theonjs/theon-angular-adapter) - Angular's $http adapter.
 
 ### API
 
