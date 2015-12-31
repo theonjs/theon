@@ -106,7 +106,7 @@ npm install theon --save
 
 Via bower:
 ```bash
-bower install theon --save
+bower install theon.js --save
 ```
 
 Or loading the script:
