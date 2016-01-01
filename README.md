@@ -84,6 +84,7 @@ Feel free to report any issues or feature requests.
 - Write APIs in a declarative and powerful way
 - Easily create domain-specific fluent APIs
 - Create API clients that are simple to use and easy to maintain
+- Decouple API definition from API consumption layer
 - Underline HTTP interface details from API consumers
 - Map HTTP interfaces and resources to programmatic entities
 - And make future changes silently from consumers eyes.
