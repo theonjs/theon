@@ -1031,6 +1031,10 @@ Alias: `helper`
 
 Attach a mixin to the current entity.
 
+#### Entity#useConstructor(fn)
+
+Define a custom entity constructor function. Only valid for `Resource` entity.
+
 #### Entity#addEntity(entity)
 
 Attach a custom subentity.
@@ -1043,7 +1047,12 @@ Retrieves a child entity looking by name.
 
 Retrieves a child collection entity looking by name.
 
+#### Entity#getCollection(name)
+
+Retrieves a child collection entity looking by name.
+
 #### Entity#getResource(name)
+Alias: `getAction`
 
 Retrieves a child resource entity looking by name.
 
