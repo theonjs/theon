@@ -1308,11 +1308,18 @@ Generator.prototype.renderEntity = function (entity) {
   var name = entity.name
   if (!name) throw new TypeError('Render error: missing entity name')
 
+  // Render entity and it's childs
   var value = entity.renderEntity()
-  var names = [ name ].concat(entity.aliases)
 
+  // Use entity constructor decorators
+  var decorator = entity.decorators.reduce(function (curr, decorator) {
+    return decorator.call(entity, curr) || curr
+  }, value)
+
+  // Define public accessors
+  var names = [ name ].concat(entity.aliases)
   names.forEach(function (name) {
-    this.define(name, value)
+    this.define(name, decorator || value)
   }, this)
 }
 
@@ -1420,6 +1427,7 @@ function Entity (name) {
   this.name = name
   this.aliases = []
   this.entities = []
+  this.decorators = []
   this.proto = Object.create(null)
 }
 
@@ -1499,6 +1507,14 @@ Entity.prototype.getEntity = function (name, type) {
 
 Entity.prototype.useConstructor = function () {
   throw new Error('Method only implemented for resource entity')
+}
+
+Entity.prototype.decorate =
+Entity.prototype.decorator = function (decorator) {
+  if (typeof decorator === 'function') {
+    this.decorators.push(decorator)
+  }
+  return this
 }
 
 Entity.prototype.meta = function (meta) {
@@ -2764,7 +2780,7 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.24'
+Theon.VERSION = '0.1.25'
 
 /**
  * Force to define a max stack trace
