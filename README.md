@@ -491,10 +491,14 @@ You can see an example [here](https://github.com/h2non/theon/blob/master/example
 
 ### Third-party plugins
 
-The library is still young at this time and there are not plugins available, however there're plans to to write a couple of them in a future. Here's is wish list:
+- [expect](https://github.com/theonjs/expect) - supertest inspired HTTP expectation for your tests.
 
-- **consul** - Server discovery using Consul.
-- **retry** - Provide a simple retry a policy in your API clients.
+#### Upcoming plugins
+
+Potential upcoming plugins based on my personal needs and wishes:
+
+- **consul** - Server discovery and balancing using Consul.
+- **retry** - Provide a simple retry logic policy in your API clients.
 - **JSONSchema** - Validate incoming and outgoing bodies againts a JSON schema.
 - **APIDocs** - Generate Swagger/Apiary docs reading the resource metadata annotations.
 

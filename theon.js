@@ -1463,6 +1463,9 @@ Entity.prototype.addEntity = function (entity) {
     entity.useParent(this)
   }
 
+  var existentEntity = this.getEntity(entity.name, entity.entity)
+  if (existentEntity) return existentEntity
+
   this.entities.push(entity)
   return entity
 }
@@ -1471,6 +1474,7 @@ Entity.prototype.getCollection = function (name) {
   return this.getEntity(name, 'collection')
 }
 
+Entity.prototype.getAction =
 Entity.prototype.getResource = function (name) {
   return this.getEntity(name, 'resource')
 }
@@ -1491,6 +1495,10 @@ Entity.prototype.getEntity = function (name, type) {
     }
     return null
   }, null)
+}
+
+Entity.prototype.useConstructor = function () {
+  throw new Error('Method only implemented for resource entity')
 }
 
 Entity.prototype.meta = function (meta) {
@@ -1616,6 +1624,11 @@ Resource.prototype = Object.create(Entity.prototype)
 
 Resource.prototype.entity = 'resource'
 
+Resource.prototype.useConstructor = function (fn) {
+  if (typeof fn === 'function') this.constructorFn = fn
+  return this
+}
+
 Resource.prototype.renderEntity = function () {
   var self = this
 
@@ -1627,6 +1640,12 @@ Resource.prototype.renderEntity = function () {
     var req = new Request()
     req.useParent(self)
 
+    // If has custom constructor, use it
+    if (self.constructorFn) {
+      return self.constructorFn.apply(req, arguments) || req
+    }
+
+    // Otherwise process arguments as options
     if (opts === Object(opts)) req.options(opts)
     if (typeof opts === 'function') cb = opts
 
@@ -2745,7 +2764,7 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.23'
+Theon.VERSION = '0.1.24'
 
 /**
  * Force to define a max stack trace
