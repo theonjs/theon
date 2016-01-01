@@ -1022,6 +1022,11 @@ Inherits from [`Request`](#request)
 
 Add an additional entity alias name.
 
+#### Entity#decorate(decorator)
+Alias: `decorator`
+
+Decorate entity constructor. See [examples/decorator.js](https://github.com/h2non/theon/blob/master/examples/decorator.js) for an example.
+
 #### Entity#collection(collection)
 
 Attach a collection to the current entity.

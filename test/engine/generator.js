@@ -7,6 +7,7 @@ suite('generator', function () {
     return {
       name: name,
       aliases: [ name + name ],
+      decorators: [],
       renderEntity: function () {
         return name
       }
@@ -68,5 +69,28 @@ suite('generator', function () {
     })
       .to.throw(Error)
       .to.match(/Naming conflict/i)
+  })
+
+  test('render with decorators', function () {
+    var entityFoo = new EntityStub('foo')
+    entityFoo.decorators = [
+      function (delegate) {
+        return delegate + '1'
+      },
+      function (delegate) {
+        return delegate + '2'
+      }
+    ]
+
+    var target = {}
+    var src = { entities: [ entityFoo ] }
+
+    var gen = new Generator(src)
+    gen.bind(target)
+
+    var tar = gen.render()
+    expect(tar).to.be.equal(target)
+    expect(tar).to.have.property('foo').to.be.equal('foo12')
+    expect(tar).to.have.property('foofoo').to.be.equal('foo12')
   })
 })
