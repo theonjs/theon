@@ -1,6 +1,8 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Codacy Badge](https://api.codacy.com/project/badge/grade/a612f7996c864d47915a0d268d7e720a)](https://www.codacy.com/app/tomas/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com) [![jsdoc-reference](https://img.shields.io/badge/jsdoc-reference-blue.svg)](http://jsdocs.herokuapp.com/github.com/h2non/theon)
 
-Lightweight, dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to create rich, domain-specific and fluent programmatic API clients and SDKs in node.js and browsers which interacts with one or multiple HTTP layers.
+> Because writting API clients should be simple and easy. Because using API client should be expressive and elegant.
+
+`theon` is a dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to design and create domain-specific and fluent programmatic API clients and SDKs in node.js and browsers to interact with one or multiple HTTP layers.
 
 It was designed to be extremely extensible via to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
 
