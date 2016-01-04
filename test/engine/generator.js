@@ -56,7 +56,7 @@ suite('generator', function () {
     expect(target).to.not.have.property('doRequest')
   })
 
-  test('render name conflict', function () {
+  test('cannot render while name conflict', function () {
     var src = {
       entities: [
         new EntityStub('foo'),
