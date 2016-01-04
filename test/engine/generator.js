@@ -68,7 +68,8 @@ suite('generator', function () {
       new Generator(src).render()
     })
       .to.throw(Error)
-      .to.match(/Naming conflict/i)
+      .to.match(/Name conflict/)
+      .to.match(/\"foo\" property is already defined$/)
   })
 
   test('render with decorators', function () {

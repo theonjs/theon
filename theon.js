@@ -1341,7 +1341,7 @@ Generator.prototype.define = function (name, value) {
 }
 
 function nameConflict (name) {
-  return new Error('Naming conflict: "' + name + '" property is already used')
+  return new Error('Name conflict: "' + name + '" property is already defined')
 }
 
 },{"../utils":30,"./client":9}],11:[function(require,module,exports){
