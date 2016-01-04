@@ -50,7 +50,64 @@ suite('theon', function () {
     var api = client.render()
     var publicApi = api.foo.bar.boo().api
 
-    expect(publicApi).to.have.property('foo').to.be.an('object')
+    expect(publicApi).to.have.property('foo').to.be.a('function')
+    expect(publicApi.foo).to.have.property('bar').to.be.a('function')
+    expect(publicApi.foo.bar).to.have.property('boo').to.be.a('function')
+  })
+
+  test('collection entity constructor arguments', function () {
+    var client = theon('http://localhost')
+      .collection('foo')
+      .useConstructor(function (path) {
+        this.basePath(path)
+      })
+      .resource('bar')
+      .resource('boo')
+
+    var api = client.render()
+    var collection = api.foo('/foo')
+    var publicApi = collection.bar.boo().api
+
+    expect(publicApi).to.have.property('foo').to.be.a('function')
+    expect(collection._client.ctx).to.have.property('opts').to.be.an('object')
+    expect(collection._client.ctx.opts).to.have.property('basePath').to.be.equal('/foo')
+    expect(publicApi.foo).to.have.property('bar').to.be.a('function')
+    expect(publicApi.foo.bar).to.have.property('boo').to.be.a('function')
+  })
+
+  test('multiple entity decorators with arguments', function () {
+    var client = theon('http://localhost')
+      .collection('foo')
+      .decorate(function (delegate) {
+        return function (path) {
+          var instance = delegate()
+          var collection = instance._client
+          collection.basePath(path)
+          return instance
+        }
+      })
+      .decorate(function (delegate) {
+        return function (path) {
+          var instance = delegate(path)
+          var collection = instance._client
+          var basePath = collection.ctx.opts.basePath
+          collection.basePath(basePath + path)
+          return instance
+        }
+      })
+      .resource('bar')
+      .resource('boo')
+
+    var api = client.render()
+    var collection = api.foo('/foo')
+    var publicApi = collection.bar.boo().api
+
+    expect(collection._client.ctx).to.have.property('opts').to.be.an('object')
+    expect(collection._client.ctx.opts).to.have.property('basePath').to.be.equal('/foo/foo')
+    expect(collection).to.have.property('bar').to.be.a('function')
+    expect(collection.bar).to.have.property('boo').to.be.a('function')
+
+    expect(publicApi).to.have.property('foo').to.be.a('function')
     expect(publicApi.foo).to.have.property('bar').to.be.a('function')
     expect(publicApi.foo.bar).to.have.property('boo').to.be.a('function')
   })

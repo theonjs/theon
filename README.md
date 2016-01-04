@@ -1027,7 +1027,9 @@ Add an additional entity alias name.
 #### Entity#decorate(decorator)
 Alias: `decorator`
 
-Decorate entity constructor. See [examples/decorator.js](https://github.com/h2non/theon/blob/master/examples/decorator.js) for an example.
+Decorate entity constructor.
+
+See [examples/decorator.js](https://github.com/h2non/theon/blob/master/examples/decorator.js) for an example.
 
 #### Entity#collection(collection)
 
@@ -1045,7 +1047,8 @@ Attach a mixin to the current entity.
 
 #### Entity#useConstructor(fn)
 
-Define a custom entity constructor function. Only valid for `Resource` entity.
+Define a custom entity constructor function.
+Only implemented for `Resource` and `Collection` entities.
 
 #### Entity#addEntity(entity)
 
