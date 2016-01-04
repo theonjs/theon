@@ -1312,15 +1312,48 @@ Generator.prototype.renderEntity = function (entity) {
   var value = entity.renderEntity()
 
   // Use entity constructor decorators
-  var decorator = entity.decorators.reduce(function (curr, decorator) {
-    return decorator.call(entity, curr) || curr
-  }, value)
+  var delegate = this.decorate(entity, value)
 
-  // Define public accessors
+  // Define name entity accessors
   var names = [ name ].concat(entity.aliases)
-  names.forEach(function (name) {
-    this.define(name, decorator || value)
-  }, this)
+  names.forEach(function (name) { this.define(name, delegate) }, this)
+}
+
+Generator.prototype.decorate = function (entity, delegate) {
+  // Use entity constructor decorators
+  var reduced = reduceDecorators(entity, delegate)
+
+  // If no decorators, delegate to original
+  if (reduced === delegate) return delegate
+
+  // If not a function, pass as delegator as it is
+  if (typeof reduced !== 'function') return reduced
+
+  // Create final decorator function
+  var decorator = decorate(reduced)
+
+  // Clone own properties to keep interface consistency
+  Object.keys(delegate)
+  .filter(function (key) {
+    return has(decorator, key) === false
+  })
+  .forEach(function (key) {
+    decorator[key] = delegate[key]
+  })
+
+  return decorator
+}
+
+function reduceDecorators (entity, delegate) {
+  return entity.decorators.reduce(function (curr, decorator) {
+    return decorator.call(entity, curr) || curr
+  }, delegate)
+}
+
+function decorate (delegate) {
+  return function entityDecorator () {
+    return delegate.apply(delegate, arguments)
+  }
 }
 
 Generator.prototype.renderProto = function () {
@@ -1373,10 +1406,13 @@ function Client (url) {
 
 Client.prototype = Object.create(Entity.prototype)
 
+Client.prototype.constructor = Client
+
 Client.prototype.entity = 'client'
 
 },{"./entity":14}],13:[function(require,module,exports){
 var Entity = require('./entity')
+var Generator = require('../engine').Generator
 
 module.exports = Entity.Collection = Collection
 
@@ -1400,7 +1436,41 @@ Collection.prototype = Object.create(Entity.prototype)
 
 Collection.prototype.entity = 'collection'
 
-},{"./entity":14}],14:[function(require,module,exports){
+Collection.prototype.constructor = Collection
+
+Collection.prototype.useConstructor = function (fn) {
+  if (typeof fn === 'function') this.constructorFn = fn
+  return this
+}
+
+Collection.prototype.renderEntity = function (client) {
+  var self = client || this
+  return render(collection, self)
+
+  function collection (opts) {
+    var target = {}
+    var current = self.clone()
+
+    // Use custom constructor, if defined
+    if (current.constructorFn) {
+      return current.constructorFn.apply(current, arguments) || render(target, current)
+    }
+
+    // Otherwise process arguments as options
+    if (opts === Object(opts)) current.options(opts)
+
+    return render(target, current)
+  }
+
+  function render (target, client) {
+    return new Generator(client)
+      .bind(target)
+      .render()
+  }
+}
+
+},{"../engine":11,"./entity":14}],14:[function(require,module,exports){
+var Base = require('../base')
 var engine = require('../engine')
 var Request = require('../http/request')
 var extend = require('../utils').extend
@@ -1431,7 +1501,20 @@ function Entity (name) {
   this.proto = Object.create(null)
 }
 
+/**
+ * Enumerate property accessors to avoid to the cloned.
+ *
+ * @property {Array} accessors
+ * @static
+ */
+
+Entity.accessors = Base.accessors.concat([
+  'parent'
+])
+
 Entity.prototype = Object.create(Request.prototype)
+
+Entity.prototype.constructor = Entity
 
 Entity.prototype.alias = function (name) {
   var aliases = this.aliases
@@ -1506,7 +1589,7 @@ Entity.prototype.getEntity = function (name, type) {
 }
 
 Entity.prototype.useConstructor = function () {
-  throw new Error('Method only implemented for resource entity')
+  throw new Error('Method only implemented for resource and collection entities')
 }
 
 Entity.prototype.decorate =
@@ -1546,11 +1629,35 @@ Entity.prototype.renderEntity = function (client) {
   return new engine.Generator(client || this).render()
 }
 
+/**
+ * Clone the current entity with context and configuration.
+ *
+ * @return {Collection}
+ * @method clone
+ * @protected
+ */
+
+Entity.prototype.clone = function () {
+  var entity = new this.constructor(this.name)
+  entity.useParent(this.parent)
+
+  Object.keys(this)
+  .filter(function (key) {
+    return !~Entity.accessors.indexOf(key)
+  })
+  .forEach(function (key) {
+    entity[key] = this[key]
+  }, this)
+
+  entity.ctx = this.ctx.clone()
+  return entity
+}
+
 function invalidEntity (entity) {
   return !entity || typeof entity.renderEntity !== 'function'
 }
 
-},{"../engine":11,"../http/request":18,"../utils":30}],15:[function(require,module,exports){
+},{"../base":6,"../engine":11,"../http/request":18,"../utils":30}],15:[function(require,module,exports){
 module.exports = {
   Mixin: require('./mixin'),
   Entity: require('./entity'),
@@ -1592,6 +1699,8 @@ function Mixin (name, fn) {
 Mixin.prototype = Object.create(Entity.prototype)
 
 Mixin.prototype.entity = 'mixin'
+
+Mixin.prototype.constructor = Mixin
 
 Mixin.prototype.renderEntity = function () {
   var self = this
@@ -1639,6 +1748,8 @@ function Resource (name) {
 Resource.prototype = Object.create(Entity.prototype)
 
 Resource.prototype.entity = 'resource'
+
+Resource.prototype.constructor = Resource
 
 Resource.prototype.useConstructor = function (fn) {
   if (typeof fn === 'function') this.constructorFn = fn
@@ -2780,7 +2891,7 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.25'
+Theon.VERSION = '0.1.26'
 
 /**
  * Force to define a max stack trace
