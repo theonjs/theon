@@ -64,6 +64,7 @@ Feel free to report any issues or feature requests.
 - Nested configurations with powerful inheritance (based on radix tree)
 - Domain specific and fluent API generation (inspired by [superagent](https://github.com/visionmedia/superagent))
 - Observable hooks at any phase of the HTTP flow live cycle.
+- Domain-specific API definition with built-in decorators support.
 - Perfectly fitted to be used with behavior-driven patterns based on observables.
 - Request/response interceptors
 - Request/response validators
