@@ -4,14 +4,13 @@
 
 theon is a dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to design and create domain-specific and fluent programmatic API clients and SDKs in node.js and browsers to interact with one or multiple HTTP layers.
 
-It was designed to be extremely extensible via to its built-in hierarchical [middleware layer](#middleware), which supports [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and [interceptors](#interceptors).
+It was designed to be extremely extensible via to its built-in hierarchical [middleware layer](#middleware), which supports high-level [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and traffic [interceptors](#interceptors).
 
 It's also HTTP agent agnostic, so you can use `theon` with [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [fetch](https://fetch.spec.whatwg.org), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other agent via [adapters](#http-adapters).
 
 To get started, take a look to [core concepts](#entities), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
-theon is currently used in both node.js and browser production applications.
-Feel free to report any issues or feature requests.
+theon is currently used in production applications in both node.js and browser environments.
 
 ## Contents
 
@@ -103,17 +102,17 @@ Feel free to report any issues or feature requests.
 
 ## Installation
 
-Via npm:
+Via `npm`:
 ```bash
 npm install theon --save
 ```
 
-Via bower:
+Via `bower`:
 ```bash
 bower install theon.js --save
 ```
 
-Or loading the script:
+Or loading the script from CDN:
 ```html
 <script src="//cdn.rawgit.com/h2non/theon/master/theon.js"></script>
 ```

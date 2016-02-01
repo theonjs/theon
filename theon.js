@@ -3290,7 +3290,7 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.26'
+Theon.VERSION = '0.1.27'
 
 /**
  * Force to define a max stack trace

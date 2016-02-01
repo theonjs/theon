@@ -1,6 +1,6 @@
 {
   "name": "theon.js",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "description": "A library to build domain-specific, extensible and expressive HTTP API clients in node.js and browsers",
   "license": "MIT",
   "repository": "h2non/theon",
