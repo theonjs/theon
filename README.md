@@ -2,7 +2,7 @@
 
 > Because writting API clients should be fast and elegant. Because using API clients should be simple and fun.
 
-theon is a dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to design and create domain-specific and fluent programmatic API clients and SDKs in node.js and browsers to interact with one or multiple HTTP layers.
+theon is a dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to design and create domain-specific and fluent programmatic API clients and SDKs in node.js and browsers which interacts with one or multiple HTTP layers.
 
 It was designed to be extremely extensible via to its built-in hierarchical [middleware layer](#middleware), which supports high-level [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and traffic [interceptors](#interceptors).
 
@@ -78,7 +78,7 @@ theon is currently used in production applications in both node.js and browser e
 - HTTP client agnostic: use `request`, `superagent`, `jQuery` or any other HTTP agent via adapters
 - Dependency free
 - Designed for testability
-- Lightweight: ~3.5K SLOC (~7KB gzipped)
+- Lightweight: ~2K LOC (~8KB gzipped)
 - Runs in browsers and node.js (ES5 compliant)
 
 ## Benefits
@@ -123,7 +123,7 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine:
 
 ![Node.js](https://cdn0.iconfinder.com/data/icons/long-shadow-web-icons/512/nodejs-48.png) | ![Chrome](https://raw.github.com/alrra/browser-logos/master/chrome/chrome_48x48.png) | ![Firefox](https://raw.github.com/alrra/browser-logos/master/firefox/firefox_48x48.png) | ![IE](https://raw.github.com/alrra/browser-logos/master/internet-explorer/internet-explorer_48x48.png) | ![Opera](https://raw.github.com/alrra/browser-logos/master/opera/opera_48x48.png) | ![Safari](https://raw.github.com/alrra/browser-logos/master/safari/safari_48x48.png)
 ---  | --- | --- | --- | --- | --- |
-+0.8 | +5 | +3.5 | +9 | +12 | +5 |
++0.10 | +5 | +3.5 | +9 | +12 | +5 |
 
 
 ## Motivation
