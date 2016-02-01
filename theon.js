@@ -1211,6 +1211,7 @@ module.exports = Client
  * @param {Client} client - Root Client entity instance.
  * @constructor
  * @class EngineClient
+ * @extends {Base}
  */
 
 function Client (client) {
@@ -1219,19 +1220,7 @@ function Client (client) {
   Base.defineAccessors(this._client, this)
 }
 
-Client.prototype.doRequest = function (ctx, cb) {
-  ctx = ctx || {}
-  var res = new Response(ctx)
-  return this._client.ctx.agent(ctx, res, cb)
-}
-
-Client.prototype.newRequest = function (client) {
-  var req = new Request()
-  req.useParent(client || this._client)
-  return req
-}
-
-// Delegate base generic methods to the Client base prototype
+// Delegates Base methods via Client prototype
 Object.keys(Base.prototype).forEach(function (method) {
   Client.prototype[method] = function () {
     var ctx = this._client[method].apply(this._client, arguments)
@@ -1241,7 +1230,124 @@ Object.keys(Base.prototype).forEach(function (method) {
   }
 })
 
-// Deletegate HTTP verbs as API sugar
+/**
+ * Utility method to perform a context-based HTTP request using the default agent.
+ *
+ * @param {Context} ctx
+ * @param {Function} cb
+ * @return {Object|ReadableStream}
+ * @method doRequest
+ */
+
+Client.prototype.doRequest = function (ctx, cb) {
+  ctx = ctx || {}
+  var res = new Response(ctx)
+  return this._client.ctx.agent(ctx, res, cb)
+}
+
+/**
+ * Creates a new Request instance, optionally inheriting context and config from a custom entity.
+ *
+ * @param {Client} client
+ * @return {Request}
+ * @method newRequest
+ */
+
+Client.prototype.newRequest = function (entity) {
+  var req = new Request()
+  req.useParent(entity || this._client)
+  return req
+}
+
+/**
+ * Performs a custom GET request based on the given options
+ *
+ * @param {Object} opts
+ * @param {Function} cb
+ * @method GET
+ * @return {Object|ReadableStream}
+ * @memberof {Client}
+ * @instance
+ */
+
+/**
+ * Performs a custom POST request based on the given options
+ *
+ * @param {Object} opts
+ * @param {Function} cb
+ * @method POST
+ * @return {Object|ReadableStream}
+ * @memberof {Client}
+ * @instance
+ */
+
+/**
+ * Performs a custom PUT request based on the given options
+ *
+ * @param {Object} opts
+ * @param {Function} cb
+ * @method PUT
+ * @return {Object|ReadableStream}
+ * @memberof {Client}
+ * @instance
+ */
+
+/**
+ * Performs a custom PATCH request based on the given options
+ *
+ * @param {Object} opts
+ * @param {Function} cb
+ * @method PATCH
+ * @return {Object|ReadableStream}
+ * @memberof {Client}
+ * @instance
+ */
+
+/**
+ * Performs a custom DELETE request based on the given options
+ *
+ * @param {Object} opts
+ * @param {Function} cb
+ * @method DELETE
+ * @return {Object|ReadableStream}
+ * @memberof {Client}
+ * @instance
+ */
+
+/**
+ * Performs a custom HEAD request based on the given options
+ *
+ * @param {Object} opts
+ * @param {Function} cb
+ * @method HEAD
+ * @return {Object|ReadableStream}
+ * @memberof {Client}
+ * @instance
+ */
+
+/**
+ * Performs a custom TRACE request based on the given options
+ *
+ * @param {Object} opts
+ * @param {Function} cb
+ * @method TRACE
+ * @return {Object|ReadableStream}
+ * @memberof {Client}
+ * @instance
+ */
+
+/**
+ * Performs a custom OPTIONS request based on the given options
+ *
+ * @param {Object} opts
+ * @param {Function} cb
+ * @method OPTIONS
+ * @return {Object|ReadableStream}
+ * @memberof {Client}
+ * @instance
+ */
+
+// Deletegates HTTP verbs as API sugar
 var verbs = [
   'GET',
   'POST',
@@ -1270,7 +1376,7 @@ module.exports = Generator
  * Generator is responsible of the API rendering of a given Entity instance
  * based on recursive child entities instrospection.
  *
- * @param {Entity} entity - Client entity to render.
+ * @param {Entity} entity - Client entity to generate.
  * @constructor
  * @class Generator
  */
@@ -1280,10 +1386,25 @@ function Generator (entity) {
   this.target = null
 }
 
+/**
+ * Binds the target object who will inherit the dynamically generated API.
+ *
+ * @param {Client|Object} target
+ * @return {this}
+ * @method bind
+ */
+
 Generator.prototype.bind = function (target) {
   this.target = target
   return this
 }
+
+/**
+ * Perform the API generation/rendering process.
+ *
+ * @return {Object}
+ * @method render
+ */
 
 Generator.prototype.render = function () {
   var src = this.src
@@ -1304,6 +1425,14 @@ Generator.prototype.render = function () {
   return this.target
 }
 
+/**
+ * Renders the given entity and its childs entities.
+ *
+ * @param {Entity} entity
+ * @method renderEntity
+ * @protected
+ */
+
 Generator.prototype.renderEntity = function (entity) {
   var name = entity.name
   if (!name) throw new TypeError('Render error: missing entity name')
@@ -1318,6 +1447,16 @@ Generator.prototype.renderEntity = function (entity) {
   var names = [ name ].concat(entity.aliases)
   names.forEach(function (name) { this.define(name, delegate) }, this)
 }
+
+/**
+ * Decorates a given entity with a custom delegator function.
+ *
+ * @param {Entity} entity
+ * @param {Function} delegate
+ * @return {Function}
+ * @method decorate
+ * @protected
+ */
 
 Generator.prototype.decorate = function (entity, delegate) {
   // Use entity constructor decorators
@@ -1356,11 +1495,27 @@ function decorate (delegate) {
   }
 }
 
+/**
+ * Renders and binds the custom prototype chain.
+ *
+ * @method renderProto
+ * @protected
+ */
+
 Generator.prototype.renderProto = function () {
   Object.keys(this.src.proto).forEach(function (name) {
     this.define(name, this.src.proto[name])
   }, this)
 }
+
+/**
+ * Defines an own property accessor binding to API in the target object.
+ *
+ * @param {String} name
+ * @param {Mixed} value
+ * @method define
+ * @protected
+ */
 
 Generator.prototype.define = function (name, value) {
   if (has(this.target, name)) throw nameConflict(name)
@@ -1406,7 +1561,19 @@ function Client (url) {
 
 Client.prototype = Object.create(Entity.prototype)
 
+/**
+ * Exposes current entity constructor.
+ *
+ * @property {Function} constructor
+ */
+
 Client.prototype.constructor = Client
+
+/**
+ * Identifies the entity type.
+ *
+ * @property {String} entity
+ */
 
 Client.prototype.entity = 'client'
 
@@ -1434,14 +1601,43 @@ function Collection (name) {
 
 Collection.prototype = Object.create(Entity.prototype)
 
-Collection.prototype.entity = 'collection'
+/**
+ * Exposes current entity constructor.
+ *
+ * @property {Function} constructor
+ */
 
 Collection.prototype.constructor = Collection
+
+/**
+ * Identifies the entity type.
+ *
+ * @property {String} entity
+ */
+
+Collection.prototype.entity = 'collection'
+
+/**
+ * Uses a custom constructor function for the current entity.
+ *
+ * @param {Function} fn
+ * @return {this}
+ * @method useConstructor
+ */
 
 Collection.prototype.useConstructor = function (fn) {
   if (typeof fn === 'function') this.constructorFn = fn
   return this
 }
+
+/**
+ * Renders the current entity, optionally passing a theon Client instance.
+ * This method is mostly used internally.
+ *
+ * @param {Client} client
+ * @return {Function}
+ * @method renderEntity
+ */
 
 Collection.prototype.renderEntity = function (client) {
   var self = client || this
@@ -1501,6 +1697,8 @@ function Entity (name) {
   this.proto = Object.create(null)
 }
 
+Entity.prototype = Object.create(Request.prototype)
+
 /**
  * Enumerate property accessors to avoid to the cloned.
  *
@@ -1508,13 +1706,23 @@ function Entity (name) {
  * @static
  */
 
-Entity.accessors = Base.accessors.concat([
-  'parent'
-])
+Entity.accessors = Base.accessors.concat('parent')
 
-Entity.prototype = Object.create(Request.prototype)
+/**
+ * Exposes current entity constructor.
+ *
+ * @property {Function} constructor
+ */
 
 Entity.prototype.constructor = Entity
+
+/**
+ * Defines an entity alias by name.
+ *
+ * @param {String} name
+ * @return {this}
+ * @method alias
+ */
 
 Entity.prototype.alias = function (name) {
   var aliases = this.aliases
@@ -1522,12 +1730,29 @@ Entity.prototype.alias = function (name) {
   return this
 }
 
+/**
+ * Attaches a child collection to the current entity.
+ *
+ * @param {Collection|String} collection
+ * @return {Collection}
+ * @method collection
+ */
+
 Entity.prototype.collection = function (collection) {
   if (!(collection instanceof Entity.Collection)) {
     collection = new Entity.Collection(collection)
   }
   return this.addEntity(collection)
 }
+
+/**
+ * Attaches a child resource to the current entity.
+ *
+ * @param {Resource|String} resource
+ * @return {Resource}
+ * @method action
+ * @alias resource
+ */
 
 Entity.prototype.action =
 Entity.prototype.resource = function (resource) {
@@ -1537,6 +1762,16 @@ Entity.prototype.resource = function (resource) {
   return this.addEntity(resource)
 }
 
+/**
+ * Attaches a child mixin to the current entity.
+ *
+ * @param {String|Mixin} name
+ * @param {Function} resource
+ * @return {Mixin}
+ * @method mixin
+ * @alias helper
+ */
+
 Entity.prototype.mixin =
 Entity.prototype.helper = function (name, mixin) {
   if (!(name instanceof Entity.Mixin)) {
@@ -1544,6 +1779,15 @@ Entity.prototype.helper = function (name, mixin) {
   }
   return this.addEntity(mixin)
 }
+
+/**
+ * Registers a new entity instance as child entity.
+ *
+ * @param {Entity} entity
+ * @return {Entity}
+ * @method addEntity
+ * @protected
+ */
 
 Entity.prototype.addEntity = function (entity) {
   if (invalidEntity(entity)) {
@@ -1561,24 +1805,75 @@ Entity.prototype.addEntity = function (entity) {
   return entity
 }
 
-Entity.prototype.getCollection = function (name) {
+/**
+ * Finds a collection type entity as child entities in the current entity.
+ *
+ * @param {String} name
+ * @return {Entity}
+ * @method getCollection
+ * @alias findCollection
+ */
+
+Entity.prototype.getCollection =
+Entity.prototype.findCollection = function (name) {
   return this.getEntity(name, 'collection')
 }
 
+/**
+ * Finds a resource type entity as child entities in the current entity.
+ *
+ * @param {String} name
+ * @return {Entity}
+ * @method getResource
+ * @alias getAction
+ * @alias findResource
+ */
+
 Entity.prototype.getAction =
-Entity.prototype.getResource = function (name) {
+Entity.prototype.getResource =
+Entity.prototype.findResource = function (name) {
   return this.getEntity(name, 'resource')
 }
 
-Entity.prototype.getMixin = function (name) {
+/**
+ * Finds a mixin type entity as child entities in the current entity.
+ *
+ * @param {String} name
+ * @return {Entity}
+ * @method getMixin
+ * @alias findMixin
+ */
+
+Entity.prototype.getMixin =
+Entity.prototype.findMixin = function (name) {
   return this.getEntity(name, 'mixin')
 }
 
-Entity.prototype.getClient = function (name) {
+/**
+ * Finds a client type entity as child entities in the current entity.
+ *
+ * @param {String} name
+ * @return {Entity}
+ * @method getClient
+ * @alias findClient
+ */
+
+Entity.prototype.getClient =
+Entity.prototype.findClient = function (name) {
   return this.getEntity(name, 'client')
 }
 
-Entity.prototype.getEntity = function (name, type) {
+/**
+ * Finds an entity as child entities in the current entity.
+ *
+ * @param {String} name
+ * @return {Entity}
+ * @method getEntity
+ * @alias findEntity
+ */
+
+Entity.prototype.getEntity =
+Entity.prototype.findEntity = function (name, type) {
   return this.entities.reduce(function (match, entity) {
     if (match) return match
     if (entity.name === name && (!type || (entity.entity === type))) {
@@ -1588,9 +1883,25 @@ Entity.prototype.getEntity = function (name, type) {
   }, null)
 }
 
+/**
+ * Custom constructor should be implemented by top-level entities.
+ *
+ * @method useConstructor
+ * @throws {Error}
+ */
+
 Entity.prototype.useConstructor = function () {
   throw new Error('Method only implemented for resource and collection entities')
 }
+
+/**
+ * Decorate current entity constructor.
+ *
+ * @param {Function} decorator
+ * @return {this}
+ * @method decorate
+ * @alias decorator
+ */
 
 Entity.prototype.decorate =
 Entity.prototype.decorator = function (decorator) {
@@ -1599,6 +1910,15 @@ Entity.prototype.decorator = function (decorator) {
   }
   return this
 }
+
+/**
+ * Attaches meta data to the current entity.
+ * Designed for future use cases and documentation purposes.
+ *
+ * @param {Object} meta
+ * @return {this}
+ * @method meta
+ */
 
 Entity.prototype.meta = function (meta) {
   var store = this.ctx.store
@@ -1612,11 +1932,31 @@ Entity.prototype.meta = function (meta) {
   return this
 }
 
+/**
+ * Extend entity custom prototype chain.
+ * Useful for composition and behavior extensibility by API developers.
+ *
+ * @param {String|Object} prop
+ * @param {Mixed} value
+ * @return {this}
+ * @method extend
+ */
+
 Entity.prototype.extend = function (prop, value) {
   if (typeof prop === 'string') this.proto[prop] = value
   else if (prop === Object(prop)) extend(this.proto, prop)
   return this
 }
+
+/**
+ * Renders the current and parent entities.
+ * This method is used internally.
+ *
+ * @param {Client} client
+ * @return {Entity}
+ * @method render
+ * @protected
+ */
 
 Entity.prototype.render = function (client) {
   if (this.parent) {
@@ -1625,12 +1965,22 @@ Entity.prototype.render = function (client) {
   return this.renderEntity(client)
 }
 
+/**
+ * Renders the current entity and its child entities.
+ * This method is used internally.
+ *
+ * @param {Client} client
+ * @return {Entity}
+ * @method render
+ * @protected
+ */
+
 Entity.prototype.renderEntity = function (client) {
   return new engine.Generator(client || this).render()
 }
 
 /**
- * Clone the current entity with context and configuration.
+ * Clone the current entity, saving its context and configuration data.
  *
  * @return {Collection}
  * @method clone
@@ -1687,20 +2037,40 @@ module.exports = Entity.Mixin = Mixin
  * @extends Entity
  */
 
-function Mixin (name, fn) {
-  if (typeof fn !== 'function') {
-    throw new TypeError('mixin must be a function')
+function Mixin (name, mixin) {
+  if (typeof mixin !== 'function') {
+    throw new TypeError('mixin argument must be a function')
   }
 
   Entity.call(this, name)
-  this.fn = fn
+  this.fn = mixin
 }
 
 Mixin.prototype = Object.create(Entity.prototype)
 
-Mixin.prototype.entity = 'mixin'
+/**
+ * Exposes current entity constructor.
+ *
+ * @property {Function} constructor
+ */
 
 Mixin.prototype.constructor = Mixin
+
+/**
+ * Identifies the entity type.
+ *
+ * @property {String} entity
+ */
+
+Mixin.prototype.entity = 'mixin'
+
+/**
+ * Renders the current entity, optionally passing a theon Client instance.
+ * This method is mostly used internally.
+ *
+ * @return {Function}
+ * @method renderEntity
+ */
 
 Mixin.prototype.renderEntity = function () {
   var self = this
@@ -1719,7 +2089,7 @@ Mixin.prototype.getClient =
 Mixin.prototype.getEntity =
 Mixin.prototype.getResource =
 Mixin.prototype.getCollection = function () {
-  throw new Error('not implemented')
+  throw new Error('not implemented for mixin entity')
 }
 
 },{"./entity":14}],17:[function(require,module,exports){
@@ -1747,17 +2117,46 @@ function Resource (name) {
 
 Resource.prototype = Object.create(Entity.prototype)
 
-Resource.prototype.entity = 'resource'
+/**
+ * Exposes current entity constructor.
+ *
+ * @property {Function} constructor
+ */
 
 Resource.prototype.constructor = Resource
+
+/**
+ * Identifies the entity type.
+ *
+ * @property {String} entity
+ */
+
+Resource.prototype.entity = 'resource'
+
+/**
+ * Uses a custom constructor function for the current entity.
+ *
+ * @param {Function} fn
+ * @return {this}
+ * @method useConstructor
+ */
 
 Resource.prototype.useConstructor = function (fn) {
   if (typeof fn === 'function') this.constructorFn = fn
   return this
 }
 
-Resource.prototype.renderEntity = function () {
-  var self = this
+/**
+ * Renders the current entity, optionally passing a theon Client instance.
+ * This method is mostly used internally.
+ *
+ * @param {Client} client
+ * @return {Function}
+ * @method renderEntity
+ */
+
+Resource.prototype.renderEntity = function (client) {
+  var self = client || this
 
   return new Generator(this)
     .bind(resource)

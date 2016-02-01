@@ -1056,27 +1056,27 @@ Only implemented for `Resource` and `Collection` entities.
 Attach a custom subentity.
 
 #### Entity#getEntity(name, [ type ])
+Alias: `findEntity`
 
 Retrieves a child entity looking by name.
 
 #### Entity#getCollection(name)
-
-Retrieves a child collection entity looking by name.
-
-#### Entity#getCollection(name)
+Alias: `findCollection`
 
 Retrieves a child collection entity looking by name.
 
 #### Entity#getResource(name)
-Alias: `getAction`
+Alias: `getAction`, `findResource`
 
 Retrieves a child resource entity looking by name.
 
 #### Entity#getMixin(name)
+Alias: `findMixin`
 
 Retrieves a child mixin entity looking by name.
 
 #### Entity#getClient(name)
+Alias: `findClient`
 
 Retrieves a child client entity looking by name.
 
