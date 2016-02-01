@@ -91,8 +91,8 @@ theon is currently used in production applications in both node.js and browser e
 - Map HTTP interfaces and resources to programmatic entities
 - And make future changes silently from consumers eyes.
 - Use or write your own plugins to augment some specific feature
-- Validate request and responses params and bodies easily
-- Bind bodies to models
+- Validate request and response params and bodies easily
+- Map and bind bodies to custom models easily
 - Perform pre/post operations (e.g: logging, validation, defaults...)
 - Save session data based on the client state live cycle (e.g: auth tokens, sessions...)
 - Minimize the boilerplate process while writing API clients
