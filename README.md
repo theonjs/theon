@@ -60,7 +60,7 @@ theon is currently used in production applications in both node.js and browser e
 - Simple, fluent and declarative API
 - Modular pluggable design with poweful composition capabilities
 - Hierarchical middleware layer (inspired in [connect](https://github.com/senchalabs/connect) middleware)
-- Nested configurations with powerful inheritance (based on radix tree)
+- Nested configurations with powerful inheritance (based on radix tree data structure)
 - Domain specific and fluent API generation (inspired by [superagent](https://github.com/visionmedia/superagent))
 - Observable hooks at any phase of the HTTP flow live cycle.
 - Domain-specific API definition with built-in decorators support.
@@ -69,7 +69,7 @@ theon is currently used in production applications in both node.js and browser e
 - Request/response validators
 - Bind bodies to custom models easily
 - Supports node.js [streams](https://github.com/h2non/theon/tree/master/examples/streams.js) (HTTP adapter must support streams too)
-- Supports [promises](https://github.com/h2non/theon/blob/master/examples/promise.js) (only in modern engines)
+- Supports [promises](https://github.com/h2non/theon/blob/master/examples/promise.js) (only in modern JS engines)
 - Powerful HTTP fields reusability supporting hierarchical inheritance.
 - Built-in HTTP context data store to persist data, such as token or session data.
 - Maps HTTP entities to programmatic entities with custom logic.
