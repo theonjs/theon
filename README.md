@@ -125,7 +125,6 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine:
 ---  | --- | --- | --- | --- | --- |
 +0.10 | +5 | +3.5 | +9 | +12 | +5 |
 
-
 ## Motivation
 
 I initially wrote this library to mitigate my frustration while writing further programmatic API clients for multiple HTTP layers across JavaScript environments.
@@ -390,13 +389,13 @@ In other to be more pragmatic, `theon` provides by default two HTTP adapters for
 #### Node.js
 
 - [request](https://github.com/request/request) `default` - Popular and featured HTTP client
-- [superagent](https://github.com/theonjs/theon-superagent-adapter) - superagent HTTP adapter.
-- [resilient](https://github.com/theonjs/theon-resilient-adapter) - [resilient.js](https://github.com/resilient-http/resilient.js) HTTP adapter.
+- [superagent](https://github.com/theonjs/superagent-adapter) - superagent HTTP adapter.
+- [resilient](https://github.com/theonjs/resilient-adapter) - [resilient.js](https://github.com/resilient-http/resilient.js) HTTP adapter.
 
 #### Browsers
 
 - [lil-http](https://github.com/lil-js/http) `default` - Lightweight XHR wrapper for browsers.
-- [angular](https://github.com/theonjs/theon-angular-adapter) - Angular's $http adapter.
+- [angular](https://github.com/theonjs/angular-adapter) - Angular's $http adapter.
 
 ### API
 
