@@ -1,5 +1,5 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 // Set up mock
 nock('http://my.api.com')
@@ -12,7 +12,7 @@ nock('http://my.api.com')
 
 // Sample plugin implementation
 function plugin (opts) {
-  var enabled = opts.enable
+  const enabled = opts.enable
 
   return function (client) {
     console.log('Registering plugin...')
@@ -43,7 +43,7 @@ function plugin (opts) {
   }
 }
 
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
   .set('Version', '1.0')
   .basePath('/api')
 
@@ -73,7 +73,7 @@ client
   })
 
 // Render the cient
-var api = client.render()
+const api = client.render()
 
 api.users.get()
   .param('id', '123')

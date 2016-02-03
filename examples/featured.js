@@ -1,5 +1,5 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 // Set up mock
 nock('http://my.api.com')
@@ -11,7 +11,7 @@ nock('http://my.api.com')
   }])
 
 // First, we must build a new client
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
   .basePath('/api')
   .set('Version', '1.0')
   .use(function (req, res, next) {
@@ -20,7 +20,7 @@ var client = theon('http://my.api.com')
   })
 
 // Attach a new collection
-var collection = client
+const collection = client
   .collection('users')
   .basePath('/users')
   .use(function (req, res, next) {
@@ -40,7 +40,7 @@ collection
   })
 
 // Render the API
-var api = client.render()
+const api = client.render()
 
 api
   .users

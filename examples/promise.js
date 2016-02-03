@@ -1,11 +1,11 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 nock('http://localhost')
   .get('/foo')
   .reply(200, {hello: 'world'})
 
-var client = theon('http://localhost')
+const client = theon('http://localhost')
   .resource('foo')
   .path('/foo')
   .render()

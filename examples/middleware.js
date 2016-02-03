@@ -1,5 +1,5 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 // Set up mock
 nock('http://my.api.com')
@@ -10,7 +10,7 @@ nock('http://my.api.com')
     username: 'foo'
   }])
 
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
   .set('Version', '1.0')
   .basePath('/api')
   .use(function (req, res, next) {
@@ -34,7 +34,7 @@ client
   })
 
 // Render the cient
-var api = client.render()
+const api = client.render()
 
 // You can access to the entity objects
 // console.log('Root entity:', api.root)

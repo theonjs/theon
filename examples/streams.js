@@ -1,6 +1,6 @@
-var stream = require('stream')
-var nock = require('nock')
-var theon = require('..')
+const stream = require('stream')
+const nock = require('nock')
+const theon = require('..')
 
 nock('http://localhost')
   .get('/foo')
@@ -11,13 +11,13 @@ nock('http://localhost')
   .reply(200, { hello: 'world' })
 
 // Pipe response into a writable stream
-var writable = new stream.Writable
+const writable = new stream.Writable
 writable._write = function (chunk, encoding, next) {
   console.log('Response:', JSON.parse(chunk.toString()))
   next()
 }
 
-var client = theon('http://localhost')
+const client = theon('http://localhost')
   .resource('foo')
   .path('/foo')
   .render()
@@ -26,20 +26,20 @@ client.foo()
   .pipe(writable)
 
 // Pipe response into a writable stream
-var readable = new stream.Readable
+const readable = new stream.Readable
 readable._read = function (chunk, encoding, next) {
   readable.push('{"hello":"world"}')
   readable.push(null)
 }
 
-var client = theon('http://localhost')
+const client2 = theon('http://localhost')
   .type('json')
   .method('POST')
   .resource('foo')
   .path('/foo')
   .render()
 
-client.foo()
+client2.foo()
   .stream(readable)
   .end(function (err, res) {
     console.log('Body', res.body)

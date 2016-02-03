@@ -1,7 +1,7 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
 
 // Set up mocks
 nock('http://my.api.com')
@@ -11,7 +11,7 @@ nock('http://my.api.com')
     username: 'foo'
   }])
 
-var users = client
+const users = client
   .type('json')
   .basePath('/api')
   .collection('users')
@@ -19,7 +19,7 @@ var users = client
   .mixin('get', function (id) {
     // Create a new request which inherits from
     // the current collection scope to make a custom request
-    var req = this // or even use: this.newRequest()
+    const req = this // or even use: this.newRequest()
     req.path('/:id')
     req.param('id', 1)
     return req
@@ -36,7 +36,7 @@ var users = client
   })
 
 // Render the API
-var api = users.render()
+const api = users.render()
 
 // Test mixin
 api.users

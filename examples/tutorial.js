@@ -1,5 +1,5 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 // Configure mocks
 nock('http://my.api.com')
@@ -31,11 +31,11 @@ nock('http://my.api.com')
  * - DELETE /api/users/:id
  */
 
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
   .basePath('/api') // We define the base path for all the requests
   .type('json') // Our payloads and responses will be always JSON
 
-var auth = client
+const auth = client
   .collection('auth')
   .basePath('/auth')
   .method('POST') // use this method for all the requests
@@ -60,7 +60,7 @@ auth
     next()
   })
 
-var users = client
+const users = client
   .collection('users')
   .basePath('/users')
 
@@ -94,7 +94,7 @@ users
     next()
   })
 
-var api = client.render()
+const api = client.render()
 
 api.auth
   .signup()

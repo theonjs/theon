@@ -1,5 +1,5 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 // Set up mock
 nock('http://my.api.com')
@@ -10,9 +10,9 @@ nock('http://my.api.com')
     username: 'foo'
   }])
 
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
 
-var users = client
+const users = client
   .basePath('/api')
   .collection('users')
   .resource('get')
@@ -33,7 +33,7 @@ var users = client
   })
 
 // Render the API client
-var api = users.render()
+const api = users.render()
 
 api
   .users

@@ -1,5 +1,5 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 nock('http://my.api.com')
   .post('/auth/signup', { username: 'foo', password: 'b@r' })
@@ -10,9 +10,9 @@ nock('http://my.api.com')
   .matchHeader('Authorization', '123456789')
   .reply(200, { foo: 'bar' })
 
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
 
-var auth = client
+const auth = client
   .type('json')
   .collection('auth')
   .basePath('/auth')
@@ -39,7 +39,7 @@ client
   .path('/protected')
 
 // Render the API
-var api = client.render()
+const api = client.render()
 
 // Test it
 api.auth

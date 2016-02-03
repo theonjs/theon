@@ -1,5 +1,5 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 // Set up mock
 nock('http://my.api.com')
@@ -10,12 +10,12 @@ nock('http://my.api.com')
     username: 'foo'
   }])
 
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
   .set('Version', '1.0')
   .basePath('/api')
   .format('json')
   .map(function (body, next) {
-    var newBody = body.map(function (user) {
+    const newBody = body.map(function (user) {
       user.id += user.id
       user.username += user.username
       return user
@@ -23,7 +23,7 @@ var client = theon('http://my.api.com')
     next(null, newBody)
   })
 
-var users = client
+const users = client
   .collection('users')
   .basePath('/users')
 
@@ -37,7 +37,7 @@ users
   })
 
 // Render the API
-var api = client.render()
+const api = client.render()
 
 api.users
   // Pass path param directly as argument, instead of doing: .param('id', '123')

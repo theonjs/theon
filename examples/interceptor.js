@@ -1,13 +1,13 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 nock('http://my.api.com')
   .get('/api/users/99')
   .reply(200, { username: 'foo', id: 99 })
 
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
 
-var users = client
+const users = client
   .basePath('/api')
   .collection('users')
   .basePath('/users')
@@ -28,7 +28,7 @@ var users = client
   })
 
 // Render the API
-var api = users.render()
+const api = users.render()
 
 // Intercepted request
 api.users

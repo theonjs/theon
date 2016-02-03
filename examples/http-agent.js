@@ -1,8 +1,8 @@
-var theon = require('..')
-var request = require('request')
+const theon = require('..')
+const request = require('request')
 
 function requestAdapter (req, res, cb) {
-  var opts = {
+  const opts = {
     url: req.url,
     qs: req.query,
     body: req.body,

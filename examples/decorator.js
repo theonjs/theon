@@ -1,5 +1,5 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 // Set up mock
 nock('http://my.api.com')
@@ -10,12 +10,12 @@ nock('http://my.api.com')
     username: 'foo'
   }])
 
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
   .set('Version', '1.0')
   .basePath('/api')
   .format('json')
 
-var users = client
+const users = client
   .collection('users')
   .basePath('/users')
   // Decorate entity contructor
@@ -30,14 +30,14 @@ users
   // Decorate resource constructor
   .decorate(function (delegate) {
     return function decorator (id) {
-      var delegation = delegate()
+      const delegation = delegate()
       delegation.param('id', id)
       return delegation
     }
   })
 
 // Render the API
-var api = client.render()
+const api = client.render()
 
 api.users
   // Path param in now supported in the constructor via decorator

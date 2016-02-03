@@ -1,12 +1,12 @@
-var nock = require('nock')
-var theon = require('..')
+const nock = require('nock')
+const theon = require('..')
 
 nock('http://my.api.com')
   .get('/boo')
   .delayConnection(1000)
   .reply(200, { hello: 'world' })
 
-var client = theon('http://my.api.com')
+const client = theon('http://my.api.com')
   .resource('boo')
   .path('/boo')
   .render()
