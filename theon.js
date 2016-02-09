@@ -2862,6 +2862,7 @@ function Response (req) {
   this.type =
   this.statusText = ''
 
+  this.text =
   this.body =
   this.json = null
 }
@@ -2890,7 +2891,14 @@ Response.prototype.setOriginalResponse = function (orig) {
 
 Response.prototype.setBody = function (body) {
   this.body = body
-  if (~this.type.indexOf('json')) this.json = body
+
+  if (typeof body === 'string') {
+    this.text = body
+  }
+
+  if (body && isJSON(this.type, this.headers)) {
+    this.json = this.body = parseJSON(body)
+  }
 }
 
 /**
@@ -3019,6 +3027,19 @@ function params (str) {
 
 function type (str) {
   return str.split(/ *; */).shift()
+}
+
+function isJSON (type, headers) {
+  return ~type.indexOf('json') ||
+  ~(''.indexOf.call(headers['content-type'] || '', 'json'))
+}
+
+function parseJSON (data) {
+  try {
+    return JSON.parse(data)
+  } catch (e) {
+    return data
+  }
 }
 
 },{}],20:[function(require,module,exports){
@@ -3293,7 +3314,7 @@ Object.keys(Theon.entities).forEach(function (name) {
  * @static
  */
 
-Theon.VERSION = '0.1.27'
+Theon.VERSION = '0.1.28'
 
 /**
  * Force to define a max stack trace
