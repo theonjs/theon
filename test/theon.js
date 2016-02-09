@@ -267,10 +267,6 @@ suite('theon', function () {
       })
   })
 
-  test('middleware')
-
-  test('middleware inheritance')
-
   test('hooks', function (done) {
     nock('http://localhost')
       .get('/foo')
