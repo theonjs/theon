@@ -2,9 +2,9 @@
 
 > Because writting API clients should be fast and elegant. Because using API clients should be simple and fun.
 
-theon is a dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to design and create domain-specific and fluent programmatic API clients and SDKs in node.js and browsers which interacts with one or multiple HTTP layers.
+theon is a dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to design and create domain-specific and fluent programmatic API clients and SDKs in node.js and browsers that interacts with one or multiple HTTP layers.
 
-It was designed to be extremely extensible via to its built-in hierarchical [middleware layer](#middleware), which supports high-level [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and traffic [interceptors](#interceptors).
+It was designed to be extremely extensible via its built-in hierarchical [middleware layer](#middleware), which supports high-level [plugins](#plugins), observer [hooks](#hooks), [validators](#validators) and traffic [interceptors](#interceptors).
 
 It's also HTTP agent agnostic, so you can use `theon` with [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [fetch](https://fetch.spec.whatwg.org), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other agent via [adapters](#http-adapters).
 
