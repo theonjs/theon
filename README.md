@@ -1,6 +1,6 @@
 # theon [![Build Status](https://api.travis-ci.org/h2non/theon.svg?branch=master&style=flat)][travis] [![Codacy Badge](https://api.codacy.com/project/badge/grade/a612f7996c864d47915a0d268d7e720a)](https://www.codacy.com/app/tomas/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com) [![jsdoc-reference](https://img.shields.io/badge/jsdoc-reference-blue.svg)](http://jsdocs.herokuapp.com/github.com/h2non/theon)
 
-> Because writting API clients should be fast and elegant. Because using API clients should be simple and fun.
+> Because writing API clients should be fast and elegant. Because using API clients should be simple and fun.
 
 theon is a dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to design and create domain-specific and fluent programmatic API clients and SDKs in node.js and browsers that interacts with one or multiple HTTP layers.
 
