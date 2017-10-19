@@ -466,9 +466,8 @@ suite('theon', function () {
   test('featured client', function (done) {
     var spy = sinon.spy()
 
-    nock('http://localhost')
+    nock('http://localhost', { reqheaders: { Version: '1.0' } })
       .get('/api/users/123')
-      .matchHeader('Version', '1.0')
       .reply(200, [{
         id: '123',
         username: 'foo'
