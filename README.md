@@ -1450,4 +1450,4 @@ Current original request instance.
 
 [MIT](http://opensource.org/licenses/MIT) © Tomas Aparicio
 
-[travis]: http://travis-ci.org/h2non/theon
+[travis]: http://travis-ci.org/theonjs/theon
