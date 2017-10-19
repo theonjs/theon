@@ -2,7 +2,7 @@
   "name": "theon",
   "version": "0.1.28",
   "description": "A library to build domain-specific, extensible and expressive HTTP API clients in node.js and browsers",
-  "repository": "h2non/theon",
+  "repository": "theonjs/theon",
   "author": "Tomas Aparicio",
   "license": "MIT",
   "main": "./lib/theon",
