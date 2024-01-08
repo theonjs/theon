@@ -1,6 +1,6 @@
-# theon [![Build Status](https://travis-ci.org/theonjs/theon.svg?branch=master)][travis] [![Codacy Badge](https://api.codacy.com/project/badge/grade/a612f7996c864d47915a0d268d7e720a)](https://www.codacy.com/app/tomas/theon) [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com) [![jsdoc-reference](https://img.shields.io/badge/jsdoc-reference-blue.svg)](http://jsdocs.herokuapp.com/github.com/h2non/theon)
+# theon [![NPM](https://img.shields.io/npm/v/theon.svg)](https://www.npmjs.org/package/theon) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com) [![jsdoc-reference](https://img.shields.io/badge/jsdoc-reference-blue.svg)](http://jsdocs.herokuapp.com/github.com/h2non/theon)
 
-> Because writing API clients should be fast and elegant. Because using API clients should be simple and fun.
+> Because creating API clients should be pleasant and fun. Because using API clients should be simple and fun. Yep, fun is better!
 
 theon is a dependency-free, [featured](#features), [pluggable](#middleware) and [declarative](#tutorial) JavaScript library to design and create domain-specific and fluent programmatic API clients and SDKs in node.js and browsers that interacts with one or multiple HTTP layers.
 
@@ -8,7 +8,7 @@ It was designed to be extremely extensible via its built-in hierarchical [middle
 
 It's also HTTP agent agnostic, so you can use `theon` with [superagent](https://github.com/visionmedia/superagent), [request](https://github.com/request/request), [fetch](https://fetch.spec.whatwg.org), [$.ajax](http://api.jquery.com/jquery.ajax/), [angular.$http](https://docs.angularjs.org/api/ng/service/$http) or any other agent via [adapters](#http-adapters).
 
-To get started, take a look to [core concepts](#entities), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
+To get started, take a look at [core concepts](#entities), [tutorial](#tutorial) and [examples](https://github.com/h2non/theon/tree/master/examples).
 
 theon is currently used in production applications in both node.js and browser environments.
 
@@ -58,13 +58,13 @@ theon is currently used in production applications in both node.js and browser e
 ## Features
 
 - Simple, fluent and declarative API
-- Modular pluggable design with poweful composition capabilities
+- Modular pluggable design with powerful composition capabilities
 - Hierarchical middleware layer (inspired in [connect](https://github.com/senchalabs/connect) middleware)
 - Nested configurations with powerful inheritance (based on radix tree data structure)
-- Domain specific and fluent API generation (inspired by [superagent](https://github.com/visionmedia/superagent))
+- Domain-specific and fluent API generation (inspired by [superagent](https://github.com/visionmedia/superagent))
 - Observable hooks at any phase of the HTTP flow live cycle.
 - Domain-specific API definition with built-in decorators support.
-- Perfectly fitted to be used with behavior-driven patterns based on observables.
+- Perfectly fitted to be used with behaviour-driven patterns based on observables.
 - Request/response interceptors
 - Request/response validators
 - Bind bodies to custom models easily
@@ -89,14 +89,14 @@ theon is currently used in production applications in both node.js and browser e
 - Decouple API definition from API consumption layer
 - Underline HTTP interface details from API consumers
 - Map HTTP interfaces and resources to programmatic entities
-- And make future changes silently from consumers eyes.
+- And make future changes silently from consumers' eyes.
 - Use or write your own plugins to augment some specific feature
 - Validate request and response params and bodies easily
 - Map and bind bodies to custom models easily
 - Perform pre/post operations (e.g: logging, validation, defaults...)
 - Save session data based on the client state live cycle (e.g: auth tokens, sessions...)
 - Minimize the boilerplate process while writing API clients
-- HTTP agent agnostic: pick what do you need based on the environment (`request`, `superagent`, `$.ajax`, `angular.$http` via agents)
+- HTTP agent agnostic: pick what you need based on the environment (`request`, `superagent`, `$.ajax`, `angular.$http` via agents)
 - Ubiquitous: write one API. Run it in any JavaScript environment
 - Easy to test via interceptor/mock middleware
 
@@ -129,26 +129,26 @@ Runs in any [ES5 compliant](http://kangax.github.io/mcompat-table/es5/) engine:
 
 I initially wrote this library to mitigate my frustration while writing further programmatic API clients for multiple HTTP layers across JavaScript environments.
 
-After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, so then an specific solution can be conceived to simplify the process and provide a more convenient layer to do it better and faster.
+After dealing with recurrent scenarios, I realized that the process is essentially boilerplate in most cases, so then a specific solution can be conceived to simplify the process and provide a more convenient layer to do it better and faster.
 
 In most scenarios, when you are writing APIs, you have to build a programmatic layer which maps to specific HTTP resources, usually when dealing with resource-oriented HTTP services.
 With `theon` you can decouple those parts and provide a convenient abstraction between the HTTP interface details and the programmatic layer you want to provide to the API consumers.
 
-Additionally, it provides a rich set of features to make you programmatic layer more powerful for either you as API builder and for your API consumers through a hierarchical middleware/hook layer which allows you to plug in and compose intermediate logic.
+Additionally, it provides a rich set of features to make your programmatic layer more powerful for either you as an API builder or for your API consumers through a hierarchical middleware/hook layer which allows you to plug in and compose intermediate logic.
 
 I took some inspiration from [Google API client for node.js](https://github.com/google/google-api-nodejs-client) and in the way they are building a huge programmatic API layer, but you can probably do it even better with `theon`.
 
 ## Entities
 
-`theon` introduces the concept of entity, which is basically an abstract object which stores and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents a hierachical entity in your API structure, which is usually mapped into an HTTP resource, subresource or endpoint.
+`theon` introduces the concept of entity, which is basically an abstract object which stores and encapsulates HTTP specific protocol level data (such as headers, method, path or query params) and represents a hierarchical entity in your API structure, which is usually mapped into an HTTP resource, subresource or endpoint.
 
-Entities hierarchy in `theon` are analog to a [radix tree](https://en.wikipedia.org/wiki/Radix_tree) structure, providing a associative implicit linking and feature inheritance across hierarchical entities.
+Entities hierarchy in `theon` are analogue to a [radix tree](https://en.wikipedia.org/wiki/Radix_tree) structure, providing an associative implicit linking and feature inheritance across hierarchical entities.
 
-In order to build your API you have to understand and use the concept of entity properly, and know how to use the different built-in entitities provided by `theon`.
+In order to build your API you have to understand and use the concept of entity properly, and know how to use the different built-in entities provided by `theon`.
 
-Entities are also useful as a sort of extensibility and composition layer, since you can plug in them at any level of your API. Also, entities can inherit from other entities, inheriting its functionality, configuration, middleware and hooks too.
+Entities are also useful as a sort of extensibility and composition layer since you can plug in them at any level of your API. Also, entities can inherit from other entities, inheriting its functionality, configuration, middleware and hooks.
 
-The following graph represent the relation between theon entities and a common HTTP REST-like endpoint:
+The following graph represents the relation between `theon` entities and a common HTTP REST-like endpoint:
 
 ```
    /api         /users          /id      /favorites
@@ -158,14 +158,14 @@ The following graph represent the relation between theon entities and a common H
   [mixin]?      [mixin]?      [mixin]?    [mixin]?
 ```
 
-### Supported entities
+### Supported Entities
 
 #### Client
 
 `client` represents the API client root high-level entity.
-Every `theon` instance is a client entity itself, and it's mostly used as parent container for nested entities.
+Every `theon` instance is a client entity itself, and it's mostly used as a parent container for nested entities.
 
-Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as headers, at client entity level. That means all the configuration attached at client level will be inherited in child entities.
+Since `theon` is fully hierarchical, you can bind HTTP-specific fields, such as headers, at the client entity level. That means all the configurations attached at the client level will be inherited in child entities.
 
 - Can inherit behavior from other `entity`, usually another `client`.
 - Can host `collections` and `resources`.
@@ -174,9 +174,9 @@ Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as 
 
 #### Collection
 
-`collection` represents a set of entities. It was mainly designed to store a bunch of  other `collection` or `resources`, mostly used as sort of isolation entity to divide and compose different parts of your API.
+`collection` represents a set of entities. It was mainly designed to store a bunch of  other `collection` or `resources`, mostly used as a sort of isolation entity to divide and compose different parts of your API.
 
-- Can inherit behavior from other `entity`, usually a `client`.
+- Can inherit behaviour from other `entity`, usually a `client`.
 - Can host other `collections` or `resources`.
 - Can have `mixins`.
 - Cannot perform requests itself.
@@ -187,7 +187,7 @@ Since `theon` is fully hierarchical, you can bind HTTP specific fields, such as 
 `resource` is an entity designed to be attached to a specific HTTP resource, endpoint or HTTP action.
 They're usually embedded as part of collections.
 
-- Can inherit behavior from other `entity`, usually a `collection`.
+- Can inherit behaviour from other `entity`, usually a `collection`.
 - Can host `collections`, `resource`.
 - Can have `mixins`.
 - Can perform requests.
@@ -195,13 +195,13 @@ They're usually embedded as part of collections.
 
 #### Mixin
 
-A `mixin` is a custom user defined function hosting any kind of logic and supporting a free arguments input.
+A `mixin` is a custom user-defined function hosting any kind of logic and supporting a free arguments input.
 
-The `mixin` entity is analog to its programmaming terminology, meaning it mostly to extend a component with some specific feature as a sort of plug in.
+The `mixin` entity is an analogue to its programming terminology, meaning it mostly extends a component with some specific feature as a sort of plug-in.
 
 [Mixin example](https://github.com/h2non/theon/blob/master/examples/mixin.js).
 
-- Can inherit behavior from any other entity.
+- Can inherit behaviour from any other entity.
 - Cannot host other entities.
 - Cannot have other `mixins`.
 - Can perform requests (either by native implementation or inheriting the client from parent entities).
@@ -213,9 +213,9 @@ Let's imagine we want to create a programmatic API client to interact with a rem
 
 We have the following requirements:
 
-- The HTTP API only uses JSON as interchange format.
+- The HTTP API only uses JSON as an interchange format.
 - We have to pass a header to define the API version we want to use.
-- Certain resources are protected and we must to pass an authorization token.
+- Certain resources are protected and we must pass an authorization token.
 
 We have the following HTTP interface:
 
@@ -333,7 +333,7 @@ api.users
   .get()
    // important: we have to pass the path param
   .param('id', 1)
-  // Note the don't have to explicitely pass any authentication credentials
+  // Note the don't have to explcitly pass any authentication credentials
   .end(function (err, res) {
     console.log('User:', res.body)
   })
@@ -376,13 +376,13 @@ Take a look to the [`examples`](https://github.com/h2non/theon/tree/master/examp
 
 ## HTTP adapters
 
-One of the design goals of `theon` is making it HTTP agent agnostic, meaning it's not coupled to any specific HTTP client and runtime environment boundaries.
+One of the design goals of `theon` is to make it HTTP agent agnostic, meaning it's not coupled to any specific HTTP client and runtime environment boundaries.
 
-In other words, `theon` gives the ability to the developer to pick the prefered one based on its particular needs and runtime scenario, so if you're creating an API client for browsers and particular framework, let's say AngularJS, you don't have any constraint impossed by `theon` to use the native HTTP agent natively provided by the framework.
+In other words, `theon` gives the ability developer to pick the preferred one based on its particular needs and runtime scenario, so if you're creating an API client for browsers and a particular framework, let's say AngularJS, you don't have any constraint imposed by `theon` to use the native HTTP agent natively provided by the framework.
 
-To clarify this, it worth to say that `theon` is not an HTTP client perse, neither implements stuff related to the HTTP network domain, it's just an abstraction layer providing a DSL to build and configure high-level HTTP protocol specific stuff.
+To clarify this, it is worth saying that `theon` is not an HTTP client per se, and neither implements stuff related to the HTTP network domain, it's just an abstraction layer providing a DSL to build and configure high-level HTTP protocol-specific stuff.
 
-So instead of implementing an HTTP client, `theon` relies on an external adapter which should be responsible of communicating with the real HTTP client, making it accesible by the proxy layer between `theon` interface and the target HTTP agent. Then all the HTTP network level stuff is completely delegated in the agent adapter. When the request is handled by the real HTTP agent, it should resolve the result properly and to report it to `theon` layer.
+So instead of implementing an HTTP client, `theon` relies on an external adapter which should be responsible for communicating with the real HTTP client, making it accessible by the proxy layer between `theon` interface and the target HTTP agent. Then all the HTTP network level stuff is completely delegated in the agent adapter. When the request is handled by the real HTTP agent, it should resolve the result properly and report it to `theon` layer.
 
 In other to be more pragmatic, `theon` provides by default two HTTP adapters for both node.js and browser environments, but it's up to you to write your own adapter to talk with another HTTP client, such as `superagent`, `got`, `$.ajax`, `angular.$http` or any other.
 
@@ -422,7 +422,7 @@ function httpAdapter(
 
 ### Writing HTTP adapters
 
-One of the main responsabilities of an HTTP agent adapter is acting as a interface mapper between `theon` scope and the target HTTP client, adapting both request and response interfaces.
+One of the main responsibilities of an HTTP agent adapter is acting as an interface mapper between `theon` scope and the target HTTP client, adapting both request and response interfaces.
 
 Here you can see an example of an HTTP adapter implementation for the node's [request](https://github.com/request/request) package:
 
@@ -501,7 +501,7 @@ Potential upcoming plugins based on my personal needs and wishes:
 
 - **consul** - Server discovery and balancing using Consul.
 - **retry** - Provide a simple retry logic policy in your API clients.
-- **JSONSchema** - Validate incoming and outgoing bodies againts a JSON schema.
+- **JSONSchema** - Validate incoming and outgoing bodies against a JSON schema.
 - **APIDocs** - Generate Swagger/Apiary docs reading the resource metadata annotations.
 
 ## Middleware
@@ -510,15 +510,15 @@ Potential upcoming plugins based on my personal needs and wishes:
 Extensibility is mostly achieved via its built-in middleware layer,
 which allows you to plug in and extend the client features with custom logic.
 
-Middleware layer has a hierarchical design, meaning you can plug in middlewares in parent scopes and them will be called from child scopes. For instance, you can plug in a middleware tasks to both global and resource levels. Then both middleware will be called, from top to bottom in hierarchical order, thus global will come always first.
+The middleware layer has a hierarchical design, meaning you can plug in middleware in parent scopes and they will be called from child scopes. For instance, you can plug in middleware tasks to both global and resource levels. Then both middleware will be called, from top to bottom in hierarchical order, thus global will come always first.
 
-Middleware layer behavies like a FIFO queue with control-flow capabilities, where asynchronicity is supported by detault.
+Middleware layer behaves like a FIFO queue with control-flow capabilities, where asynchronicity is supported by default.
 
-It was strongly inspired in the well-known middleware pattern by connect/express.
+It was strongly inspired by the well-known middleware pattern of connect/express.
 
 ### Phases
 
-- **request** - Dispatched before send the request over the network
+- **request** - Dispatched before sending the request over the network
 - **response** - Dispatched after the client receives the response
 
 ### API
@@ -601,14 +601,14 @@ See [examples/middleware.js](https://github.com/h2non/theon/tree/master/examples
 
 `theon` provides a built-in layer to attach hooks to observe and manage in detail the different phases in the HTTP flow live cycle inside your client.
 
-They has been specially designed to provide control capabilities across the different internal phases of any HTTP transaction handled internally in `theon` clients.
-Furthermore, they are mostly useful to perform `pre` and `post` processing operations, such as defining defaults params and adapt/map things before they're processed by subsequent phases.
+They have been specially designed to provide control capabilities across the different internal phases of any HTTP transaction handled internally in `theon` clients.
+Furthermore, they are mostly useful for performing `pre` and `post` processing operations, such as defining default params and adapting/mapping things before they're processed by subsequent phases.
 
-Hooks behavies like a traditional middleware, meaning you can alter, replace, intercept or even cancel any HTTP transaction at any stage.
+Hooks behaves like a traditional middleware, meaning you can alter, replace, intercept or even cancel any HTTP transaction at any stage.
 
-Hooks can be attached to any entity, from client globa scope to resource level.
+Hooks can be attached to any entity, from client global scope to resource level.
 
-Hooks also rely in control-flow capabilities, so you can run asynchronous tasks inside them.
+Hooks also rely on control-flow capabilities, so you can run asynchronous tasks inside them.
 
 ### Phases
 
@@ -710,18 +710,18 @@ See [examples/hooks.js](https://github.com/h2non/theon/tree/master/examples/hook
 
 ## Validators
 
-A validator is technically a middleware that is executed after the standard middleware call chain and it's responsible of validating the request/response objects, for instance, you can validate payloads againts a JSON schema or HAR interface.
+A validator is technically a middleware that is executed after the standard middleware call chain and it's responsible for validating the request/response objects, for instance, you can validate payloads against a JSON schema or HAR interface.
 
-Validators can be attached to any `theon` entity and supports both request/response phases.
+Validators can be attached to any `theon` entity and support both request/response phases.
 
-You can use a validator to perform a validation of the request object before it's sent over the network in order to verify it has all the required params expected by the server, such as query params, headers, payload...
+You can use a validator to perform a validation of the request object before it's sent over the network in order to verify it has all the required parameters expected by the server, such as query params, headers, payload...
 
-In the other hand, you can validate the response too, in order to determine if it can satisfy a certain requirements in the client side (e.g: response body, error messages, headers...).
+On the other hand, you can validate the response too, in order to determine if it can satisfy certain requirements on the client side (e.g: response body, error messages, headers...).
 
 ### Phases
 
-- **request** - Validate the request object before it's send over the network
-- **response** - Validate the response object once it has been received in the client
+- **request** - Validate the request object before it's sent over the network
+- **response** - Validate the response object once it has been received by the client
 
 ### API
 
@@ -743,7 +743,7 @@ Attach a new response validator at entity scope only.
 
 #### Validator notation
 
-Validators has the same interface as middleware or hooks.
+Validators have the same interface as middleware or hooks.
 
 A `validator` function must implement the following TypeScript notation:
 
@@ -805,13 +805,13 @@ See [examples/validator.js](https://github.com/h2non/theon/tree/master/examples/
 
 Interceptors are a useful built-in feature provided in `theon` when you need to intercept some HTTP flow.
 
-It becomes particularly useful to mock requests while testing or to provide default responses given a certain conditions.
+It becomes particularly useful to mock requests while testing or to provide default responses given certain conditions.
 
-Technically speaking it's equivalent to a middleware, so you can rely in control flow capatibilities and inspect both request/response objects to determine when the traffic should be intercepted.
+Technically speaking it's equivalent to a middleware, so you can rely on control flow capabilities and inspect both request/response objects to determine when the traffic should be intercepted.
 
 ### Phases
 
-- **before dial** - Executed before proceed with the network dialing phase.
+- **before dial** - Executed before proceeding with the network dialling phase.
 
 ### API
 
@@ -825,7 +825,7 @@ Attach a new interceptor at entity scope only.
 
 #### Interceptor notation
 
-Validators has the same interface as middleware or hooks.
+Validators have the same interface as middleware or hooks.
 
 An `interceptor` function must implement the following TypeScript notation:
 
@@ -886,9 +886,9 @@ See [examples/interceptor.js](https://github.com/h2non/theon/tree/master/example
 
 ## Evaluators
 
-Evaluators are designed to inspect the response object and determine, given a certain user-defined rules, if the request was failed or not, and handle it accordinly.
+Evaluators are designed to inspect the response object and determine, given certain user-defined rules, if the request failed or not, and handle it accordingly.
 
-By default `theon` doesn't handle error status such as `400` as failed request, but you can use a validator to do it and behave accordingly to your needs.
+By default `theon` doesn't handle error status such as `400` as a failed request, but you can use a validator to do it and behave accordingly to your needs.
 
 ### Phases
 
@@ -902,7 +902,7 @@ Attach a new evaluator function.
 
 #### Evaluator notation
 
-Evaluators has the same interface as middleware or hooks.
+Evaluators have the same interface as middleware or hooks.
 
 An `evaluator` function must implement the following TypeScript notation:
 
@@ -981,7 +981,7 @@ Create a new `mixin` entity.
 
 #### theon.agents
 
-API to manage HTTP agents adapters.
+API to manage HTTP agent adapters.
 
 #### theon.agents.agents = { name: agentAdapterFn }
 
@@ -989,7 +989,7 @@ Map of agents by name and adapter function.
 
 #### theon.agents.defaults() => `function`
 
-Retrieve the default HTTP agent adapter bases on the runtime environment.
+Retrieve the default HTTP agent adapter based on the runtime environment.
 
 #### theon.agents.get(name) => `function`
 
@@ -1101,13 +1101,13 @@ This method is mostly used internally.
 
 #### Request#parent = `Request`
 
-Reference to the parent `Request`, in case that it has a parent node.
+Reference to the parent `Request`, in case it has a parent node.
 
 #### Request#root = `Request`
 
-Reference to the parent root node, in case that it has a parent node.
+Reference to the parent root node, in case it has a parent node.
 
-Internally, it walks across all the parent nodes recursively until find the latest.
+Internally, it walks across all the parent nodes recursively until finds the latest.
 
 #### Request#store = `Store`
 
@@ -1121,7 +1121,7 @@ Reference to the current request `Context` instance.
 
 Reference to the root public API client DSL generated via: `.render()`.
 
-Useful to make public calls from nested/child entities to parent entities via the public generated DSL.
+Useful to make public calls from nested/child entities to parent entities via the public-generated DSL.
 
 #### Request#url(url)
 
@@ -1129,11 +1129,11 @@ Define the base URL of the server.
 
 #### Request#path(path)
 
-Define an URL final path value. `path` will be concatenated to `basePath`.
+Define a URL final path value. `path` will be concatenated to `basePath`.
 
 #### Request#basePath(path)
 
-Define a URL base path value.
+Define a URL-based path value.
 
 #### Request#method(name)
 
@@ -1224,11 +1224,11 @@ Attach a response middleware restricted to the current entity scope.
 
 #### Request#before(middleware)
 
-Attach a middleware as observer hook in the before.
+Attach a middleware as an observer hook in the before.
 
 #### Request#after(middleware)
 
-Attach a middleware as observer hook in the after phase.
+Attach a middleware as an observer hook in the after phase.
 
 #### Request#observe(event, hook)
 
@@ -1247,7 +1247,7 @@ Alias: `requestEntityValidator`
 #### Request#evaluator(fn)
 
 Attach a `before response` hook to evaluate the response and determine if it's valid or not.
-Useful to evaludate response status and force an error. E.g: `status` >= 400
+Useful to evaluate response status and force an error. E.g: `status` >= 400
 
 #### Request#entityEvaluator(fn)
 
@@ -1278,7 +1278,7 @@ Similar to `model` feature but operating overwriting the original `body`.
 #### Request#response(fn)
 Alias: `handle`
 
-Attach a function to handle the response object in case that the request success.
+Attach a function to handle the response object in case the request is successful.
 
 Function arguments are:
 
@@ -1293,16 +1293,16 @@ Dispatch the request, sending it over the network.
 #### Request#then(onFullfilled, onRejected)
 Return: `Promise`
 
-Promise based interface to handle the request resolution, dispatching the request over the network, if necessary.
+Promise-based interface to handle the request resolution, dispatching the request over the network, if necessary.
 
 #### Request#catch(onRejected)
 Return: `Promise`
 
-Promise based interface to handle the request error, dispatching the request over the network, if necessary.
+Promise-based interface to handle the request error, dispatching the request over the network, if necessary.
 
 #### Request#pipe(stream)
 
-node.js stream compatible interface to pipe writable streams with the response body.
+node.js stream-compatible interface to pipe writable streams with the response body.
 
 Note that the used HTTP agent must support streams too, if not, they are ignored.
 
@@ -1398,7 +1398,7 @@ Reference to the parent root `Request` instance.
 
 Reference to the root public API client DSL generated via: `.render()`.
 
-Useful to make public calls from nested/child entities to parent entities via the public generated DSL.
+Useful to make public calls from nested/child entities to parent entities via the public-generated DSL.
 
 #### RawContext#client = `Request`
 
